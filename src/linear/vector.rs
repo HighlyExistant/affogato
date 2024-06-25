@@ -457,6 +457,9 @@ macro_rules! impl_all_from {
         )+
     };
 }
+macro_rules! replace_expr {
+    ($_t:tt $sub:expr) => {$sub};
+}
 macro_rules! impl_zero {
     ($($element:tt),+) => {
         fn is_zero(&self) -> bool {
@@ -466,9 +469,8 @@ macro_rules! impl_zero {
             *self = Self::zero();
         }
         fn zero() -> Self {
-            Self {
-                $($element: T::zero()),+
-            }
+            // $(replace_expr!($element T::zero()););
+            Self::new($(replace_expr!($element T::zero())),+) 
         }
     };
 }

@@ -34,7 +34,7 @@ impl<T: Number> Cube<T> {
         let mut t = *self;
         // println!("aabb.min {:?} t.min {:?} min = {:?}", aabb.min, t.min, t.min.min(&aabb.min));
         t.min = t.min.min(&aabb.min);
-        t.max = t.min.max(&aabb.max);
+        t.max = t.max.max(&aabb.max);
         t
     }
     pub fn vector_adjust_bounds(&self, v: Vector3<T>) -> Self {
@@ -43,6 +43,12 @@ impl<T: Number> Cube<T> {
         t.max = t.min.max(&v);
         t
     }
+    pub fn fix_bounds(&self) -> Self {
+        let mut t = *self;
+        t.min = self.min.min(&self.max);
+        t.max = self.max.max(&self.min);
+        t
+    } 
     pub fn inverted_bounds_default() -> Self {
         Self { min: Vector3::from(T::max_value()), max: Vector3::from(T::min_value()) }
     }
@@ -147,5 +153,11 @@ impl CalculateCentroid for Square<f64> {
             (self.min.x + self.max.x)*0.5, 
             (self.min.y + self.max.y)*0.5, 
         )
+    }
+}
+
+impl From<Triangle3D<f32>> for Cube<f32> {
+    fn from(value: Triangle3D<f32>) -> Self {
+        Self { min: value.v[0].min(&value.v[1].min(&value.v[2])), max: value.v[0].max(&value.v[1].max(&value.v[2])) }
     }
 }
