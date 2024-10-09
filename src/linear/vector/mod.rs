@@ -1,19 +1,27 @@
 #![allow(unused)]
 use core::fmt;
-use std::ops::Add;
+use std::{fmt::Debug, ops::{Add, Div, Neg}};
 
-use num_traits::{AsPrimitive, Bounded, Float, Zero};
+use num_traits::{AsPrimitive, Bounded, Float, Num, One, Signed, Zero};
 
 use crate::{algebra::Quaternion, FloatingPoint, Number, Rotation, SignedNumber};
-
-use super::FVec2;
+mod atomic;
+mod polar;
+pub use polar::*;
 pub trait CrossProduct {
     fn cross(&self, other: &Self) -> Self::Product;
     type Product;
 }
-pub trait Vector {
+pub trait Vector: num_traits::NumOps + Sized {
     fn length(&self) -> Self::Scalar where Self::Scalar: Float { self.dot(self).sqrt() }
     fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: Float { self.dot(other).sqrt() }
+    /// Direction gives a normalized vector
+    /// that points to the given point.
+    fn direction_to(&self, point: &Self) -> Self 
+        where Self::Scalar: Float,
+        Self: std::ops::Sub<Output = Self> + Sized + Copy { 
+            point.sub(*self).normalize()
+    }
     fn dot(&self, other: &Self) -> Self::Scalar;
     fn project(&self, other: &Self) -> Self where Self::Scalar: Float;
     fn len(&self) -> usize;
@@ -23,6 +31,13 @@ pub trait Vector {
     fn min(&self, other: &Self) -> Self;
     fn max(&self, other: &Self) -> Self;
     type Scalar: Number;
+}
+pub trait IntoRadialCoordinate<'a>: Vector 
+    where Self: 'a {
+    type Radial: From<&'a Self>;
+    fn into_radial(&'a self) -> Self::Radial {
+        Self::Radial::from(self)
+    }
 }
 pub trait Orthogonality: Vector {
     /// Gets a vector whos dot dot product with the current vector equals 0.
@@ -271,13 +286,74 @@ impl<T: Number> Bounded for Vector4<T> {
 
 #[repr(C)]
 #[derive(Default, Clone, Copy)]
-pub struct Vector2<T: Sized + Number> {
+pub struct Vector2<T> {
     pub x: T,
     pub y: T,
 }
-
+impl<T> Vector2<T> {
+    pub const fn new(x: T, y: T) -> Self { Self { x, y } }
+}
 impl<T: Sized + Number> Vector2<T> {
-    pub fn new(x: T, y: T) -> Self { Self { x, y } }
+    #[cfg(feature="rand")]
+    pub fn random(range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+        use rand::Rng;
+        Self::new(rand::thread_rng().gen_range(range.clone()), rand::thread_rng().gen_range(range.clone()))
+    }
+    #[cfg(feature="rand_pcg")]
+    pub fn pseudo_random<P>(pcg: &mut P, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform,
+        P: rand::RngCore {
+        use rand::Rng;
+        Self::new(pcg.gen_range(range.clone()), pcg.gen_range(range.clone()))
+    }
+    pub fn rotate_90(&self) -> Self 
+        where T: Neg<Output = T> {
+        Self::new(-self.y, self.x)
+    }
+    pub fn rotate_180(&self) -> Self 
+        where T: Neg<Output = T> {
+        Self::new(self.x, -self.y)
+    }
+    pub fn rotate_270(&self) -> Self 
+        where T: Neg<Output = T> {
+        Self::new(self.y, -self.x)
+    }
+    pub fn right() -> Self {
+        Self::new(T::one(), T::zero())
+    }
+    pub fn left() -> Self 
+        where T: std::ops::Neg<Output = T> {
+        Self::new(-T::one(), T::zero())
+    }
+    pub fn top() -> Self {
+        Self::new(T::zero(), T::one())
+    }
+    pub fn bottom() -> Self 
+        where T: std::ops::Neg<Output = T> {
+        Self::new(T::zero(), -T::one())
+    }
+    pub fn abs(&self) -> Self 
+        where T: Signed {
+        Self::new(self.x.abs(), self.y.abs())
+    }
+    pub fn cos(&self)-> T 
+        where T: FloatingPoint {
+        self.normalize().dot(&Self::right())
+    }
+    pub fn sin(&self)-> T 
+        where T: FloatingPoint {
+        T::from_f64(std::f64::consts::PI.div(2.0)).unwrap() - self.cos()
+    }
+    pub fn tan(&self)-> T 
+        where T: FloatingPoint {
+        let normalize = self.normalize();
+        normalize.y.div(normalize.x)
+    }
+    pub fn angle(&self) -> T 
+        where T: FloatingPoint {
+        self.cos().acos()
+    }
 }
 
 impl<T: Sized + Number> Vector for Vector2<T> { impl_vec!(2, x, y); type Scalar = T; }
@@ -290,10 +366,15 @@ impl<T: Number> CrossProduct for Vector2<T> {
     type Product = T;
 }
 
+impl<'a, T> IntoRadialCoordinate<'a> for Vector2<T> 
+    where T: FloatingPoint {
+    type Radial = PolarCoordinate<T>;
+}
+
 #[cfg(not(feature = "glsl"))]
 #[repr(C)]
 #[derive(Default, Clone, Copy)]
-pub struct Vector3<T: Number> {
+pub struct Vector3<T> {
     pub x: T,
     pub y: T,
     pub z: T,
@@ -301,17 +382,42 @@ pub struct Vector3<T: Number> {
 #[cfg(feature = "glsl")]
 #[repr(C)]
 #[derive(Default, Clone, Copy)]
-pub struct Vector3<T: Number> {
+pub struct Vector3<T> {
     pub x: T,
     pub y: T,
     pub z: T,
     padding: T,
 }
-impl<T: Number> Vector3<T> {
+impl<T> Vector3<T> {
     #[cfg(not(feature = "glsl"))]
     pub fn new(x: T, y: T, z: T) -> Self { Self { x, y, z } }
+}
+impl<T: Number> Vector3<T> {
     #[cfg(feature = "glsl")]
     pub fn new(x: T, y: T, z: T) -> Self { Self { x, y, z, padding: T::zero() } }
+    pub fn abs(&self) -> Self 
+        where T: Signed {
+        Self::new(self.x.abs(), self.y.abs(), self.z.abs())
+    }
+    pub fn xy(&self) -> Vector2<T> {
+        Vector2::new(self.x, self.y)
+    }
+    pub fn yx(&self) -> Vector2<T> {
+        Vector2::new(self.y, self.x)
+    }
+    #[cfg(feature="rand")]
+    pub fn random(range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+        use rand::Rng;
+        Self::new(rand::thread_rng().gen_range(range.clone()), rand::thread_rng().gen_range(range.clone()), rand::thread_rng().gen_range(range))
+    }
+    #[cfg(feature="rand_pcg")]
+    pub fn pseudo_random<P>(pcg: &mut P, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform,
+        P: rand::RngCore {
+        use rand::Rng;
+        Self::new(pcg.gen_range(range.clone()), pcg.gen_range(range.clone()), pcg.gen_range(range.clone()))
+    }
 }
 impl<T: Number> CrossProduct for Vector3<T> {
     type Product = Self;
@@ -331,17 +437,39 @@ impl<T: Sized + Number> Vector for Vector3<T> {
 }
 impl_ops!(Vector3, x, y, z);
 
+impl<'a, T> IntoRadialCoordinate<'a> for Vector3<T> 
+    where T: FloatingPoint {
+    type Radial = SphericalCoordinate<T>;
+}
 #[repr(C)]
 #[derive(Default, Clone, Copy)]
-pub struct Vector4<T: Sized + Number> {
+pub struct Vector4<T> {
     pub x: T,
     pub y: T,
     pub z: T,
     pub w: T,
 }
-
+impl<T> Vector4<T>  {
+    pub const fn new(x: T, y: T, z: T, w: T) -> Self { Self { x, y, z, w } }
+}
 impl<T: Sized + Number> Vector4<T> {
-    pub fn new(x: T, y: T, z: T, w: T) -> Self { Self { x, y, z, w } }
+    pub fn abs(&self) -> Self 
+        where T: Signed {
+        Self::new(self.x.abs(), self.y.abs(), self.z.abs(), self.w.abs())
+    }
+    #[cfg(feature="rand")]
+    pub fn random(range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+        use rand::Rng;
+        Self::new(rand::thread_rng().gen_range(range.clone()), rand::thread_rng().gen_range(range.clone()), rand::thread_rng().gen_range(range.clone()), rand::thread_rng().gen_range(range.clone()))
+    }
+    #[cfg(feature="rand_pcg")]
+    pub fn pseudo_random<P>(pcg: &mut P, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform,
+        P: rand::RngCore {
+        use rand::Rng;
+        Self::new(pcg.gen_range(range.clone()), pcg.gen_range(range.clone()), pcg.gen_range(range.clone()), pcg.gen_range(range.clone()))
+    }
 }
 
 impl<T: Sized + Number> Vector for Vector4<T> { impl_vec!(4, x, y, z, w); type Scalar = T; }
@@ -371,12 +499,12 @@ impl<T: Number> From<Vector2<T>> for Vector3<T> {
         #[cfg(not(feature = "glsl"))]
         return Self { x: value.x, y: value.y, z: T::one() };
         #[cfg(feature = "glsl")]
-        return Self {x: value.x, y: value.y, z: T::one(), padding: T::zero() };
+        return Self {x: value.x, y: value.y, z: T::zero(), padding: T::zero() };
     }
 }
 impl<T: Number> From<Vector3<T>> for Vector4<T> {
     fn from(value: Vector3<T>) -> Self {
-        Self { x: value.x, y: value.y, z: value.z, w: T::one() }
+        Self { x: value.x, y: value.y, z: value.z, w: T::zero() }
     }
 }
 impl<T: Number> From<Vector4<T>> for Vector3<T> {
@@ -387,7 +515,11 @@ impl<T: Number> From<Vector4<T>> for Vector3<T> {
         return Self { x: value.x, y: value.y, z: value.z, padding: T::zero() };
     }
 }
-
+impl<T: Number> From<Vector2<T>> for Vector4<T>  {
+    fn from(value: Vector2<T>) -> Self {
+        Self::new(value.x, value.y, T::zero(), T::zero())
+    }
+}
 impl<T: FloatingPoint> Rotation<T> for Vector3<T> 
     where f32: AsPrimitive<T>,
     f64: AsPrimitive<T> {
@@ -395,7 +527,7 @@ impl<T: FloatingPoint> Rotation<T> for Vector3<T>
     fn euler(&self) -> Vector3<T> { *self }
 }
 
-impl<T: fmt::Debug + Number> fmt::Debug for Vector2<T> {
+impl<T: Debug> Debug for Vector2<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vector3")
             .field("x", &self.x)
@@ -403,7 +535,7 @@ impl<T: fmt::Debug + Number> fmt::Debug for Vector2<T> {
             .finish()
     }
 }
-impl<T: fmt::Debug + Number> fmt::Debug for Vector3<T> {
+impl<T: Debug> Debug for Vector3<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vector3")
             .field("x", &self.x)
@@ -412,7 +544,7 @@ impl<T: fmt::Debug + Number> fmt::Debug for Vector3<T> {
             .finish()
     }
 }
-impl<T: fmt::Debug + Number> fmt::Debug for Vector4<T> {
+impl<T: Debug> Debug for Vector4<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vector3")
             .field("x", &self.x)
@@ -519,5 +651,46 @@ impl<T: Sized + FloatingPoint> Orthonormality for Vector2<T> {
         } else {
             if polarity { Self::new(-self.y/len, self.x/len) } else { Self::new(self.y/len, -self.x/len) }
         }
+    }
+}
+
+
+impl<T: One + Number> num_traits::One for Vector2<T> {
+    fn is_one(&self) -> bool
+        where
+            Self: PartialEq, {
+        self.x == T::one() && self.y == T::one()
+    }
+    fn one() -> Self {
+        Self::new(T::one(), T::one())
+    }
+    fn set_one(&mut self) {
+        *self = Self::one()
+    }
+}
+impl<T: One + Number> num_traits::One for Vector3<T> {
+    fn is_one(&self) -> bool
+        where
+            Self: PartialEq, {
+        self.x == T::one() && self.y == T::one() && self.z== T::one()
+    }
+    fn one() -> Self {
+        Self::new(T::one(), T::one(), T::one())
+    }
+    fn set_one(&mut self) {
+        *self = Self::one()
+    }
+}
+impl<T: One + Number> num_traits::One for Vector4<T> {
+    fn is_one(&self) -> bool
+        where
+            Self: PartialEq, {
+        self.x == T::one() && self.y == T::one() && self.z== T::one() && self.w == T::one()
+    }
+    fn one() -> Self {
+        Self::new(T::one(), T::one(), T::one(), T::one())
+    }
+    fn set_one(&mut self) {
+        *self = Self::one()
     }
 }

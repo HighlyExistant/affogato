@@ -11,6 +11,7 @@ pub mod linear;
 pub mod algebra;
 pub mod geometry;
 pub mod polynomial;
+pub mod spatial;
 
 pub trait Number:
     Copy
@@ -28,6 +29,7 @@ pub trait Number:
     + num_traits::Bounded
     + num_traits::Zero
     + num_traits::One
+    + num_traits::FromPrimitive
 {
 }
 impl<T> Number for T where
@@ -44,6 +46,7 @@ impl<T> Number for T where
         + PartialEq
         + PartialOrd
         + num_traits::Bounded
+        + num_traits::FromPrimitive
         {
 }
 
@@ -103,11 +106,23 @@ pub fn bilinear_interpolation<T: FloatingPoint>(q12: T, q22: T, q11: T, q21: T, 
 
 #[cfg(test)]
 mod tests {
+    use geometry::Segment2D;
+    use linear::{DVec3, FVec2, FVec3, SphericalCoordinate};
+
     use super::*;
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        let segment = Segment2D::new(FVec2::from(0.0), FVec2::new(1.0, 0.0));
+        println!("{}", segment.length());
+    }
+    #[test]
+    fn spherical() {
+        let vector = DVec3::new(1.5, 1.6, 1.7);
+        let spherical = SphericalCoordinate::from(vector);
+        let back_to = DVec3::from(spherical);
+        println!("vector {vector:?}");
+        println!("spherical {spherical:?}");
+        println!("back_to {back_to:?}");
     }
 }
