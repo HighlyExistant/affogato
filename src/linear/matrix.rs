@@ -301,6 +301,13 @@ impl<T: Number> Matrix3<T>  {
             T::zero(), T::zero(), v.z
         )
     }
+    pub fn from_translation(v: Vector3<T>) -> Self {
+        Matrix3::new(
+            T::one(), T::zero(), T::zero(), 
+            T::zero(), T::one(), T::zero(), 
+            v.x, v.y, v.z
+        )
+    }
 }
 
 // traits for bitwise operations

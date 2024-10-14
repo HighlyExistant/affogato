@@ -99,9 +99,9 @@ impl<T: Number> Default for Transform2D<T> {
 impl<T: FloatingPoint> Transformation2D<T> for Transform2D<T> {
     fn matrix(&self) -> Matrix3<T> {
         Matrix3::new(
-            self.rotation.cos()*self.scaling.x, -(self.rotation.sin()), self.translation.x, 
-            self.rotation.sin(), self.rotation.cos()*self.scaling.y, self.translation.y, 
-            T::zero(), T::zero(), T::one()
+            self.rotation.cos()*self.scaling.x, -(self.rotation.sin()), T::zero(), 
+            self.rotation.sin(), self.rotation.cos()*self.scaling.y, T::zero(), 
+            self.translation.x, self.translation.y, T::one()
         )
     }
     fn translation(&self) -> Vector2<T> {

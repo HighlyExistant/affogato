@@ -1,6 +1,6 @@
 #![allow(unused)]
 use core::fmt;
-use std::{fmt::Debug, ops::{Add, Div, Neg}};
+use std::{fmt::Debug, ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign}};
 
 use num_traits::{AsPrimitive, Bounded, Float, Num, One, Signed, Zero};
 
@@ -12,7 +12,17 @@ pub trait CrossProduct {
     fn cross(&self, other: &Self) -> Self::Product;
     type Product;
 }
-pub trait Vector: num_traits::NumOps + Sized {
+pub trait Vector: num_traits::NumOps + Sized 
+    where Self: Add<Self::Scalar, Output = Self> +
+        Sub<Self::Scalar, Output = Self> +
+        Mul<Self::Scalar, Output = Self> +
+        Div<Self::Scalar, Output = Self> +
+        Rem<Self::Scalar, Output = Self> +
+        AddAssign<Self::Scalar> +
+        SubAssign<Self::Scalar> +
+        MulAssign<Self::Scalar> +
+        DivAssign<Self::Scalar> +
+        RemAssign<Self::Scalar> {
     fn length(&self) -> Self::Scalar where Self::Scalar: Float { self.dot(self).sqrt() }
     fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: Float { self.dot(other).sqrt() }
     /// Direction gives a normalized vector
@@ -144,6 +154,31 @@ macro_rules! impl_ops {
         impl<T: Number> std::ops::RemAssign for $vector<T>  {
             fn rem_assign(&mut self, rhs: Self) {
                 $(self.$element %= rhs.$element);+
+            }
+        }
+        impl<T: Number> std::ops::AddAssign<T> for $vector<T>  {
+            fn add_assign(&mut self, rhs: T) {
+                $(self.$element += rhs);+
+            }
+        }
+        impl<T: Number> std::ops::SubAssign<T> for $vector<T>  {
+            fn sub_assign(&mut self, rhs: T) {
+                $(self.$element -= rhs);+
+            }
+        }
+        impl<T: Number> std::ops::MulAssign<T> for $vector<T>  {
+            fn mul_assign(&mut self, rhs: T) {
+                $(self.$element *= rhs);+
+            }
+        }
+        impl<T: Number> std::ops::DivAssign<T> for $vector<T>  {
+            fn div_assign(&mut self, rhs: T) {
+                $(self.$element /= rhs);+
+            }
+        }
+        impl<T: Number> std::ops::RemAssign<T> for $vector<T>  {
+            fn rem_assign(&mut self, rhs: T) {
+                $(self.$element %= rhs);+
             }
         }
         impl<T: Number> std::cmp::PartialEq<T>  for $vector<T>  {
@@ -394,9 +429,10 @@ impl<T> Vector3<T> {
 }
 impl<T: Number> Vector3<T> {
     #[cfg(feature = "glsl")]
-    pub fn new(x: T, y: T, z: T) -> Self { Self { x, y, z, padding: T::zero() } }
+    pub const fn new(x: T, y: T, z: T) -> Self { Self { x, y, z, padding: T::ZERO } }
     pub fn abs(&self) -> Self 
         where T: Signed {
+            
         Self::new(self.x.abs(), self.y.abs(), self.z.abs())
     }
     pub fn xy(&self) -> Vector2<T> {

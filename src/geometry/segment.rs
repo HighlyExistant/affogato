@@ -1,6 +1,39 @@
-use std::{fmt::Debug, ops::{Deref, Sub}};
+use std::{fmt::Debug, ops::{Deref, Mul, Sub}};
+
+use num_traits::FromPrimitive;
 
 use crate::{linear::{Vector, Vector2}, FloatingPoint, Number};
+// TODO THINGS TO ADD:
+// 1. LinearSegment2D
+// 2. QuadraticSegment2D
+// 3. CubicSegment2D
+// 4. Segment2D (Has the same layout as a CubicSegment but can become a linear, quadratic or cubic)
+// 5. LinearSegment3D
+// 6. QuadraticSegment3D
+// 7. CubicSegment3D
+// 8. Segment3D (Has the same layout as a CubicSegment but can become a linear, quadratic or cubic)
+
+pub trait Segment<T: Vector> {
+    /// Represents the order of the curve
+    fn order(&self) -> usize;
+    fn start(&self) -> T;
+    fn end(&self) -> T;
+    fn get(&self, t: f64) -> T
+        where T: FloatingPoint + FromPrimitive;
+    fn control_point(&self, idx: usize) -> T;
+    fn direction_at_start(&self) -> T {
+        self.control_point(1) - self.control_point(0)
+    }
+    fn direction_at_end(&self) -> T {
+        self.control_point(self.order()) - self.control_point(self.order()-1)
+    }
+    fn direction_at(&self, t: f64) -> T;
+    fn adjust_end_point(&mut self, p: T);
+    fn adjust_start_point(&mut self, p: T);
+    fn split_in_thirds(&self) -> [Box<dyn Segment<T>>; 3] 
+        where T: FloatingPoint + FromPrimitive;
+}
+
 #[derive(Clone, Copy)]
 pub struct Segment2D<T> {
     pub start: Vector2<T>,
@@ -69,7 +102,38 @@ impl<T: Number> Segment2D<T> {
         }
     }
 }
+impl<T: Number> Segment<Vector2<T>> for Segment2D<T> {
+    fn start(&self) -> Vector2<T> {
+        self.start
+    }
+    fn end(&self) -> Vector2<T> {
+        self.end
+    }
+    fn get(&self, t: f64) -> Vector2<T>
+            where Vector2<T>: FloatingPoint + FromPrimitive + Mul<T, Output = Vector2<T>>{
+        self.start + (self.end-self.start)*T::from_f64(t).unwrap()
+    }
+    fn control_point(&self, idx: usize) -> Vector2<T> {
+        self[idx]
+    }
+    fn order(&self) -> usize { 2 }
+    fn direction_at(&self, t: f64) -> Vector2<T> {
+        self[1] - self[0]
+    }
+    fn adjust_end_point(&mut self, p: Vector2<T>) {}
+    fn adjust_start_point(&mut self, p: Vector2<T>) {}
+    fn split_in_thirds(&self) -> [Box<dyn Segment<Vector2<T>>>; 3] 
+        where Vector2<T>: FloatingPoint + FromPrimitive + Mul<T, Output = Vector2<T>> {
+        let a = self.get(1.0/3.0);
+        let b = self.get(1.0/2.0);
+        [
+            Box::new(Self::new(self[0], a)),
+            Box::new(Self::new(a, b)),
+            Box::new(Self::new(b, self[1]))
+        ]
+    }
 
+}
 impl<T> Deref for Segment2D<T> {
     type Target = [Vector2<T>; 2];
     fn deref(&self) -> &Self::Target {

@@ -4,11 +4,18 @@ use crate::{linear::{DVec2, DVec3, FVec2, FVec3, Vector, Vector2, Vector3}, Floa
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
+pub trait HyperCube<T: Number> {
+    const DIMENSION: usize;
+}
+
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
 pub struct Cube<T: Number> {
     pub min: Vector3<T>,
     pub max: Vector3<T>,
+}
+impl<T: Number> HyperCube<T> for Cube<T> {
+    const DIMENSION: usize = 3;
 }
 impl<T: Number> std::cmp::PartialEq for Cube<T> {
     fn eq(&self, other: &Self) -> bool {
@@ -64,6 +71,7 @@ impl<T: Number> Cube<T> {
         Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
     }
     /// gets the vertices of the cube in the following order
+    /// ```
     ///         7───────────────────5
     ///        ╱                   ╱│
     ///       ╱                   ╱ │
@@ -75,6 +83,7 @@ impl<T: Number> Cube<T> {
     ///     │                   │ ╱
     ///     │                   │╱
     ///     0───────────────────2
+    /// ```
     pub fn get_vertices(&self) -> Vec<Vector3<T>> {
         vec![
             Vector3::new(self.min.x, self.min.y, self.min.z),
@@ -85,6 +94,22 @@ impl<T: Number> Cube<T> {
             Vector3::new(self.max.x, self.max.y, self.max.z),
             Vector3::new(self.max.x, self.min.y, self.max.z),
             Vector3::new(self.min.x, self.max.y, self.max.z)
+        ]
+    }
+    pub fn get_tri_indices(&self) -> Vec<u32> {
+        vec![
+            0, 2, 1,
+            1, 3, 0,
+            2, 6, 5,
+            5, 1, 2,
+            6, 4, 7,
+            7, 5, 6,
+            4, 0, 3,
+            3, 7, 4,
+            0, 2, 6,
+            6, 4, 0,
+            3, 1, 5,
+            5, 7, 3
         ]
     }
     pub fn get_edge_indices(&self) -> Vec<u32> {
@@ -107,14 +132,14 @@ impl<T: Number> Cube<T> {
     pub fn random(range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
             use rand::Rng;
-            Self::new(Vector3::random(range.clone()), Vector3::random(range))
+            Self::new(Vector3::random(range.clone()), Vector3::random(range)).fix_bounds()
     }
     #[cfg(feature="rand_pcg")]
     pub fn pseudo_random<P>(pcg: &mut P, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform,
         P: rand::RngCore {
         use rand::Rng;
-        Self::new(Vector3::pseudo_random(pcg, range.clone()), Vector3::pseudo_random(pcg, range))
+        Self::new(Vector3::pseudo_random(pcg, range.clone()), Vector3::pseudo_random(pcg, range)).fix_bounds()
     }
 }
 
@@ -151,10 +176,13 @@ impl From<DVec3> for Cube<f64> {
 }
 
 #[repr(C, align(16))]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Square<T: Number> {
     pub min: Vector2<T>,
     pub max: Vector2<T>,
+}
+impl<T: Number> HyperCube<T> for Square<T> {
+    const DIMENSION: usize = 2;
 }
 impl<T: Number> Default for Square<T> {
     fn default() -> Self {
@@ -164,6 +192,12 @@ impl<T: Number> Default for Square<T> {
 impl<T: Number> Square<T> {
     pub fn new(min: Vector2<T>, max: Vector2<T>) -> Self {
         Self { min: min, max: max }
+    }
+    pub fn width(&self) -> T {
+        self.max.x - self.min.x
+    }
+    pub fn height(&self) -> T {
+        self.max.y - self.min.y
     }
     pub fn triangle_adjust_bounds(&self, triangle: &Triangle2D<T>) -> Self {
         let mut t = *self;
@@ -187,11 +221,46 @@ impl<T: Number> Square<T> {
         t.max = t.min.max(&v);
         t
     }
+    pub fn fix_bounds(&self) -> Self {
+        let mut t = *self;
+        t.min = self.min.min(&self.max);
+        t.max = self.max.max(&self.min);
+        t
+    }
+    /// ```
+    /// 3-------2
+    /// |       |
+    /// |       |
+    /// |       |
+    /// 0-------1
+    /// ```
+    pub fn get_vertices(&self) -> Vec<Vector2<T>> {
+        vec![
+            Vector2::new(self.min.x, self.min.y),
+            Vector2::new(self.max.x, self.min.y),
+            Vector2::new(self.max.x, self.max.y),
+            Vector2::new(self.min.x, self.max.y),
+        ]
+    }
+    pub fn get_edge_indices(&self) -> Vec<u32> {
+        vec![
+            0, 1,
+            1, 2,
+            2, 3,
+            3, 0
+        ]
+    }
+    pub fn get_tri_indices(&self) -> Vec<u32> {
+        vec![
+            0, 1, 2,
+            2, 3, 0
+        ]
+    }
     #[cfg(feature="rand")]
     pub fn random(range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
             use rand::Rng;
-            Self::new(Vector2::random(range.clone()), Vector2::random(range))
+            Self::new(Vector2::random(range.clone()), Vector2::random(range)).fix_bounds()
     }
 }
 impl<T: Number> From<Vector2<T>> for Square<T> {

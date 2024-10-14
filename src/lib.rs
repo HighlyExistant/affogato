@@ -12,7 +12,21 @@ pub mod algebra;
 pub mod geometry;
 pub mod polynomial;
 pub mod spatial;
-
+pub trait ConstantZero {
+    const ZERO: Self;
+}
+impl ConstantZero for i8 { const ZERO: Self = 0; }
+impl ConstantZero for i16 { const ZERO: Self = 0; }
+impl ConstantZero for i32 { const ZERO: Self = 0; }
+impl ConstantZero for i64 { const ZERO: Self = 0; }
+impl ConstantZero for isize { const ZERO: Self = 0; }
+impl ConstantZero for u8 { const ZERO: Self = 0; }
+impl ConstantZero for u16 { const ZERO: Self = 0; }
+impl ConstantZero for u32 { const ZERO: Self = 0; }
+impl ConstantZero for u64 { const ZERO: Self = 0; }
+impl ConstantZero for usize { const ZERO: Self = 0; }
+impl ConstantZero for f32 { const ZERO: Self = 0.0; }
+impl ConstantZero for f64 { const ZERO: Self = 0.0; }
 pub trait Number:
     Copy
     + Clone
@@ -30,6 +44,7 @@ pub trait Number:
     + num_traits::Zero
     + num_traits::One
     + num_traits::FromPrimitive
+    + ConstantZero
 {
 }
 impl<T> Number for T where
@@ -47,6 +62,7 @@ impl<T> Number for T where
         + PartialOrd
         + num_traits::Bounded
         + num_traits::FromPrimitive
+        + ConstantZero
         {
 }
 
