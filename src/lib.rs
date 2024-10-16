@@ -101,7 +101,9 @@ pub trait Rotation<T: FloatingPoint> {
 /// classical lerp used to linearly interpolate
 /// between two values depending on what variable t
 /// says. note that t should be a number between 0.0 - 1.0
-pub fn lerp<T: FloatingPoint, V: Add<T, Output = V> + Add<Output = V> + Sub<V, Output = V> +Mul<T, Output = V> + Copy>(a: V, b: V, t: T) -> V {
+pub fn lerp<T, V: Add<T, Output = V> + Add<Output = V> + Sub<V, Output = V> + Copy>(a: V, b: V, t: T) -> V 
+    where T: FloatingPoint,
+    V: Mul<T, Output = V> {
     a + (b - a) * t
 }
 pub fn smoothstep<T: FloatingPoint, V: Add<T, Output = V> + Add<Output = V> + Sub<V, Output = V> +Mul<T, Output = V> + Copy>(a: V, b: V, t: T) -> V {
@@ -122,14 +124,14 @@ pub fn bilinear_interpolation<T: FloatingPoint>(q12: T, q22: T, q11: T, q21: T, 
 
 #[cfg(test)]
 mod tests {
-    use geometry::Segment2D;
+    use geometry::LinearSegment2D;
     use linear::{DVec3, FVec2, FVec3, SphericalCoordinate};
 
     use super::*;
 
     #[test]
     fn it_works() {
-        let segment = Segment2D::new(FVec2::from(0.0), FVec2::new(1.0, 0.0));
+        let segment = LinearSegment2D::new(FVec2::from(0.0), FVec2::new(1.0, 0.0));
         println!("{}", segment.length());
     }
     #[test]

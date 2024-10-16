@@ -1,58 +1,62 @@
 use std::{fmt::Debug, ops::{Deref, Mul, Sub}};
 
-use num_traits::FromPrimitive;
+use num_traits::{FromPrimitive, Zero};
 
-use crate::{linear::{Vector, Vector2}, FloatingPoint, Number};
+use crate::{lerp, linear::{CrossProduct, Vector, Vector2}, FloatingPoint, Number};
 // TODO THINGS TO ADD:
-// 1. LinearSegment2D
-// 2. QuadraticSegment2D
-// 3. CubicSegment2D
-// 4. Segment2D (Has the same layout as a CubicSegment but can become a linear, quadratic or cubic)
+// 1. LinearLinearSegment2D
+// 2. QuadraticLinearSegment2D
+// 3. CubicLinearSegment2D
+// 4. LinearSegment2D (Has the same layout as a CubicSegment but can become a linear, quadratic or cubic)
 // 5. LinearSegment3D
 // 6. QuadraticSegment3D
 // 7. CubicSegment3D
 // 8. Segment3D (Has the same layout as a CubicSegment but can become a linear, quadratic or cubic)
 
-pub trait Segment<T: Vector> {
+pub trait Segment {
+    type VectorType: Vector;
+    
     /// Represents the order of the curve
     fn order(&self) -> usize;
-    fn start(&self) -> T;
-    fn end(&self) -> T;
-    fn get(&self, t: f64) -> T
-        where T: FloatingPoint + FromPrimitive;
-    fn control_point(&self, idx: usize) -> T;
-    fn direction_at_start(&self) -> T {
+    fn start(&self) -> Self::VectorType;
+    fn end(&self) -> Self::VectorType;
+    fn get(&self, t: f64) -> Self::VectorType
+        where <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint;
+    fn control_point(&self, idx: usize) -> Self::VectorType;
+    fn direction_at_start(&self) -> Self::VectorType {
         self.control_point(1) - self.control_point(0)
     }
-    fn direction_at_end(&self) -> T {
+    fn direction_at_end(&self) -> Self::VectorType {
         self.control_point(self.order()) - self.control_point(self.order()-1)
     }
-    fn direction_at(&self, t: f64) -> T;
-    fn adjust_end_point(&mut self, p: T);
-    fn adjust_start_point(&mut self, p: T);
-    fn split_in_thirds(&self) -> [Box<dyn Segment<T>>; 3] 
-        where T: FloatingPoint + FromPrimitive;
+    fn direction_at(&self, t: f64) -> Self::VectorType
+    where <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint;
+    fn adjust_end_point(&mut self, to: Self::VectorType);
+    fn adjust_start_point(&mut self, to: Self::VectorType);
+    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+        where <Self::VectorType as Vector>::Scalar: FloatingPoint + FromPrimitive,
+        Self: 'static;
 }
 
 #[derive(Clone, Copy)]
-pub struct Segment2D<T> {
+pub struct LinearSegment2D<T> {
     pub start: Vector2<T>,
     pub end: Vector2<T>,
 }
-impl<T: Debug> Debug for Segment2D<T> {
+impl<T: Debug> Debug for LinearSegment2D<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Segment2D")
+        f.debug_struct("LinearSegment2D")
             .field("start", &self.start)
             .field("end", &self.end)
             .finish()
     }
 }
-impl<T: Default> Default for Segment2D<T> {
+impl<T: Default> Default for LinearSegment2D<T> {
     fn default() -> Self {
-        Segment2D { start: Vector2::default(), end: Vector2::default() }
+        LinearSegment2D { start: Vector2::default(), end: Vector2::default() }
     }
 }
-impl<T: Number> Segment2D<T> {
+impl<T: Number> LinearSegment2D<T> {
     pub const fn new(start: Vector2<T>, end: Vector2<T>) -> Self {
         Self { start, end }
     }
@@ -101,8 +105,20 @@ impl<T: Number> Segment2D<T> {
             Some(Vector2::new(x, y))
         }
     }
+    fn split_in_thirds_static(&self) -> [Self; 3] 
+        where <Vector2<T> as Vector>::Scalar: FromPrimitive + FloatingPoint,
+        Self: 'static {
+        let a = self.get(1.0/3.0);
+        let b = self.get(1.0/2.0);
+        [
+            Self::new(self[0], a),
+            Self::new(a, b),
+            Self::new(b, self[1])
+        ]
+    }
 }
-impl<T: Number> Segment<Vector2<T>> for Segment2D<T> {
+impl<T: Number> Segment for LinearSegment2D<T> {
+    type VectorType = Vector2<T>;
     fn start(&self) -> Vector2<T> {
         self.start
     }
@@ -110,8 +126,8 @@ impl<T: Number> Segment<Vector2<T>> for Segment2D<T> {
         self.end
     }
     fn get(&self, t: f64) -> Vector2<T>
-            where Vector2<T>: FloatingPoint + FromPrimitive + Mul<T, Output = Vector2<T>>{
-        self.start + (self.end-self.start)*T::from_f64(t).unwrap()
+        where  <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint {
+        self.start + (self.end-self.start)*<Self::VectorType as Vector>::Scalar::from_f64(t).unwrap()
     }
     fn control_point(&self, idx: usize) -> Vector2<T> {
         self[idx]
@@ -120,10 +136,15 @@ impl<T: Number> Segment<Vector2<T>> for Segment2D<T> {
     fn direction_at(&self, t: f64) -> Vector2<T> {
         self[1] - self[0]
     }
-    fn adjust_end_point(&mut self, p: Vector2<T>) {}
-    fn adjust_start_point(&mut self, p: Vector2<T>) {}
-    fn split_in_thirds(&self) -> [Box<dyn Segment<Vector2<T>>>; 3] 
-        where Vector2<T>: FloatingPoint + FromPrimitive + Mul<T, Output = Vector2<T>> {
+    fn adjust_end_point(&mut self, to: Vector2<T>) {
+        self.end = to;
+    }
+    fn adjust_start_point(&mut self, to: Vector2<T>) {
+        self.start = to;
+    }
+    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+        where <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint,
+        Self: 'static {
         let a = self.get(1.0/3.0);
         let b = self.get(1.0/2.0);
         [
@@ -134,9 +155,196 @@ impl<T: Number> Segment<Vector2<T>> for Segment2D<T> {
     }
 
 }
-impl<T> Deref for Segment2D<T> {
+impl<T> Deref for LinearSegment2D<T> {
     type Target = [Vector2<T>; 2];
     fn deref(&self) -> &Self::Target {
         unsafe { (self as *const _ as *const Vector2<T>).cast::<[Vector2<T>; 2]>().as_ref().unwrap() }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct QuadraticSegment2D<T> {
+    pub start: Vector2<T>,
+    pub control: Vector2<T>,
+    pub end: Vector2<T>,
+}
+impl<T: Number> QuadraticSegment2D<T> {
+    pub fn new(start: Vector2<T>, control: Vector2<T>, end: Vector2<T>) -> Self {
+        Self { start, control, end }
+    }
+    fn split_in_thirds_static(&self) -> [Self; 3] 
+            where <Vector2<T> as Vector>::Scalar: FloatingPoint + FromPrimitive,
+            Self: 'static {
+        let p0p01_13 = lerp(self[0], self[1], T::from_f64(1.0/3.0).unwrap());
+        let p_13 = self.get(1.0/3.0);
+        let p_23 = self.get(2.0/3.0);
+        let part1 = QuadraticSegment2D::new(self[0], p0p01_13, p_13);
+        let part2 = QuadraticSegment2D::new(p_13, lerp(lerp(self[0], self[1], T::from_f64(5.0/9.0).unwrap()), lerp(self[1], self[2], T::from_f64(4.0/9.0).unwrap()), T::from_f64(0.5).unwrap()), p_23);
+        let part3 = QuadraticSegment2D::new(p_23, lerp(self[1], self[2], T::from_f64(2.0/3.0).unwrap()), self[2]);
+        [
+            part1,
+            part2,
+            part3,
+        ]
+    }
+}
+impl<T: Number> Segment for QuadraticSegment2D<T> {
+    type VectorType = Vector2<T>;
+    fn start(&self) -> Self::VectorType {
+        self.start
+    }
+    fn end(&self) -> Self::VectorType {
+        self.end
+    }
+    fn get(&self, t: f64) -> Self::VectorType
+            where <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint {
+        let t = T::from_f64(t).unwrap();
+        lerp(lerp(self.start, self.control, t), lerp(self.control, self.end, t), t)
+    }
+    fn control_point(&self, idx: usize) -> Vector2<T> {
+        self[idx]
+    }
+    fn order(&self) -> usize { 3 }
+    fn direction_at(&self, t: f64) -> Self::VectorType
+        where <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint {
+        let t = T::from_f64(t).unwrap();
+        let tangent = lerp(self.control-self.start, self.end-self.control, t);
+        if !tangent.is_zero() {
+            return self.end-self.start;
+        }
+        tangent
+    }
+    fn adjust_start_point(&mut self, to: Self::VectorType) {
+        let orig_sdir = self.start-self.control;
+        let orig_p1 = self.control;
+        self.control = (self.end-self.control)*orig_sdir.cross(&(to-self.start))/orig_sdir.cross(&(self.end-self.control));
+        self.start = to;
+        if orig_sdir.dot(&(self.start-self.control)) < T::zero() {
+            self.control = orig_p1;
+        }
+    }
+    fn adjust_end_point(&mut self, to: Self::VectorType) {
+        let orig_sdir = self.end-self.control;
+        let orig_p1 = self.control;
+        self.control = (self.start-self.control)*orig_sdir.cross(&(to-self.end))/orig_sdir.cross(&(self.start-self.control));
+        self.end = to;
+        if orig_sdir.dot(&(self.end-self.control)) < T::zero() {
+            self.control = orig_p1;
+        }
+    }
+    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+            where <Self::VectorType as Vector>::Scalar: FloatingPoint + FromPrimitive,
+            Self: 'static {
+        let p0p01_13 = lerp(self[0], self[1], T::from_f64(1.0/3.0).unwrap());
+        let p_13 = self.get(1.0/3.0);
+        let p_23 = self.get(2.0/3.0);
+        let part1 = QuadraticSegment2D::new(self[0], p0p01_13, p_13);
+        let part2 = QuadraticSegment2D::new(p_13, lerp(lerp(self[0], self[1], T::from_f64(5.0/9.0).unwrap()), lerp(self[1], self[2], T::from_f64(4.0/9.0).unwrap()), T::from_f64(0.5).unwrap()), p_23);
+        let part3 = QuadraticSegment2D::new(p_23, lerp(self[1], self[2], T::from_f64(2.0/3.0).unwrap()), self[2]);
+        [
+            Box::new(part1),
+            Box::new(part2),
+            Box::new(part3),
+        ]
+    }
+}
+impl<T> Deref for QuadraticSegment2D<T> {
+    type Target = [Vector2<T>; 3];
+    fn deref(&self) -> &Self::Target {
+        unsafe { (self as *const _ as *const Vector2<T>).cast::<[Vector2<T>; 3]>().as_ref().unwrap() }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct CubicSegment2D<T> {
+    pub start: Vector2<T>,
+    pub control1: Vector2<T>,
+    pub control2: Vector2<T>,
+    pub end: Vector2<T>,
+}
+impl<T: Number> CubicSegment2D<T> {
+    pub fn new(start: Vector2<T>, control1: Vector2<T>, control2: Vector2<T>, end: Vector2<T>) -> Self {
+        Self { start, control1, control2, end }
+    }
+}
+
+impl<T: Number> Segment for CubicSegment2D<T> {
+    type VectorType = Vector2<T>;
+    fn start(&self) -> Self::VectorType {
+        self.start
+    }
+    fn end(&self) -> Self::VectorType {
+        self.end
+    }
+    fn get(&self, t: f64) -> Self::VectorType
+            where <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint {
+        let t = T::from_f64(t).unwrap();
+        let a = lerp(self.start, self.control1, t);
+        let b = lerp(self.control1, self.control2, t);
+        let c = lerp(self.control2, self.end, t);
+        let e = lerp(a, b, t);
+        let f = lerp(b, a, t);
+        lerp(e, f, t)
+    }
+    fn control_point(&self, idx: usize) -> Vector2<T> {
+        self[idx]
+    }
+    fn order(&self) -> usize { 4 }
+    fn direction_at(&self, t: f64) -> Self::VectorType
+        where <Self::VectorType as Vector>::Scalar: FromPrimitive + FloatingPoint {
+        let t = T::from_f64(t).unwrap();
+        let tangent = lerp(lerp(self.control1-self.start, self.control2-self.control1, t), lerp(self.control2-self.control1, self.end-self.control2, t), t);
+        if !tangent.is_zero() {
+            if t == T::zero() { return self.control2-self.start; }
+            if t == T::one() { return self.end-self.control1; }
+        }
+        tangent
+    }
+    fn adjust_start_point(&mut self, to: Self::VectorType) {
+        self.control1 += to-self.start;
+        self.start = to;
+    }
+    fn adjust_end_point(&mut self, to: Self::VectorType) {
+        self.control2 += to-self.end;
+        self.end = to;
+    }
+    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+            where <Self::VectorType as Vector>::Scalar: FloatingPoint + FromPrimitive,
+            Self: 'static {
+        let t_1_3 = T::from_f64(1.0/3.0).unwrap();
+        let t_2_3 = T::from_f64(2.0/3.0).unwrap();
+        let t_5_9 = T::from_f64(5.0/9.0).unwrap();
+        let part1_1 = if self[0] == self[1] {
+            self[0]
+        } else {
+            lerp(self[0], self[1], t_1_3)
+        };
+        let part1_2 = lerp(lerp(self[0], self[1], t_1_3), lerp(self[1], self[2], t_1_3), t_1_3);
+        let part1_3 = self.get(1.0/3.0);
+        let part1 = CubicSegment2D::new(self[0], part1_1, part1_2, part1_3);
+        let part_2_1 = lerp(part1_2, lerp(lerp(self[1], self[2], t_1_3), lerp(self[2], self[3], t_1_3), t_1_3), t_2_3);
+        let part_2_2 = lerp(lerp(lerp(self[0], self[1], t_1_3), lerp(self[1], self[2], t_1_3), t_1_3), lerp(lerp(self[1], self[2], t_2_3), lerp(self[2], self[3], t_2_3), t_2_3), t_1_3);
+        let part_2_3 = self.get(2.0/3.0);
+        let part2 = CubicSegment2D::new(part1_3, part_2_1, part_2_2, part_2_3);
+        let part_3_1 = lerp(lerp(self[1], self[2], t_2_3), lerp(self[2], self[3], t_2_3), t_2_3);
+        let part_3_2 = if self[2] == self[3] {
+            self[3]
+        } else {
+            lerp(self[2], self[3], t_2_3)
+        };
+        let part3 = CubicSegment2D::new(part_2_3, part_3_1, part_3_2, self[3]);
+
+        [
+            Box::new(part1),
+            Box::new(part2),
+            Box::new(part3),
+        ]
+    }
+}
+
+impl<T> Deref for CubicSegment2D<T> {
+    type Target = [Vector2<T>; 4];
+    fn deref(&self) -> &Self::Target {
+        unsafe { (self as *const _ as *const Vector2<T>).cast::<[Vector2<T>; 4]>().as_ref().unwrap() }
     }
 }

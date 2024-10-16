@@ -1,6 +1,6 @@
-use affogato::algebra::ComplexNumber;
+use affogato::{algebra::ComplexNumber, geometry::{LinearSegment2D, Segment}, linear::FVec2};
 
 fn main() {
-    let a = ComplexNumber::new(1.0, -1.0);
-    let b = ComplexNumber::new(5.0, -4.0);
+    let a = LinearSegment2D::new(FVec2::new(0.0, 0.0), FVec2::new(1.0, 1.0));
+    let x = a.split_in_thirds();
 }
