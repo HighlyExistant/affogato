@@ -1,10 +1,15 @@
-use std::{fmt::Binary, ops::Deref};
+use std::{fmt::Binary, hash::Hash, ops::Deref};
 
-use crate::linear::{UI16Vec2, UI8Vec2};
+use crate::linear::{UI16Vec2, UI8Vec2, UIVec2};
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MortonU16(u16);
+impl Hash for MortonU16 {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write_u16(self.0);
+    }
+}
 
 impl Deref for MortonU16 {
     type Target = u16;
@@ -46,6 +51,11 @@ impl MortonU16 {
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MortonU32(u32);
+impl Hash for MortonU32 {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write_u32(self.0);
+    }
+}
 impl Deref for MortonU32 {
     type Target = u32;
     fn deref(&self) -> &Self::Target {
@@ -81,5 +91,39 @@ impl MortonU32 {
 impl From<UI16Vec2> for MortonU32 {
     fn from(value: UI16Vec2) -> Self {
         Self::encode_xy(value.x, value.y)
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct MortonU64(u64);
+impl Hash for MortonU64 {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write_u64(self.0);
+    }
+}
+impl Deref for MortonU64 {
+    type Target = u64;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl Binary for MortonU64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl MortonU64 {
+    #[cfg(target_arch="x86_64")]
+    pub fn encode_xy(x: u32, y: u32) -> Self {
+        use std::arch::x86_64::_pdep_u64;
+        let val = unsafe { _pdep_u64(x as u64, 0x55555555) | _pdep_u64(y as u64,0xaaaaaaaa) };
+        Self(val)
+    }
+    #[cfg(target_arch="x86_64")]
+    pub fn decode_xy(&self) -> UIVec2 {
+        use std::arch::x86_64::_pext_u64;
+        let (x, y) = unsafe { (_pext_u64(self.0, 0x5555555555555555) as u32, _pext_u64(self.0, 0xaaaaaaaaaaaaaaaa) as u32) };
+        UIVec2::new(x, y)
     }
 }

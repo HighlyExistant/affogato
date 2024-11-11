@@ -1,8 +1,21 @@
-use crate::Number;
+use std::fmt::Debug;
+
+use crate::sets::Number;
 
 pub struct PolynomialSolutions<T: Number, const N: usize> {
     solutions: [T; N],
     total: usize,
+}
+impl<T: Debug + Number, const N: usize> Debug for PolynomialSolutions<T, N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut solutions = Vec::with_capacity(self.total);
+        for i in 0..self.total {
+            solutions.push(self.solutions[i]);
+        }
+        f.debug_struct("Polynomial Solutions")
+            .field("solutions", &solutions)
+            .finish()
+    }
 }
 impl<T: Number, const N: usize> PolynomialSolutions<T, N> {
     pub fn new(solutions: [T; N], total: usize) -> Self {
@@ -14,7 +27,7 @@ impl<T: Number, const N: usize> PolynomialSolutions<T, N> {
     pub fn from_solution<const M: usize>(value: PolynomialSolutions<T, M>) -> Self {
         let min = usize::min(N, M);
         let total = usize::min(min, value.total);
-        let mut solutions = Self::new([T::zero(); N], total);
+        let mut solutions = Self::new([T::ZERO; N], total);
         for i in 0..min {
             solutions.solutions[i] = value.solutions[i];
         }

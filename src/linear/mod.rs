@@ -7,7 +7,7 @@ pub use matrix::*;
 pub use transform::*;
 
 use num_traits::AsPrimitive;
-use crate::{FloatingPoint, Number};
+use crate::{inverse_lerp, lerp, sets::Number, RationalNumber};
 
 // Vector types
 pub type FVec2 = Vector2<f32>;
@@ -26,7 +26,25 @@ pub type USizeVec2 = Vector2<usize>;
 pub type ISizeVec2 = Vector2<isize>;
 
 pub type FVec3 = Vector3<f32>;
+impl FVec3 {
+    pub const fn rgb(r: u8, g: u8, b: u8) -> Self {
+        const D_255: f32 = 0.00392156862;
+        Self::new(r as f32*D_255, g as f32*D_255, b as f32*D_255)
+        // Self::new(r as f32/255.0, g as f32/255.0, b as f32/255.0)
+    }
+    pub const fn rgb_from_u32(rgb: u32) -> Self {
+        let r = ((rgb >> 16)&0xff) as u8;
+        let g = ((rgb >> 8)&0xff) as u8;
+        let b = ((rgb)&0xff) as u8;
+        Self::rgb(r, g, b)
+    }
+}
 pub type DVec3 = Vector3<f64>;
+impl DVec3 {
+    pub fn rgb(r: u8, g: u8, b: u8) -> Self {
+        Self::new(r as f64/255.0, g as f64/255.0, b as f64/255.0)
+    }
+}
 
 pub type I8Vec3 = Vector3<i8>;
 pub type I16Vec3 = Vector3<i16>;
@@ -41,6 +59,29 @@ pub type USizeVec3 = Vector3<usize>;
 pub type ISizeVec3 = Vector3<isize>;
 
 pub type FVec4 = Vector4<f32>;
+impl FVec4 {
+    pub const fn rgba(r: u8, g: u8, b: u8, a: u8) -> Self {
+        const D_255: f32 = 0.00392156862;
+        Self::new(r as f32*D_255, g as f32*D_255, b as f32*D_255, a as f32*D_255)
+        // Self::new(r as f32/255.0, g as f32/255.0, b as f32/255.0)
+    }
+    pub const fn rgba_from_u32(rgb: u32) -> Self {
+        let r = ((rgb >> 24)&0xff) as u8;
+        let g = ((rgb >> 16)&0xff) as u8;
+        let b = ((rgb >> 8)&0xff) as u8;
+        let a = ((rgb)&0xff) as u8;
+        Self::rgba(r, g, b, a)
+    }
+    pub fn into_rgba8(&self) -> u32 {
+        let ret: u32 = (
+            ((inverse_lerp(0.0, 255.0, self.x) as u32) << 24)   |
+            ((inverse_lerp(0.0, 255.0, self.y) as u32) << 16)   |
+            ((inverse_lerp(0.0, 255.0, self.z) as u32) << 8)    |
+            ((inverse_lerp(0.0, 255.0, self.w) as u32))
+        );
+        ret
+    }
+}
 pub type DVec4 = Vector4<f64>;
 
 pub type I8Vec4 = Vector4<i8>;
@@ -49,6 +90,18 @@ pub type IVec4 = Vector4<i32>;
 pub type I64Vec4 = Vector4<i64>;
 
 pub type UI8Vec4 = Vector4<u8>;
+impl UI8Vec4 {
+    pub const fn rgba(r: u8, g: u8, b: u8, a: u8) -> Self {
+        Self::new(r, g, b, a)
+    }
+    pub const fn rgba_from_u32(rgb: u32) -> Self {
+        let r = ((rgb >> 24)&0xff) as u8;
+        let g = ((rgb >> 16)&0xff) as u8;
+        let b = ((rgb >> 8)&0xff) as u8;
+        let a = ((rgb)&0xff) as u8;
+        Self::rgba(r, g, b, a)
+    }
+}
 pub type UI16Vec4 = Vector4<u16>;
 pub type UIVec4 = Vector4<u32>;
 pub type UI64Vec4 = Vector4<u64>;
@@ -199,34 +252,31 @@ pub fn barycentric_coordinates<T: Number>(start: Vector2<T>, end: Vector2<T>, co
     Vector3::new(w, v, u)
 }
 
-pub fn line_sdf<T: FloatingPoint>(a: Vector2<T>, b: Vector2<T>, p: Vector2<T>) -> T {
+pub fn line_sdf<T: RationalNumber>(a: Vector2<T>, b: Vector2<T>, p: Vector2<T>) -> T {
     let pa = p - a;
     let negba = -b + a;
     let ba = b - a;
     (pa.x * negba.y + pa.y * ba.x) / ((negba.y * negba.y) + (ba.x * ba.x)).sqrt()
 }
 
-pub fn line_pseudo_sdf<T: FloatingPoint>(a: Vector2<T>, b: Vector2<T>, p: Vector2<T>) -> T {
+pub fn line_pseudo_sdf<T: RationalNumber>(a: Vector2<T>, b: Vector2<T>, p: Vector2<T>) -> T {
     let pa = p - a;
     let negba = -b + a;
     let ba = b - a;
     pa.x * negba.y + pa.y * ba.x
 }
 
-pub fn quadratic_bezier_curve_sdf<T: FloatingPoint>(start: Vector2<T>, end: Vector2<T>, control: Vector2<T>, barycentric_coordinates: Vector3<T>) -> T
-    where f32: AsPrimitive<T>,
-    f64: AsPrimitive<T>, {
+pub fn quadratic_bezier_curve_sdf<T: RationalNumber>(start: Vector2<T>, end: Vector2<T>, control: Vector2<T>, barycentric_coordinates: Vector3<T>) -> T {
     let control_to_start = start - control;
     let control_to_end = end - control;
     let cross_z = control_to_start.cross(&control_to_end);
-    let uv_p = Vector2::<T>::new(0.5.as_() * barycentric_coordinates.x + barycentric_coordinates.z, barycentric_coordinates.z);
+    let uv_p = Vector2::<T>::new(T::from_f64(0.5).unwrap() * barycentric_coordinates.x + barycentric_coordinates.z, barycentric_coordinates.z);
     if cross_z < T::zero() {
         uv_p.y - uv_p.x * uv_p.x
     } else {
         uv_p.x * uv_p.x - uv_p.y
     }
 }
-pub fn non_zero_sign<T: FloatingPoint>(n: T) -> T
-    where f32: AsPrimitive<T> {
-    2.0.as_()*((n > T::zero()) as i32 as f32).as_()-T::one()
+pub fn non_zero_sign<T: RationalNumber>(n: T) -> T {
+    T::from_f64(2.0).unwrap()*T::from_f64((n > T::zero()) as i32 as f64).unwrap()-T::one()
 }

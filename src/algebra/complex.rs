@@ -1,12 +1,12 @@
 use std::{fmt::{Display, Write}, ops::{Add, Div, Mul}};
 
-use crate::{linear::{Matrix2, Vector2}, FloatingPoint};
+use crate::{linear::{Matrix2, Vector2}, RationalNumber};
 
-pub struct ComplexNumber<T: FloatingPoint> {
+pub struct ComplexNumber<T: RationalNumber> {
     real: T,
     imaginary: T,
 }
-impl<T: FloatingPoint> Display for ComplexNumber<T> 
+impl<T: RationalNumber> Display for ComplexNumber<T> 
     where T: Display {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let sign = self.imaginary.is_sign_negative();
@@ -17,7 +17,7 @@ impl<T: FloatingPoint> Display for ComplexNumber<T>
         }
     }
 }
-impl<T: FloatingPoint> ComplexNumber<T> {
+impl<T: RationalNumber> ComplexNumber<T> {
     pub fn new(real: T, imaginary: T) -> Self {
         Self { real, imaginary }
     }
@@ -31,13 +31,13 @@ impl<T: FloatingPoint> ComplexNumber<T> {
         Self::new(self.real, -self.imaginary)
     }
 }
-impl<T: FloatingPoint> Add for ComplexNumber<T> {
+impl<T: RationalNumber> Add for ComplexNumber<T> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         Self::new(self.real+rhs.real, self.imaginary+rhs.imaginary)
     }
 }
-impl<T: FloatingPoint> Mul for ComplexNumber<T> {
+impl<T: RationalNumber> Mul for ComplexNumber<T> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let mat = self.matrix()*rhs.matrix();

@@ -4,7 +4,7 @@ use std::{fmt::Debug, ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg,
 
 use num_traits::{AsPrimitive, Bounded, Float, Num, One, Signed, Zero};
 
-use crate::{algebra::Quaternion, FloatingPoint, Number, Rotation, SignedNumber};
+use crate::{algebra::Quaternion, RationalNumber, Rotation, sets::{Number}};
 mod atomic;
 mod polar;
 pub use polar::*;
@@ -56,7 +56,7 @@ pub trait Orthogonality: Vector {
     fn get_orthogonal(&self, polarity: bool) -> Self;
 }
 pub trait Orthonormality: Vector 
-    where Self::Scalar: FloatingPoint {
+    where Self::Scalar: RationalNumber {
     fn get_orthonormal(&self, polarity: bool, allow_zero: bool) -> Self;
 
 }
@@ -75,7 +75,7 @@ macro_rules! impl_ops {
             type Output = Self;
         }
         
-        impl<T: SignedNumber> std::ops::Neg for $vector<T> {
+        impl<T: Number + std::ops::Neg<Output = T>> std::ops::Neg for $vector<T> {
             fn neg(self) -> Self::Output {
                 Self::new($(-self.$element),+)
             }
@@ -373,20 +373,20 @@ impl<T: Sized + Number> Vector2<T> {
         Self::new(self.x.abs(), self.y.abs())
     }
     pub fn cos(&self)-> T 
-        where T: FloatingPoint {
+        where T: RationalNumber {
         self.normalize().dot(&Self::right())
     }
     pub fn sin(&self)-> T 
-        where T: FloatingPoint {
+        where T: RationalNumber {
         T::from_f64(std::f64::consts::PI.div(2.0)).unwrap() - self.cos()
     }
     pub fn tan(&self)-> T 
-        where T: FloatingPoint {
+        where T: RationalNumber {
         let normalize = self.normalize();
         normalize.y.div(normalize.x)
     }
     pub fn angle(&self) -> T 
-        where T: FloatingPoint {
+        where T: RationalNumber {
         self.cos().acos()
     }
 }
@@ -401,8 +401,8 @@ impl<T: Number> CrossProduct for Vector2<T> {
     type Product = T;
 }
 
-impl<'a, T> IntoRadialCoordinate<'a> for Vector2<T> 
-    where T: FloatingPoint {
+impl<'a, T: 'a> IntoRadialCoordinate<'a> for Vector2<T> 
+    where T: RationalNumber {
     type Radial = PolarCoordinate<T>;
 }
 
@@ -425,7 +425,7 @@ pub struct Vector3<T> {
 }
 impl<T> Vector3<T> {
     #[cfg(not(feature = "glsl"))]
-    pub fn new(x: T, y: T, z: T) -> Self { Self { x, y, z } }
+    pub const fn new(x: T, y: T, z: T) -> Self { Self { x, y, z } }
 }
 impl<T: Number> Vector3<T> {
     #[cfg(feature = "glsl")]
@@ -473,8 +473,8 @@ impl<T: Sized + Number> Vector for Vector3<T> {
 }
 impl_ops!(Vector3, x, y, z);
 
-impl<'a, T> IntoRadialCoordinate<'a> for Vector3<T> 
-    where T: FloatingPoint {
+impl<'a, T: 'a> IntoRadialCoordinate<'a> for Vector3<T> 
+    where T: RationalNumber {
     type Radial = SphericalCoordinate<T>;
 }
 #[repr(C)]
@@ -556,9 +556,7 @@ impl<T: Number> From<Vector2<T>> for Vector4<T>  {
         Self::new(value.x, value.y, T::zero(), T::zero())
     }
 }
-impl<T: FloatingPoint> Rotation<T> for Vector3<T> 
-    where f32: AsPrimitive<T>,
-    f64: AsPrimitive<T> {
+impl<T: RationalNumber> Rotation<T> for Vector3<T>  {
     fn quaternion(&self) -> Quaternion<T> { Quaternion::from_euler(*self) }
     fn euler(&self) -> Vector3<T> { *self }
 }
@@ -669,7 +667,7 @@ impl_all_from_vec!(impl_fromvec4);
 impl<T: Zero + Number> Zero for Vector2<T> { impl_zero!(x, y); }
 impl<T: Zero + Number> Zero for Vector3<T> { impl_zero!(x, y, z); }
 impl<T: Zero + Number> Zero for Vector4<T> { impl_zero!(x, y, z, w); }
-impl<T: Sized + SignedNumber> Orthogonality for Vector2<T> {
+impl<T: Sized + Number + std::ops::Neg<Output = T>> Orthogonality for Vector2<T> {
     fn get_orthogonal(&self, polarity: bool) -> Self {
         if polarity {
             Self::new(self.x, -self.y)
@@ -679,7 +677,7 @@ impl<T: Sized + SignedNumber> Orthogonality for Vector2<T> {
     }
 }
 
-impl<T: Sized + FloatingPoint> Orthonormality for Vector2<T> {
+impl<T: Sized + RationalNumber> Orthonormality for Vector2<T> {
     fn get_orthonormal(&self, polarity: bool, allow_zero: bool) -> Self {
         let len = self.length();
         if len.is_zero() {

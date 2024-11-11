@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::{algebra::Quaternion, FloatingPoint, Number};
+use crate::{algebra::Quaternion, sets::Number, RationalNumber};
 
 use super::{Vector2, Vector3, Vector4};
 
@@ -11,20 +11,20 @@ pub trait SquareMatrix: Sized {
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
-pub struct Matrix2<T: Number> {
+pub struct Matrix2<T> {
     pub x: Vector2<T>,
     pub y: Vector2<T>,
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Matrix2x3<T: Number> {
+pub struct Matrix2x3<T> {
     pub x: Vector2<T>,
     pub y: Vector2<T>,
     pub z: Vector2<T>,
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Matrix2x4<T: Number> {
+pub struct Matrix2x4<T> {
     pub x: Vector2<T>,
     pub y: Vector2<T>,
     pub z: Vector2<T>,
@@ -32,20 +32,20 @@ pub struct Matrix2x4<T: Number> {
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
-pub struct Matrix3<T: Number> {
+pub struct Matrix3<T> {
     pub x: Vector3<T>,
     pub y: Vector3<T>,
     pub z: Vector3<T>,
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Matrix3x2<T: Number> {
+pub struct Matrix3x2<T> {
     pub x: Vector3<T>,
     pub y: Vector3<T>,
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Matrix3x4<T: Number> {
+pub struct Matrix3x4<T> {
     pub x: Vector3<T>,
     pub y: Vector3<T>,
     pub z: Vector3<T>,
@@ -53,7 +53,7 @@ pub struct Matrix3x4<T: Number> {
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
-pub struct Matrix4<T: Number> {
+pub struct Matrix4<T> {
     pub x: Vector4<T>,
     pub y: Vector4<T>,
     pub z: Vector4<T>,
@@ -61,7 +61,7 @@ pub struct Matrix4<T: Number> {
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Matrix4x2<T: Number> {
+pub struct Matrix4x2<T> {
     pub x: Vector4<T>,
     pub y: Vector4<T>,
 }
@@ -288,12 +288,12 @@ impl<T: Number> Matrix3<T>  {
     pub fn from_vec(x: Vector3<T>, y: Vector3<T>, z: Vector3<T>) -> Self {
         Self { x, y, z }
     }
-}
-///
-/// These functions are available for all numbers including
-/// floating point.
-/// 
-impl<T: Number> Matrix3<T>  {
+    pub fn translate(mut self, translate: Vector3<T>) -> Self {
+        self.x.z = translate.x;
+        self.y.z = translate.y;
+        self.z.z = translate.z;
+        self
+    }
     pub fn from_scale(v: Vector3<T>) -> Self {
         Matrix3::new(
             v.x, T::zero(), T::zero(), 
@@ -306,6 +306,19 @@ impl<T: Number> Matrix3<T>  {
             T::one(), T::zero(), T::zero(), 
             T::zero(), T::one(), T::zero(), 
             v.x, v.y, v.z
+        )
+    }
+}
+///
+/// These functions are available for all numbers including
+/// floating point.
+/// 
+impl<T: RationalNumber> Matrix3<T>  {
+    pub fn from_transform(translation: Vector2<T>, scaling: Vector2<T>, rotation: T) -> Self {
+        Matrix3::new(
+            rotation.cos()*scaling.x, -(rotation.sin()), T::zero(), 
+            rotation.sin(), rotation.cos()*scaling.y, T::zero(), 
+            translation.x, translation.y, T::one()
         )
     }
 }
@@ -560,7 +573,7 @@ impl<T: Number> Matrix4<T>  {
         
     }
 }
-impl<T: FloatingPoint> From<Quaternion<T>> for Matrix4<T> {
+impl<T: RationalNumber> From<Quaternion<T>> for Matrix4<T> {
     fn from(value: Quaternion<T>) -> Self {
         let x2 = value.vector.x + value.vector.x;
         let y2 = value.vector.y + value.vector.y;

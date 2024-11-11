@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use num_traits::Float;
 
-use crate::{linear::FVec2, FloatingPoint};
+use crate::{linear::FVec2, RationalNumber};
 
 use super::{Vector, Vector2, Vector3};
 
@@ -19,7 +19,7 @@ pub struct PolarCoordinate<T> {
     pub length: T,
     pub angle: T,
 }
-impl<T: FloatingPoint> PolarCoordinate<T> {
+impl<T: RationalNumber> PolarCoordinate<T> {
     pub fn new(length: T, angle: T) -> Self {
         Self { length, angle }
     }
@@ -30,27 +30,27 @@ impl<T: FloatingPoint> PolarCoordinate<T> {
         self.angle
     }
 }
-impl<T: FloatingPoint> From<PolarCoordinate<T>> for Vector2<T> {
+impl<T: RationalNumber> From<PolarCoordinate<T>> for Vector2<T> {
     fn from(value: PolarCoordinate<T>) -> Self {
         Vector2::new(value.angle.cos()*value.length, value.angle.sin()*value.length)
     }
 }
-impl<T: FloatingPoint> From<&PolarCoordinate<T>> for Vector2<T> {
+impl<T: RationalNumber> From<&PolarCoordinate<T>> for Vector2<T> {
     fn from(value: &PolarCoordinate<T>) -> Self {
         Vector2::new(value.angle.cos()*value.length, value.angle.sin()*value.length)
     }
 }
-impl<T: FloatingPoint> From<Vector2<T>> for PolarCoordinate<T> {
+impl<T: RationalNumber> From<Vector2<T>> for PolarCoordinate<T> {
     fn from(value: Vector2<T>) -> Self {
         Self { length: value.length(), angle: value.angle() }
     }
 }
-impl<T: FloatingPoint> From<&Vector2<T>> for PolarCoordinate<T> {
+impl<T: RationalNumber> From<&Vector2<T>> for PolarCoordinate<T> {
     fn from(value: &Vector2<T>) -> Self {
         value.into()
     }
 }
-impl<'a, T: FloatingPoint> IntoVector<'a> for PolarCoordinate<T> {
+impl<'a, T: RationalNumber + 'a> IntoVector<'a> for PolarCoordinate<T> {
     type Vector = Vector2<T>;
 }
 #[derive(Clone, Copy)]
@@ -68,7 +68,7 @@ impl<T: Debug> Debug for SphericalCoordinate<T> {
             .finish()
     }
 }
-impl<T: FloatingPoint> SphericalCoordinate<T> {
+impl<T: RationalNumber> SphericalCoordinate<T> {
     pub fn new(length: T,  polar: T, alpha: T) -> Self {
         Self { length,  polar, alpha }
     }
@@ -79,7 +79,7 @@ impl<T: FloatingPoint> SphericalCoordinate<T> {
         self.length
     }
 }
-impl<T: FloatingPoint> From<SphericalCoordinate<T>> for Vector3<T> {
+impl<T: RationalNumber> From<SphericalCoordinate<T>> for Vector3<T> {
     fn from(value: SphericalCoordinate<T>) -> Self {
         Vector3::new(
             value.length*value.polar.sin()*value.alpha.cos(), 
@@ -88,23 +88,23 @@ impl<T: FloatingPoint> From<SphericalCoordinate<T>> for Vector3<T> {
         )
     }
 }
-impl<T: FloatingPoint> From<&SphericalCoordinate<T>> for Vector3<T> {
+impl<T: RationalNumber> From<&SphericalCoordinate<T>> for Vector3<T> {
     fn from(value: &SphericalCoordinate<T>) -> Self {
         value.into()
     }
 }
-impl<T: FloatingPoint> From<Vector3<T>> for SphericalCoordinate<T> {
+impl<T: RationalNumber> From<Vector3<T>> for SphericalCoordinate<T> {
     fn from(value: Vector3<T>) -> Self {
         let acos = value.z.div(value.length()).acos();
         Self { length: value.length(), alpha: Vector2::new(value.x, value.y).angle(), polar: acos }
     }
 }
-impl<T: FloatingPoint> From<&Vector3<T>> for SphericalCoordinate<T> {
+impl<T: RationalNumber> From<&Vector3<T>> for SphericalCoordinate<T> {
     fn from(value: &Vector3<T>) -> Self {
         let acos = value.z.div(value.length()).acos();
         Self { length: value.length(), alpha: Vector2::new(value.x, value.y).angle(), polar: acos }
     }
 }
-impl<'a, T: FloatingPoint> IntoVector<'a> for SphericalCoordinate<T> {
+impl<'a, T: RationalNumber + 'a> IntoVector<'a> for SphericalCoordinate<T> {
     type Vector = Vector3<T>;
 }

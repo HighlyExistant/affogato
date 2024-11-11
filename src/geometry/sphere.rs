@@ -1,4 +1,4 @@
-use crate::{linear::{FVec3, Vector3}, Number};
+use crate::{linear::{FVec3, Vector3}, sets::Number};
 
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]

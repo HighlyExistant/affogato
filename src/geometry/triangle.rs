@@ -1,4 +1,4 @@
-use crate::{linear::{DVec2, DVec3, FVec2, FVec3, Vector2, Vector3}, Number};
+use crate::{linear::{DVec2, DVec3, FVec2, FVec3, Vector2, Vector3}, sets::Number};
 
 use super::CalculateCentroid;
 

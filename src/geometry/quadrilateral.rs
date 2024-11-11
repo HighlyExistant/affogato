@@ -1,6 +1,7 @@
+use core::fmt;
 use std::fmt::Debug;
 
-use crate::{linear::{DVec2, DVec3, FVec2, FVec3, Vector, Vector2, Vector3}, FloatingPoint, Number};
+use crate::{linear::{DVec2, DVec3, FVec2, FVec3, Vector, Vector2, Vector3}, sets::Number, RationalNumber};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
@@ -10,7 +11,7 @@ pub trait HyperCube<T: Number> {
 
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
-pub struct Cube<T: Number> {
+pub struct Cube<T> {
     pub min: Vector3<T>,
     pub max: Vector3<T>,
 }
@@ -177,21 +178,40 @@ impl From<DVec3> for Cube<f64> {
 
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
-pub struct Square<T: Number> {
+pub struct Rect<T> {
     pub min: Vector2<T>,
     pub max: Vector2<T>,
 }
-impl<T: Number> HyperCube<T> for Square<T> {
+impl<T: Number> HyperCube<T> for Rect<T> {
     const DIMENSION: usize = 2;
 }
-impl<T: Number> Default for Square<T> {
+impl<T: Number> Default for Rect<T> {
     fn default() -> Self {
         Self { min: Vector2::from(T::min_value()), max: Vector2::from(T::max_value()) }
     }
 }
-impl<T: Number> Square<T> {
+impl<T> Rect<T> {
+    pub fn edge_indices() -> [u32; 8] {
+        [
+            0, 1,
+            1, 2,
+            2, 3,
+            3, 0
+        ]
+    }
+    pub fn tri_indices() -> [u32; 6] {
+        [
+            0, 1, 2,
+            2, 3, 0
+        ]
+    }
+}
+impl<T: Number> Rect<T> {
     pub fn new(min: Vector2<T>, max: Vector2<T>) -> Self {
         Self { min: min, max: max }
+    }
+    pub fn from_lengths(width: T, height: T) -> Self {
+        Self::new(Vector2::new(T::zero(), T::zero()), Vector2::new(width, height))
     }
     pub fn width(&self) -> T {
         self.max.x - self.min.x
@@ -227,6 +247,15 @@ impl<T: Number> Square<T> {
         t.max = self.max.max(&self.min);
         t
     }
+    pub fn normalized(&self) -> Self 
+        where T: RationalNumber {
+        let rect = Vector2::new(self.width(), self.height()).normalize();
+        Rect::from_lengths(rect.x, rect.y)
+    }
+    pub fn to_origin(&self) -> Self 
+        where T: RationalNumber {
+        Self::from_lengths(self.width(), self.height())
+    }
     /// ```
     /// 3-------2
     /// |       |
@@ -256,6 +285,21 @@ impl<T: Number> Square<T> {
             2, 3, 0
         ]
     }
+    pub fn move_horizontal(&self, x: T) -> Self {
+        Self { min: Vector2::new(self.min.x+x, self.min.y), max: Vector2::new(self.max.x+x, self.max.y) }
+    }
+    pub fn move_horizontal_vec2(&self, translate: Vector2<T>) -> Self {
+        Self { min: Vector2::new(self.min.x+translate.x, self.min.y+translate.y), max: Vector2::new(self.max.x+translate.x, self.max.y+translate.y) }
+    }
+    pub fn scale(&self, scale: T) -> Self {
+        Self { min: self.min*scale, max: self.max*scale }
+    }
+    pub fn scale_vec2(&self, scale: Vector2<T>) -> Self {
+        Self { min: self.min*scale, max: self.max*scale }
+    }
+    pub fn invert(&self) -> Self {
+        Self { min: self.max, max: self.min }
+    }
     #[cfg(feature="rand")]
     pub fn random(range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
@@ -263,20 +307,20 @@ impl<T: Number> Square<T> {
             Self::new(Vector2::random(range.clone()), Vector2::random(range)).fix_bounds()
     }
 }
-impl<T: Number> From<Vector2<T>> for Square<T> {
+impl<T: Number> From<Vector2<T>> for Rect<T> {
     fn from(value: Vector2<T>) -> Self {
-        let square = Square::default();
-        square.vector_adjust_bounds(value)
+        let rect = Rect::default();
+        rect.vector_adjust_bounds(value)
     }
 }
-impl<T: Number> From<Triangle2D<T>> for Square<T> {
+impl<T: Number> From<Triangle2D<T>> for Rect<T> {
     fn from(value: Triangle2D<T>) -> Self {
-        let square = Square::default();
-        square.triangle_adjust_bounds(&value)
+        let rect = Rect::default();
+        rect.triangle_adjust_bounds(&value)
     }
 }
 
-impl<T: FloatingPoint> CalculateCentroid for Square<T> {
+impl<T: RationalNumber> CalculateCentroid for Rect<T> {
     type VectorType = Vector2<T>;
     fn centroid(&self) -> Vector2<T> {
         Vector2::new(

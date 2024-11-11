@@ -1,6 +1,7 @@
-use affogato::{algebra::ComplexNumber, geometry::{LinearSegment2D, Segment}, linear::FVec2};
+use affogato::{algebra::ComplexNumber, geometry::{FSegment2D, LinearSegment2D, Segment, Segment2D}, linear::FVec2, polynomial, sets::CartesianProduct, spatial::morton::MortonU64};
 
 fn main() {
-    let a = LinearSegment2D::new(FVec2::new(0.0, 0.0), FVec2::new(1.0, 1.0));
-    let x = a.split_in_thirds();
+    let morton = MortonU64::encode_xy(5, 12);
+    println!("{morton:b}");
+    println!("{:?}", morton.decode_xy());
 }
