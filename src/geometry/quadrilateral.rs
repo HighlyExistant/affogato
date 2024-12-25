@@ -1,7 +1,7 @@
 use core::fmt;
 use std::fmt::Debug;
 
-use crate::{linear::{DVec2, DVec3, FVec2, FVec3, Vector, Vector2, Vector3}, sets::Number, RationalNumber};
+use crate::{vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Number, Real};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
@@ -11,7 +11,7 @@ pub trait HyperCube<T: Number> {
 
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
-pub struct Cube<T> {
+pub struct Cube<T: Number> {
     pub min: Vector3<T>,
     pub max: Vector3<T>,
 }
@@ -25,7 +25,7 @@ impl<T: Number> std::cmp::PartialEq for Cube<T> {
 }
 impl<T: Number> Default for Cube<T> {
     fn default() -> Self {
-        Self { min: Vector3::from(T::min_value()), max: Vector3::from(T::max_value()) }
+        Self { min: Vector3::from(T::MIN), max: Vector3::from(T::MAX) }
     }
 }
 impl<T: Number> Cube<T> {
@@ -63,7 +63,7 @@ impl<T: Number> Cube<T> {
         t
     } 
     pub fn inverted_bounds_default() -> Self {
-        Self { min: Vector3::from(T::max_value()), max: Vector3::from(T::min_value()) }
+        Self { min: Vector3::from(T::MAX), max: Vector3::from(T::MIN) }
     }
     pub fn min(&self, other: &Self) -> Self {
         Self { min: self.min.min(&other.min), max: self.max.min(&other.max) }
@@ -178,7 +178,7 @@ impl From<DVec3> for Cube<f64> {
 
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
-pub struct Rect<T> {
+pub struct Rect<T: Number> {
     pub min: Vector2<T>,
     pub max: Vector2<T>,
 }
@@ -187,10 +187,10 @@ impl<T: Number> HyperCube<T> for Rect<T> {
 }
 impl<T: Number> Default for Rect<T> {
     fn default() -> Self {
-        Self { min: Vector2::from(T::min_value()), max: Vector2::from(T::max_value()) }
+        Self { min: Vector2::from(T::MIN), max: Vector2::from(T::MAX) }
     }
 }
-impl<T> Rect<T> {
+impl<T: Number> Rect<T> {
     pub fn edge_indices() -> [u32; 8] {
         [
             0, 1,
@@ -211,7 +211,7 @@ impl<T: Number> Rect<T> {
         Self { min: min, max: max }
     }
     pub fn from_lengths(width: T, height: T) -> Self {
-        Self::new(Vector2::new(T::zero(), T::zero()), Vector2::new(width, height))
+        Self::new(Vector2::new(T::ZERO, T::ZERO), Vector2::new(width, height))
     }
     pub fn width(&self) -> T {
         self.max.x - self.min.x
@@ -248,12 +248,12 @@ impl<T: Number> Rect<T> {
         t
     }
     pub fn normalized(&self) -> Self 
-        where T: RationalNumber {
+        where T: Real {
         let rect = Vector2::new(self.width(), self.height()).normalize();
         Rect::from_lengths(rect.x, rect.y)
     }
     pub fn to_origin(&self) -> Self 
-        where T: RationalNumber {
+        where T: Real {
         Self::from_lengths(self.width(), self.height())
     }
     /// ```
@@ -320,12 +320,12 @@ impl<T: Number> From<Triangle2D<T>> for Rect<T> {
     }
 }
 
-impl<T: RationalNumber> CalculateCentroid for Rect<T> {
+impl<T: Real> CalculateCentroid for Rect<T> {
     type VectorType = Vector2<T>;
     fn centroid(&self) -> Vector2<T> {
         Vector2::new(
-            (self.min.x + self.max.x)*T::from(0.5).unwrap(), 
-            (self.min.y + self.max.y)*T::from(0.5).unwrap(), 
+            (self.min.x + self.max.x)*T::from_f64(0.5), 
+            (self.min.y + self.max.y)*T::from_f64(0.5), 
         )
     }
 }

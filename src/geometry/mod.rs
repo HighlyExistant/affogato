@@ -8,7 +8,7 @@ pub use triangle::*;
 pub use sphere::*;
 pub use segment::*;
 
-use crate::linear::Vector;
+use crate::vector::Vector;
 
 pub trait CalculateCentroid {
     type VectorType: Vector;

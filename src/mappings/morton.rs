@@ -1,6 +1,6 @@
 use std::{fmt::Binary, hash::Hash, ops::Deref};
 
-use crate::linear::{UI16Vec2, UI8Vec2, UIVec2};
+use crate::vector::{UI16Vec2, UI8Vec2, UIVec2};
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -123,6 +123,7 @@ impl MortonU64 {
     #[cfg(target_arch="x86_64")]
     pub fn decode_xy(&self) -> UIVec2 {
         use std::arch::x86_64::_pext_u64;
+
         let (x, y) = unsafe { (_pext_u64(self.0, 0x5555555555555555) as u32, _pext_u64(self.0, 0xaaaaaaaaaaaaaaaa) as u32) };
         UIVec2::new(x, y)
     }

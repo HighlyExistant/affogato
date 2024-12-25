@@ -1,4 +1,4 @@
-use crate::{linear::{DVec2, DVec3, FVec2, FVec3, Vector2, Vector3}, sets::Number};
+use crate::{vector::{Vector2, Vector3}, Number, Real};
 
 use super::CalculateCentroid;
 
@@ -13,23 +13,13 @@ impl<T: Number> Triangle3D<T> {
         Self { v: [v0,v1,v2] }
     }
 }
-impl CalculateCentroid for Triangle3D<f32> {
-    type VectorType = FVec3;
-    fn centroid(&self) -> FVec3 {
-        FVec3::new(
-            (self.v[0].x + self.v[1].x + self.v[2].x)*0.33333,
-            (self.v[0].y + self.v[1].y + self.v[2].y)*0.33333, 
-            (self.v[0].z + self.v[1].z + self.v[2].z)*0.33333
-        )
-    }
-}
-impl CalculateCentroid for Triangle3D<f64> {
-    type VectorType = DVec3;
-    fn centroid(&self) -> DVec3 {
-        DVec3::new(
-            (self.v[0].x + self.v[1].x + self.v[2].x)*0.33333,
-            (self.v[0].y + self.v[1].y + self.v[2].y)*0.33333, 
-            (self.v[0].z + self.v[1].z + self.v[2].z)*0.33333
+impl<T: Real> CalculateCentroid for Triangle3D<T> {
+    type VectorType = Vector3<T>;
+    fn centroid(&self) -> Vector3<T> {
+        Vector3::new(
+            (self.v[0].x + self.v[1].x + self.v[2].x)*T::from_f64(0.33333),
+            (self.v[0].y + self.v[1].y + self.v[2].y)*T::from_f64(0.33333), 
+            (self.v[0].z + self.v[1].z + self.v[2].z)*T::from_f64(0.33333)
         )
     }
 }
@@ -45,21 +35,12 @@ impl<T: Number> Triangle2D<T> {
         Self { v: [v0,v1,v2] }
     }
 }
-impl CalculateCentroid for Triangle2D<f32> {
-    type VectorType = FVec2;
-    fn centroid(&self) -> FVec2 {
-        FVec2::new(
-            (self.v[0].x + self.v[1].x + self.v[2].x)*0.33333,
-            (self.v[0].y + self.v[1].y + self.v[2].y)*0.33333, 
-        )
-    }
-}
-impl CalculateCentroid for Triangle2D<f64> {
-    type VectorType = DVec2;
-    fn centroid(&self) -> DVec2 {
-        DVec2::new(
-            (self.v[0].x + self.v[1].x + self.v[2].x)*0.33333,
-            (self.v[0].y + self.v[1].y + self.v[2].y)*0.33333, 
+impl<T: Real> CalculateCentroid for Triangle2D<T> {
+    type VectorType = Vector2<T>;
+    fn centroid(&self) -> Vector2<T> {
+        Vector2::new(
+            (self.v[0].x + self.v[1].x + self.v[2].x)*T::from_f64(0.33333),
+            (self.v[0].y + self.v[1].y + self.v[2].y)*T::from_f64(0.33333), 
         )
     }
 }

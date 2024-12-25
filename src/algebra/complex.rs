@@ -1,15 +1,15 @@
 use std::{fmt::{Display, Write}, ops::{Add, Div, Mul}};
 
-use crate::{linear::{Matrix2, Vector2}, RationalNumber};
+use crate::{matrix::{Matrix2, SquareMatrix}, vector::Vector2, Real};
 
-pub struct ComplexNumber<T: RationalNumber> {
+pub struct ComplexNumber<T: Real> {
     real: T,
     imaginary: T,
 }
-impl<T: RationalNumber> Display for ComplexNumber<T> 
+impl<T: Real> Display for ComplexNumber<T> 
     where T: Display {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let sign = self.imaginary.is_sign_negative();
+        let sign = self.imaginary.is_negative();
         if sign {
             f.write_str(&format!("{} - {}i", self.real, self.imaginary.abs()))
         } else {
@@ -17,7 +17,7 @@ impl<T: RationalNumber> Display for ComplexNumber<T>
         }
     }
 }
-impl<T: RationalNumber> ComplexNumber<T> {
+impl<T: Real> ComplexNumber<T> {
     pub fn new(real: T, imaginary: T) -> Self {
         Self { real, imaginary }
     }
@@ -31,16 +31,27 @@ impl<T: RationalNumber> ComplexNumber<T> {
         Self::new(self.real, -self.imaginary)
     }
 }
-impl<T: RationalNumber> Add for ComplexNumber<T> {
+impl<T: Real> Add for ComplexNumber<T> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         Self::new(self.real+rhs.real, self.imaginary+rhs.imaginary)
     }
 }
-impl<T: RationalNumber> Mul for ComplexNumber<T> {
+impl<T: Real> Mul for ComplexNumber<T> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let mat = self.matrix()*rhs.matrix();
         Self::new(mat.x.x, mat.y.x)
+    }
+}
+impl<T: Real> Div for ComplexNumber<T> 
+    where Matrix2<T>: std::ops::Mul<T, Output = Matrix2<T>> +
+        std::ops::Mul<Output = Matrix2<T>> {
+    type Output = Self;
+    fn div(self, rhs: Self) -> Self::Output {
+        let denom = rhs.imaginary*rhs.imaginary + rhs.real*rhs.real;
+        let real = (self.real * rhs.real + self.imaginary * rhs.imaginary) /denom;
+        let imaginary = (rhs.real * self.imaginary - self.real * rhs.imaginary) /denom;
+        Self::new(real, imaginary)
     }
 }
