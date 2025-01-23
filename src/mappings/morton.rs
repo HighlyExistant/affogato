@@ -113,14 +113,13 @@ impl Binary for MortonU64 {
     }
 }
 
+#[cfg(target_arch="x86_64")]
 impl MortonU64 {
-    #[cfg(target_arch="x86_64")]
     pub fn encode_xy(x: u32, y: u32) -> Self {
         use std::arch::x86_64::_pdep_u64;
         let val = unsafe { _pdep_u64(x as u64, 0x55555555) | _pdep_u64(y as u64,0xaaaaaaaa) };
         Self(val)
     }
-    #[cfg(target_arch="x86_64")]
     pub fn decode_xy(&self) -> UIVec2 {
         use std::arch::x86_64::_pext_u64;
 

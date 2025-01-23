@@ -2,6 +2,7 @@ mod quadrilateral;
 mod triangle;
 mod sphere;
 mod segment;
+mod ray;
 
 pub use quadrilateral::*;
 pub use triangle::*;

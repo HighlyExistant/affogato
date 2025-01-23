@@ -449,6 +449,20 @@ impl<T: Number> Vector3<T> {
     pub const fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z, padding: T::ZERO }
     }
+    pub const fn right() -> Self {
+        Self::new(T::ONE, T::ZERO, T::ZERO)
+    }
+    pub fn left() -> Self 
+        where T: std::ops::Neg<Output = T> {
+        Self::new(-T::ONE, T::ZERO, T::ZERO)
+    }
+    pub const fn top() -> Self {
+        Self::new(T::ZERO, T::ONE, T::ZERO)
+    }
+    pub fn bottom() -> Self 
+        where T: std::ops::Neg<Output = T> {
+        Self::new(T::ZERO, -T::ONE, T::ZERO)
+    }
 }
 impl<T: Number> CrossProduct for Vector3<T> {
     type Product = Self;
