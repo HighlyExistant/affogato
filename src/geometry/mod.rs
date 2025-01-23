@@ -12,6 +12,7 @@ use crate::vector::Vector;
 
 pub trait CalculateCentroid {
     type VectorType: Vector;
+    /// The centroid is the center of a geometric object.
     fn centroid(&self) -> Self::VectorType;
 }
 

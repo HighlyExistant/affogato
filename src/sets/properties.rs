@@ -1,10 +1,3 @@
-macro_rules! impl_structures {
-    ($trait_impl:tt, $($structure:tt),*) => {
-        $(
-            impl $trait_impl for $structure {}
-        )*
-    };
-}
 macro_rules! impl_properties {
     ($zero:tt, $one:tt, $($structure:tt),*) => {
         $(

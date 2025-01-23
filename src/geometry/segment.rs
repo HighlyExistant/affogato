@@ -1,4 +1,5 @@
-use std::{fmt::{Debug, Display, Write}, ops::{Deref, Mul, Sub}};
+#![allow(unused)]
+use std::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
 use crate::{lerp, vector::{CrossProduct, Vector, Vector2}, Number, Real, Zero};
 
@@ -129,7 +130,7 @@ impl<T: Number> Segment for LinearSegment2D<T> {
         self[idx]
     }
     fn order(&self) -> usize { 2 }
-    fn direction_at(&self, t: f64) -> Vector2<T> {
+    fn direction_at(&self, _: f64) -> Vector2<T> {
         self[1] - self[0]
     }
     fn adjust_end_point(&mut self, to: Vector2<T>) {
@@ -286,7 +287,6 @@ impl<T: Number> CubicSegment2D<T> {
         Self: 'static {
         let t_1_3 = T::from_f64(1.0/3.0);
         let t_2_3 = T::from_f64(2.0/3.0);
-        let t_5_9 = T::from_f64(5.0/9.0);
         let part1_1 = if self[0] == self[1] {
             self[0]
         } else {
@@ -330,7 +330,7 @@ impl<T: Number> Segment for CubicSegment2D<T> {
         let b = lerp(self.control1, self.control2, t);
         let c = lerp(self.control2, self.end, t);
         let e = lerp(a, b, t);
-        let f = lerp(b, a, t);
+        let f = lerp(b, c, t);
         lerp(e, f, t)
     }
     fn control_point(&self, idx: usize) -> Vector2<T> {
@@ -360,7 +360,6 @@ impl<T: Number> Segment for CubicSegment2D<T> {
             Self: 'static {
         let t_1_3 = T::from_f64(1.0/3.0);
         let t_2_3 = T::from_f64(2.0/3.0);
-        let t_5_9 = T::from_f64(5.0/9.0);
         let part1_1 = if self[0] == self[1] {
             self[0]
         } else {

@@ -3,12 +3,7 @@ mod types;
 mod polar;
 pub use types::*;
 pub use polar::*;
-use crate::{FloatingPoint, HasNegatives, Number, One, Real, UniversalOperationsOn, UsesArithmetic, Zero};
-macro_rules! null_macro {
-    ($($elements:tt),*) => {
-        
-    };
-}
+use crate::{FloatingPoint, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
         
