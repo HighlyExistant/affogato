@@ -463,6 +463,13 @@ impl<T: Number> Vector3<T> {
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, -T::ONE, T::ZERO)
     }
+    pub const fn forward() -> Self {
+        Self::new(T::ZERO, T::ZERO, T::ONE)
+    }
+    pub fn backward() -> Self
+        where T: std::ops::Neg<Output = T> {
+        Self::new(T::ZERO, T::ZERO, -T::ONE)
+    }
 }
 impl<T: Number> CrossProduct for Vector3<T> {
     type Product = Self;

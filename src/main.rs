@@ -1,6 +1,7 @@
-use affogato::{algebra::{ComplexNumber, Imaginary, Quaternion}, geometry::Ray3D, matrix::{Matrix2, Matrix3, Matrix4, SquareMatrix}, vector::{Vector2, Vector3, Vector4}};
+use affogato::{algebra::{ComplexNumber, Imaginary, Quaternion}, geometry::{Ray, Ray3D}, matrix::{Matrix2, Matrix3, Matrix4, SquareMatrix}, vector::{Vector2, Vector3, Vector4}, Zero};
 
 fn main() {
+    let ray = Ray3D::new(Vector3::ZERO, Vector3::new(1.0, 1.0, 1.0));
     
-    println!("{}", i1*i2);
+    println!("{:?}", ray.at(2.0));
 }
