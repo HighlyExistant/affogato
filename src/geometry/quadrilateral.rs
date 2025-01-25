@@ -4,15 +4,15 @@ use crate::{vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Number, Real};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
+/// Represents an abstract N-Dimensional cube
 pub trait HyperCube<T: Number> {
     const DIMENSION: usize;
 }
-
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
 pub struct Cube<T: Number> {
-    pub min: Vector3<T>,
-    pub max: Vector3<T>,
+    min: Vector3<T>,
+    max: Vector3<T>,
 }
 impl<T: Number> HyperCube<T> for Cube<T> {
     const DIMENSION: usize = 3;
@@ -31,37 +31,48 @@ impl<T: Number> Cube<T> {
     pub fn new(min: Vector3<T>, max: Vector3<T>) -> Self {
         Self { min: min, max: max }
     }
+    /// Using a [`Triangle3D`], adjust the bounds of the [`Cube`] to fit at least the triangle.
     pub fn triangle_adjust_bounds(&self, triangle: &Triangle3D<T>) -> Self {
         let mut t = *self;
-        t.min = t.min.min(&triangle.v[0]);
-        t.min = t.min.min(&triangle.v[1]);
-        t.min = t.min.min(&triangle.v[2]);
-        t.max = t.max.max(&triangle.v[0]);
-        t.max = t.max.max(&triangle.v[1]);
-        t.max = t.max.max(&triangle.v[2]);
+        t.min = t.min.min(&triangle[0]);
+        t.min = t.min.min(&triangle[1]);
+        t.min = t.min.min(&triangle[2]);
+        t.max = t.max.max(&triangle[0]);
+        t.max = t.max.max(&triangle[1]);
+        t.max = t.max.max(&triangle[2]);
         t
     }
+    /// merge 2 [`Cube`] objects together, so that both can fit within eachother.
     pub fn merge(&self, aabb: &Self) -> Self 
         where T: Debug {
         let mut t = *self;
-        // println!("aabb.min {:?} t.min {:?} min = {:?}", aabb.min, t.min, t.min.min(&aabb.min));
         t.min = t.min.min(&aabb.min);
         t.max = t.max.max(&aabb.max);
         t
     }
+    /// Using a [`Vector3`], adjust the bounds of the [`Cube`] to fit at least the vector.
     pub fn vector_adjust_bounds(&self, v: Vector3<T>) -> Self {
         let mut t = *self;
         t.min = t.min.min(&v);
         t.max = t.min.max(&v);
         t
     }
-    pub fn fix_bounds(&self) -> Self {
+    fn fix_bounds(&self) -> Self {
         let mut t = *self;
         t.min = self.min.min(&self.max);
         t.max = self.max.max(&self.min);
         t
-    } 
-    pub fn inverted_bounds_default() -> Self {
+    }
+    pub fn minimum(&self) -> &Vector3<T> {
+        &self.min
+    }
+    pub fn maximum(&self) -> &Vector3<T> {
+        &self.max
+    }
+    /// Initializes a [`Cube`] to have the minimum be the largest value and the
+    /// maximum to be the smallest value, Useful in scenarios when garunteeing 
+    /// that the first call to adjust bounds will adjust it correctly.
+    pub unsafe fn inverted_bounds_default() -> Self {
         Self { min: Vector3::from(T::MAX), max: Vector3::from(T::MIN) }
     }
     pub fn min(&self, other: &Self) -> Self {
@@ -178,8 +189,8 @@ impl From<DVec3> for Cube<f64> {
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
 pub struct Rect<T: Number> {
-    pub min: Vector2<T>,
-    pub max: Vector2<T>,
+    min: Vector2<T>,
+    max: Vector2<T>,
 }
 impl<T: Number> HyperCube<T> for Rect<T> {
     const DIMENSION: usize = 2;
@@ -220,12 +231,12 @@ impl<T: Number> Rect<T> {
     }
     pub fn triangle_adjust_bounds(&self, triangle: &Triangle2D<T>) -> Self {
         let mut t = *self;
-        t.min = t.min.min(&triangle.v[0]);
-        t.min = t.min.min(&triangle.v[1]);
-        t.min = t.min.min(&triangle.v[2]);
-        t.max = t.max.max(&triangle.v[0]);
-        t.max = t.max.max(&triangle.v[1]);
-        t.max = t.max.max(&triangle.v[2]);
+        t.min = t.min.min(&triangle[0]);
+        t.min = t.min.min(&triangle[1]);
+        t.min = t.min.min(&triangle[2]);
+        t.max = t.max.max(&triangle[0]);
+        t.max = t.max.max(&triangle[1]);
+        t.max = t.max.max(&triangle[2]);
         t
     }
     pub fn aabb_adjust_bounds(&self, aabb: &Self) -> Self {
@@ -240,11 +251,17 @@ impl<T: Number> Rect<T> {
         t.max = t.min.max(&v);
         t
     }
-    pub fn fix_bounds(&self) -> Self {
+    fn fix_bounds(&self) -> Self {
         let mut t = *self;
         t.min = self.min.min(&self.max);
         t.max = self.max.max(&self.min);
         t
+    }
+    pub fn minimum(&self) -> &Vector2<T> {
+        &self.min
+    }
+    pub fn maximum(&self) -> &Vector2<T> {
+        &self.max
     }
     pub fn normalized(&self) -> Self 
         where T: Real {
@@ -255,12 +272,18 @@ impl<T: Number> Rect<T> {
         where T: Real {
         Self::from_lengths(self.width(), self.height())
     }
+    /// Initializes a [`Cube`] to have the minimum be the largest value and the
+    /// maximum to be the smallest value, Useful in scenarios when garunteeing 
+    /// that the first call to adjust bounds will adjust it correctly.
+    pub unsafe fn inverted_bounds_default() -> Self {
+        Self { min: Vector2::from(T::MAX), max: Vector2::from(T::MIN) }
+    }
     /// ```
-    /// 3-------2
-    /// |       |
-    /// |       |
-    /// |       |
-    /// 0-------1
+    /// 3─────────2
+    /// │         │
+    /// │         │
+    /// │         │
+    /// 0─────────1
     /// ```
     pub fn get_vertices(&self) -> Vec<Vector2<T>> {
         vec![
@@ -328,19 +351,10 @@ impl<T: Real> CalculateCentroid for Rect<T> {
         )
     }
 }
-// impl CalculateCentroid for Square<f64> {
-//     type VectorType = DVec2;
-//     fn centroid(&self) -> DVec2 {
-//         DVec2::new(
-//             (self.min.x + self.max.x)*0.5, 
-//             (self.min.y + self.max.y)*0.5, 
-//         )
-//     }
-// }
 
 impl From<Triangle3D<f32>> for Cube<f32> {
     fn from(value: Triangle3D<f32>) -> Self {
         
-        Self { min: value.v[0].min(&value.v[1].min(&value.v[2])), max: value.v[0].max(&value.v[1].max(&value.v[2])) }
+        Self { min: value[0].min(&value[1].min(&value[2])), max: value[0].max(&value[1].max(&value[2])) }
     }
 }

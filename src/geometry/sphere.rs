@@ -4,11 +4,11 @@ use crate::{vector::Vector3, Number};
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere<T: Number> {
     pub center: Vector3<T>,
-    pub radius: f32,
+    pub radius: T,
 }
 
 impl<T: Number> Sphere<T> {
-    pub fn new(center: Vector3<T>, radius: f32) -> Self {
+    pub fn new(center: Vector3<T>, radius: T) -> Self {
         Self { center, radius }
     }
 }
