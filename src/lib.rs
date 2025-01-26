@@ -3,7 +3,7 @@ mod animation;
 pub mod matrix;
 pub mod algebra;
 pub mod spaces;
-pub mod vector;
+pub mod linalg;
 pub mod mappings;
 pub mod geometry;
 pub use sets::*;

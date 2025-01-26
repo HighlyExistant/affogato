@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::{Index, IndexMut}};
 
-use crate::{vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
+use crate::{linalg::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
 
 pub trait SquareMatrix: Sized {
     type Column: Vector;

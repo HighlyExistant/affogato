@@ -1,7 +1,7 @@
 #![allow(unused)]
 use std::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
-use crate::{lerp, vector::{CrossProduct, Vector, Vector2}, Number, Real, Zero};
+use crate::{lerp, linalg::{CrossProduct, Vector, Vector2}, Number, Real, Zero};
 
 pub trait Segment {
     type VectorType: Vector;

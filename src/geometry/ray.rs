@@ -1,4 +1,4 @@
-use crate::{vector::{CrossProduct, Vector, Vector3}, Real, Zero};
+use crate::{linalg::{CrossProduct, Vector, Vector3}, Real, Zero};
 
 use super::{Sphere, Triangle3D};
 #[derive(Default, Clone, Copy, Debug)]
@@ -14,6 +14,7 @@ pub trait Ray {
     fn at(&self, distance: <Self::Vector as Vector>::Scalar) -> Self::Vector;
     fn origin(&self) -> &Self::Vector;
     fn direction(&self) -> &Self::Vector;
+    
 }
 #[derive(Clone)]
 pub struct Ray3D<T: Real> {

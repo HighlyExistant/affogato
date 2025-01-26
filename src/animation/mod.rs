@@ -1,11 +1,13 @@
-use crate::{HasRealProduct, Real, UsesArithmetic};
+use crate::{HasRealProduct, One, Real, UsesArithmetic, Zero};
 /// mixes two values together linearly using a t value between 0.0-1.0
 pub fn lerp<V: HasRealProduct<T, V> + UsesArithmetic + Copy, T: Real>(a: V, b: V, t: T) -> V {
     a + (b-a)*t
 }
 /// mixes two values using smooth Hermite interpolation with a t value between 0.0-1.0
-pub fn smoothstep<V: HasRealProduct<T, V> + UsesArithmetic + Copy, T: Real>(a: V, b: V, t: T) -> V {
-    (a - b * t) * (t * t)
+pub fn smoothstep<V: HasRealProduct<T, V> + UsesArithmetic + Copy + Ord + Zero + One + From<T>, T: Real + PartialOrd>(a: V, b: V, t: V) -> V {
+    let t = ((t - a) / (b - a)).clamp(V::ZERO, V::ONE);
+    let c = t*T::from_f64(2.0);
+    return t * t * (V::from(T::from_f64(3.0)) - c);
 }
 /// returns a t value using a range `from` and `to` and a value
 pub fn inverse_lerp<V: HasRealProduct<T, V> + UsesArithmetic + Copy, T: Real>(from: V, to: V, value: T) -> V 

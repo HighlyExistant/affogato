@@ -314,8 +314,7 @@ pub trait Number
     Zero + 
     PartialOrd + 
     Bounds
-    {
-}
+    {}
 impl<T> Number for T 
     where T: Sized + 
     std::ops::Add<Output = Self> +
@@ -336,7 +335,6 @@ impl<T> Number for T
     Bounds {
     
 }
-
 pub trait HasNegatives: std::ops::Neg<Output = Self> {
     fn is_negative(self) -> bool;
     fn is_positive(self) -> bool;

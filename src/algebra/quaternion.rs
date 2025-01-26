@@ -1,7 +1,7 @@
 #![allow(unused)]
 use std::fmt::{Debug, Display};
 
-use crate::{matrix::Matrix3, vector::Vector3, Number, Real};
+use crate::{matrix::Matrix3, linalg::Vector3, Number, Real};
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
