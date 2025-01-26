@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{linalg::{DVec3, FVec3, Vector, Vector2, Vector3}, Number, Real};
+use crate::{vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Number, Real};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 

@@ -10,7 +10,7 @@ pub use sphere::*;
 pub use segment::*;
 pub use ray::*;
 
-use crate::linalg::Vector;
+use crate::vector::Vector;
 
 pub trait CalculateCentroid {
     type VectorType: Vector;

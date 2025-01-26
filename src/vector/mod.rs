@@ -1,9 +1,9 @@
-use std::{fmt::Display, ops::{Div, Index, IndexMut, Neg}};
+use std::{fmt::Display, ops::{Div, Index, IndexMut, Neg, Sub}};
 mod types;
 mod polar;
 pub use types::*;
 pub use polar::*;
-use crate::{FloatingPoint, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero, FromPrimitive};
+use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
         
@@ -325,19 +325,15 @@ macro_rules! impl_all_from_vec {
 }
 pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self>{
     type Scalar: Number;
-    fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(self).sqrt() }
+    fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.length_squared().sqrt() }
+    #[inline]
+    fn length_squared(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(self) }
     fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(other).sqrt() }
     /// Direction gives a normalized vector that points to the given point.
     fn direction_to(&self, point: &Self) -> Self 
         where Self::Scalar: FloatingPoint,
         Self: std::ops::Sub<Output = Self> + Sized + Copy { 
             point.sub(*self).normalize()
-    }
-    /// calculates the reflection of the ray, where self is the incident ray and
-    /// normal is the normal of the surface it is reflecting on.
-    fn reflect(&self, normal: &Self) -> Self 
-        where Self: Sized + Clone, Self::Scalar: Real {
-        self.clone() - (normal.clone())*Self::Scalar::from_f64(2.0)*self.dot(normal)
     }
     /// The dot product is a common linear algebra function which is defined as
     /// the sum of the products of each respective scalar value in the vector.
@@ -608,6 +604,34 @@ impl<T: Number> From<Vector2<T>> for Vector4<T>  {
     fn from(value: Vector2<T>) -> Self {
         Self::new(value.x, value.y, T::ZERO, T::ONE)
     }
+}
+
+/// calculates the direction of reflection of an incident vector, where `incident` is the incident vector and
+/// `normal` is the normal of the surface it is reflecting on. Important to note that
+/// both the incident and normal should be normalized vectors. The following snippet was
+/// retrieved from https://thebookofshaders.com/glossary/?search=reflect
+pub fn reflect<V: Vector>(incident: &V, normal: &V) -> V 
+    where V: Sized + Clone, V::Scalar: Real {
+    incident.clone() - (normal.clone())*V::Scalar::from_f64(2.0)*incident.dot(normal)
+}
+/// calculates the refraction of an incident vector, where `incident` is the incident vector,
+/// `normal` is the normal of the surface it is reflecting on and `eta` is the ratio of indices of
+/// refraction. Important to note that both the incident and normal should be normalized vectors.
+/// retrieved from https://raytracing.github.io/books/RayTracingInOneWeekend.html#dielectrics/refraction
+pub fn refract<V: Vector + Neg<Output=V> + Zero + One>(incident: &V, normal: &V, eta: V::Scalar) -> V 
+    where V: Sized + Clone, V::Scalar: Real {
+    // commented code from https://thebookofshaders.com/glossary/?search=refract
+    // let ni = normal.dot(incident);
+    // let k = V::Scalar::ONE - eta*eta*(V::Scalar::ONE - ni*ni);
+    // if k < V::Scalar::ZERO {
+    //     V::ZERO
+    // } else {
+    //     (incident.clone()*eta)-(normal.clone()*(eta*ni + k.sqrt()))
+    // }
+    let cos_theta = (-incident.clone()).dot(normal).min(V::Scalar::ONE);
+    let r_out_perp = (incident.clone()+(normal.clone()*cos_theta))*eta;
+    let r_out_parallel = normal.clone()*(-(V::Scalar::ONE.sub(r_out_perp.length_squared()).abs()).sqrt());
+    r_out_perp+r_out_parallel
 }
 impl_ops!(Vector2,x,y);
 impl_ops!(Vector3,x,y,z);

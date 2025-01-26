@@ -1,6 +1,6 @@
 use std::{fmt::Binary, hash::Hash, ops::Deref};
 
-use crate::linalg::{UI16Vec2, UI8Vec2, UIVec2};
+use crate::vector::{UI16Vec2, UI8Vec2, UIVec2};
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

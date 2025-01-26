@@ -1,13 +1,15 @@
-use crate::{HasRealProduct, One, Real, UsesArithmetic, Zero};
+use crate::{FromPrimitive, HasRealProduct, One, Real, UniversalOperationsOn, UsesArithmetic, Zero};
 /// mixes two values together linearly using a t value between 0.0-1.0
-pub fn lerp<V: HasRealProduct<T, V> + UsesArithmetic + Copy, T: Real>(a: V, b: V, t: T) -> V {
+pub fn lerp<V, T>(a: V, b: V, t: T) -> V 
+    where V: UsesArithmetic + Copy + std::ops::Mul<T, Output = V> {
     a + (b-a)*t
 }
-/// mixes two values using smooth Hermite interpolation with a t value between 0.0-1.0
-pub fn smoothstep<V: HasRealProduct<T, V> + UsesArithmetic + Copy + Ord + Zero + One + From<T>, T: Real + PartialOrd>(a: V, b: V, t: V) -> V {
+/// mixes two values using smooth Hermite interpolation with a t value between 0.0-1.0. Retrieved from https://thebookofshaders.com/glossary/?search=smoothstep
+pub fn smoothstep<V, T>(a: V, b: V, t: V) -> V 
+    where V: UsesArithmetic + std::ops::Mul<T, Output = V> + Copy + Ord + Zero + One + From<T>,
+        T: FromPrimitive {
     let t = ((t - a) / (b - a)).clamp(V::ZERO, V::ONE);
-    let c = t*T::from_f64(2.0);
-    return t * t * (V::from(T::from_f64(3.0)) - c);
+    return t * t * (V::from(T::from_f64(3.0)) - t*T::from_f64(2.0));
 }
 /// returns a t value using a range `from` and `to` and a value
 pub fn inverse_lerp<V: HasRealProduct<T, V> + UsesArithmetic + Copy, T: Real>(from: V, to: V, value: T) -> V 

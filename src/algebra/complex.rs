@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::{Add, Div, Mul}};
 
-use crate::{matrix::Matrix2, linalg::Vector2, Real};
+use crate::{matrix::Matrix2, vector::Vector2, Real};
 
 pub struct ComplexNumber<T: Real> {
     real: T,

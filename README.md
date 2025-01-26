@@ -30,7 +30,9 @@ The largest portion of this library is filled with code for vectors and matrices
   * Cubic Formula
 # Things I might add
 * I've been interested in geometric algebra, so I might look into ganja.js and add rotors. This might lead to an enire rework of Complex numbers and Quaternions, as well as the addition of hyperbolic numbers (Split complex numbers) and duel numbers, although I currently have no reason to, as it's not something im working on for a project.
+* Physics calculations. As I work more with physics, i'll require more math functions related to physics, and will most likely add them here, perhaps as an optional feature.
 # Inspirations
 * [glm](https://www.opengl.org/sdk/libs/GLM/) (OpenGL Mathematics) possibly one of my biggest inspirations, Lots of the Matrix and Vector code is inspired from this library.
 * [msdfgen](https://github.com/Chlumsky/msdfgen/tree/master) A smaller but equally important inspiration, from which I derived my Segment code.
 * [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere) The Ray class is inspired from this site
+* [The Book of Shaders](https://thebookofshaders.com/glossary/?search=reflect) snippets of code for smoothing functions, and other glsl functions were acquired from here

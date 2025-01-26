@@ -1,4 +1,4 @@
-use crate::{linalg::Vector3, Number};
+use crate::{vector::Vector3, Number};
 
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
