@@ -327,18 +327,27 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     type Scalar: Number;
     fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(self).sqrt() }
     fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(other).sqrt() }
-    /// Direction gives a normalized vector
-    /// that points to the given point.
+    /// Direction gives a normalized vector that points to the given point.
     fn direction_to(&self, point: &Self) -> Self 
         where Self::Scalar: FloatingPoint,
         Self: std::ops::Sub<Output = Self> + Sized + Copy { 
             point.sub(*self).normalize()
     }
+    /// The dot product is a common linear algebra function which is defined as
+    /// the sum of the products of each respective scalar value in the vector.
+    /// # Properties of the Dot Product
+    /// * The dot product is commutative
+    /// * The angle between the two vectors is greater than 90 degrees if the dot product is negative
+    /// * The vectors are perpendicular if the dot product equals 0
+    /// * The dot product of two normalized vectors, returns the cosine of the angle between those vectors.
     fn dot(&self, other: &Self) -> Self::Scalar;
     fn project(&self, other: &Self) -> Self where Self::Scalar: FloatingPoint;
+    /// the amount of scalar values this vector has.
     fn len(&self) -> usize;
     fn normalize(&self) -> Self where Self::Scalar: FloatingPoint;
+    // retrieves a point inside the vector, checking whether it is out of bounds
     fn get(&self, idx: usize) -> Option<Self::Scalar>;
+    // retrieves a point inside the vector
     fn get_unchecked(&self, idx: usize) -> Self::Scalar;
     fn min(&self, other: &Self) -> Self;
     fn max(&self, other: &Self) -> Self;
@@ -417,6 +426,11 @@ impl<T: Number> Vector2<T> {
         where T: Real {
         self.cos().acos()
     }
+    #[cfg(feature="rand")]
+    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+        Vector2::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()))
+    }
 }
 impl<T: Number> CrossProduct for Vector2<T> {
     fn cross(&self, other: &Self) -> Self::Product {
@@ -470,6 +484,11 @@ impl<T: Number> Vector3<T> {
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, T::ZERO, -T::ONE)
     }
+    #[cfg(feature="rand")]
+    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+        Vector3::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
+    }
 }
 impl<T: Number> CrossProduct for Vector3<T> {
     type Product = Self;
@@ -506,6 +525,11 @@ impl<T: Number> IndexMut<usize> for Vector4<T> {
 impl<T: Number> Vector4<T> {
     pub const fn new(x: T, y: T, z: T, w: T) -> Self {
         Self { x, y, z, w }
+    }
+    #[cfg(feature="rand")]
+    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+        Vector4::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
     }
 }
 

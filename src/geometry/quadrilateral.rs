@@ -140,17 +140,10 @@ impl<T: Number> Cube<T> {
         ]
     }
     #[cfg(feature="rand")]
-    pub fn random(range: std::ops::Range<T>) -> Self 
+    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
             use rand::Rng;
-            Self::new(Vector3::random(range.clone()), Vector3::random(range)).fix_bounds()
-    }
-    #[cfg(feature="rand_pcg")]
-    pub fn pseudo_random<P>(pcg: &mut P, range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform,
-        P: rand::RngCore {
-        use rand::Rng;
-        Self::new(Vector3::pseudo_random(pcg, range.clone()), Vector3::pseudo_random(pcg, range)).fix_bounds()
+            Self::new(Vector3::random(generator, range.clone()), Vector3::random(generator, range)).fix_bounds()
     }
 }
 
@@ -257,6 +250,12 @@ impl<T: Number> Rect<T> {
         t.max = self.max.max(&self.min);
         t
     }
+    #[cfg(feature="rand")]
+    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+            use rand::Rng;
+            Self::new(Vector2::random(generator, range.clone()), Vector2::random(generator, range)).fix_bounds()
+    }
     pub fn minimum(&self) -> &Vector2<T> {
         &self.min
     }
@@ -277,6 +276,12 @@ impl<T: Number> Rect<T> {
     /// that the first call to adjust bounds will adjust it correctly.
     pub unsafe fn inverted_bounds_default() -> Self {
         Self { min: Vector2::from(T::MAX), max: Vector2::from(T::MIN) }
+    }
+    pub fn min(&self, other: &Self) -> Self {
+        Self { min: self.min.min(&other.min), max: self.max.min(&other.max) }
+    }
+    pub fn max(&self, other: &Self) -> Self {
+        Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
     }
     /// ```
     /// 3─────────2
@@ -321,12 +326,6 @@ impl<T: Number> Rect<T> {
     }
     pub fn invert(&self) -> Self {
         Self { min: self.max, max: self.min }
-    }
-    #[cfg(feature="rand")]
-    pub fn random(range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform {
-            use rand::Rng;
-            Self::new(Vector2::random(range.clone()), Vector2::random(range)).fix_bounds()
     }
 }
 impl<T: Number> From<Vector2<T>> for Rect<T> {

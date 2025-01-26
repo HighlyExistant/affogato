@@ -3,13 +3,6 @@ use std::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
 use crate::{lerp, vector::{CrossProduct, Vector, Vector2}, Number, Real, Zero};
 
-// TODO THINGS TO ADD:
-// 4. Segment2D (Has the same layout as a CubicSegment but can become a linear, quadratic or cubic)
-// 5. LinearSegment3D
-// 6. QuadraticSegment3D
-// 7. CubicSegment3D
-// 8. Segment3D (Has the same layout as a CubicSegment but can become a linear, quadratic or cubic)
-
 pub trait Segment {
     type VectorType: Vector;
     

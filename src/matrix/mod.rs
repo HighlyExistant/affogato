@@ -665,10 +665,6 @@ impl<T: Number> From<Matrix3<T>> for Matrix4<T> {
 
 impl<T: Number + Display> Display for Matrix2<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // let row1 = format!("┌{}, {}, {}, {}\n", self.x.x, self.y.x, self.z.x, self.w.x);
-        // let row2 = format!("│{}, {}, {}, {}\n", self.x.y, self.y.y, self.z.y, self.w.y);
-        // let row3 = format!("│{}, {}, {}, {}\n", self.x.z, self.y.z, self.z.z, self.w.z);
-        // let row4 = format!("└{}, {}, {}, {}\n", self.w.z, self.w.z, self.w.z, self.w.w);
         let mut row1 = String::from('┌');
         let mut row2 = String::from('└');
         {
@@ -687,10 +683,6 @@ impl<T: Number + Display> Display for Matrix2<T> {
         str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
         row1.push_str(str_row1.as_str());
         row2.push_str(str_row2.as_str());
-        // ┐
-        // │
-        // │
-        // ┘
         row1.push_str("┐\n");
         row2.push_str("┘\n");
         f.write_str(row1.as_str())?;
@@ -700,13 +692,10 @@ impl<T: Number + Display> Display for Matrix2<T> {
 
 impl<T: Number + Display> Display for Matrix3<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // let row1 = format!("┌{}, {}, {}, {}\n", self.x.x, self.y.x, self.z.x, self.w.x);
-        // let row2 = format!("│{}, {}, {}, {}\n", self.x.y, self.y.y, self.z.y, self.w.y);
-        // let row3 = format!("│{}, {}, {}, {}\n", self.x.z, self.y.z, self.z.z, self.w.z);
-        // let row4 = format!("└{}, {}, {}, {}\n", self.w.z, self.w.z, self.w.z, self.w.w);
         let mut row1 = String::from('┌');
         let mut row2 = String::from('│');
         let mut row3 = String::from('└');
+
         for i in 0..2 {
             let mut str_row1 = format!("{}, ", self[i].x);
             let mut str_row2 = format!("{}, ", self[i].y);
@@ -729,10 +718,7 @@ impl<T: Number + Display> Display for Matrix3<T> {
         row1.push_str(str_row1.as_str());
         row2.push_str(str_row2.as_str());
         row3.push_str(str_row3.as_str());
-        // ┐
-        // │
-        // │
-        // ┘
+        
         row1.push_str("┐\n");
         row2.push_str("│\n");
         row3.push_str("┘\n");
@@ -780,10 +766,7 @@ impl<T: Number + Display> Display for Matrix4<T> {
         row2.push_str(str_row2.as_str());
         row3.push_str(str_row3.as_str());
         row4.push_str(str_row4.as_str());
-        // ┐
-        // │
-        // │
-        // ┘
+        
         row1.push_str("┐\n");
         row2.push_str("│\n");
         row3.push_str("│\n");
