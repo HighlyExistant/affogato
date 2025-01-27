@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 
 use crate::{vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Number, Real};
 
@@ -14,8 +14,17 @@ pub struct Cube<T: Number> {
     min: Vector3<T>,
     max: Vector3<T>,
 }
-impl<T: Number> HyperCube<T> for Cube<T> {
-    const DIMENSION: usize = 3;
+#[repr(C, align(16))]
+#[derive(Clone, Copy, Debug)]
+pub struct ConstCube<T: Number> {
+    pub min: Vector3<T>,
+    pub max: Vector3<T>,
+}
+impl<T: Number> Deref for Cube<T> {
+    type Target = ConstCube<T>;
+    fn deref(&self) -> &Self::Target {
+        unsafe { std::mem::transmute(self) }
+    }
 }
 impl<T: Number> std::cmp::PartialEq for Cube<T> {
     fn eq(&self, other: &Self) -> bool {
@@ -184,6 +193,18 @@ impl From<DVec3> for Cube<f64> {
 pub struct Rect<T: Number> {
     min: Vector2<T>,
     max: Vector2<T>,
+}
+#[repr(C, align(16))]
+#[derive(Clone, Copy, Debug)]
+pub struct ConstRect<T: Number> {
+    pub min: Vector2<T>,
+    pub max: Vector2<T>,
+}
+impl<T: Number> Deref for Rect<T> {
+    type Target = ConstRect<T>;
+    fn deref(&self) -> &Self::Target {
+        unsafe { std::mem::transmute(self) }
+    }
 }
 impl<T: Number> HyperCube<T> for Rect<T> {
     const DIMENSION: usize = 2;
