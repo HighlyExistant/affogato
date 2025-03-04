@@ -1,4 +1,4 @@
-use crate::{FromPrimitive, HasRealProduct, One, Real, UniversalOperationsOn, UsesArithmetic, Zero};
+use crate::{FromPrimitive, HasRealProduct, One, Real, UsesArithmetic, Zero};
 /// mixes two values together linearly using a t value between 0.0-1.0
 pub fn lerp<V, T>(a: V, b: V, t: T) -> V 
     where V: UsesArithmetic + Copy + std::ops::Mul<T, Output = V> {

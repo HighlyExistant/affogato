@@ -151,7 +151,6 @@ impl<T: Number> Cube<T> {
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
-            use rand::Rng;
             Self::new(Vector3::random(generator, range.clone()), Vector3::random(generator, range)).fix_bounds()
     }
 }
@@ -274,7 +273,6 @@ impl<T: Number> Rect<T> {
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
-            use rand::Rng;
             Self::new(Vector2::random(generator, range.clone()), Vector2::random(generator, range)).fix_bounds()
     }
     pub fn minimum(&self) -> &Vector2<T> {
