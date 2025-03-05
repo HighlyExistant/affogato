@@ -7,6 +7,7 @@ name = "affogato"
 version = "0.1.0"
 dependencies = [
  "affogato_math",
+ "affogato_physics",
  "rand",
  "rand_pcg",
 ]
@@ -14,6 +15,13 @@ dependencies = [
 [[package]]
 name = "affogato_math"
 version = "0.1.0"
+
+[[package]]
+name = "affogato_physics"
+version = "0.1.0"
+dependencies = [
+ "affogato_math",
+]
 
 [[package]]
 name = "byteorder"

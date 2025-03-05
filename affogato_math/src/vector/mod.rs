@@ -323,7 +323,7 @@ macro_rules! impl_all_from_vec {
         impl_all_from!($mac, usize, u64, f64, f32, i8, i16, i32, i64, u8, u16, u32);
     };
 }
-pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self>{
+pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self> + Clone + Index<usize, Output = Self::Scalar> + IndexMut<usize, Output = Self::Scalar> {
     type Scalar: Number;
     fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.length_squared().sqrt() }
     #[inline]
@@ -332,8 +332,18 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     /// Direction gives a normalized vector that points to the given point.
     fn direction_to(&self, point: &Self) -> Self 
         where Self::Scalar: FloatingPoint,
-        Self: std::ops::Sub<Output = Self> + Sized + Copy { 
-            point.sub(*self).normalize()
+        Self: std::ops::Sub<Output = Self> + Sized { 
+            point.clone().sub(self.clone()).normalize()
+    }
+    fn point_at(&self, point: &Self, distance: Self::Scalar) -> Self 
+    where Self::Scalar: FloatingPoint,
+    Self: std::ops::Sub<Output = Self> + Sized {
+        self.direction_to(point).mul(distance)
+    }
+    fn for_all_points<F: FnMut(&mut Self::Scalar)>(&mut self, mut f: F) {
+        for i in 0..self.len() {
+            f(&mut self[i])
+        }
     }
     /// The dot product is a common linear algebra function which is defined as
     /// the sum of the products of each respective scalar value in the vector.
