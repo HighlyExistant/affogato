@@ -36,3 +36,4 @@ The largest portion of this library is filled with code for vectors and matrices
 * [msdfgen](https://github.com/Chlumsky/msdfgen/tree/master) A smaller but equally important inspiration, from which I derived my Segment code.
 * [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere) The Ray class is inspired from this site
 * [The Book of Shaders](https://thebookofshaders.com/glossary/?search=reflect) snippets of code for smoothing functions, and other glsl functions were acquired from here
+* [This video on FABRIK](https://www.youtube.com/watch?v=UNoX65PRehA&t=685s&ab_channel=EgoMoose) Where I inspired my kinematics physics code

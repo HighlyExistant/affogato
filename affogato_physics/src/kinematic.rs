@@ -1,30 +1,34 @@
-use affogato_math::{vector::Vector, Real};
+use affogato_math::{vector::Vector, Real, Zero};
 #[derive(Clone)]
-pub struct KinematicSegment<T: Real, V: Vector<Scalar = T>> {
+pub struct KinematicSegment<V: Vector> 
+    where V::Scalar: Real {
     pos: V,
-    length: T,
+    length: V::Scalar,
 }
-impl<T: Real, V: Vector<Scalar = T>> KinematicSegment<T, V> {
+impl<V: Vector> KinematicSegment<V> 
+    where V::Scalar: Real {
     pub fn new(pos: V, prev: &V) -> Self {
         let length = pos.distance(prev);
         Self { pos: pos, length }
     }
     pub fn as_root(root: V) -> Self {
-        Self { pos: root, length: T::ZERO }
+        Self { pos: root, length: <V::Scalar as Zero>::ZERO }
     }
 }
-pub struct KinematicSegmentList<T: Real, V: Vector<Scalar = T>> {
-    segments: Vec<KinematicSegment<T, V>>,
+pub struct KinematicSegmentList<V: Vector> 
+    where V::Scalar: Real {
+    segments: Vec<KinematicSegment<V>>,
 }
 
-impl<T: Real, V: Vector<Scalar = T>> KinematicSegmentList<T, V> {
+impl<V: Vector> KinematicSegmentList<V> 
+    where V::Scalar: Real {
     pub fn new(root: V) -> Self {
         Self { segments: vec![KinematicSegment::as_root(root)] }
     }
     fn fabrik_front(&mut self, to: V) {
         let mut iter = self.segments.iter_mut();
         let mut prev_segment: V = to.clone();
-        let mut prev_length: T =
+        let mut prev_length: V::Scalar =
         { // set last point to destination
             let first = iter.next().unwrap();
             first.pos = prev_segment.clone();
@@ -54,7 +58,7 @@ impl<T: Real, V: Vector<Scalar = T>> KinematicSegmentList<T, V> {
             current.pos = next_point;
         }
     }
-    pub fn fabrik(&mut self, to: &V, iterations: usize, error_margin: T) {
+    pub fn fabrik(&mut self, to: &V, iterations: usize, error_margin: V::Scalar) {
         let start = self.segments[0].pos.clone();
         for _ in 0..iterations {
             {
@@ -67,5 +71,8 @@ impl<T: Real, V: Vector<Scalar = T>> KinematicSegmentList<T, V> {
             self.fabrik_front(to.clone());
             self.fabrik_back(start.clone());
         }
+    }
+    pub fn add_segment(&mut self, pos: V) {
+        self.segments.push(KinematicSegment::new(pos, &self.segments.last().unwrap().pos));
     }
 }
