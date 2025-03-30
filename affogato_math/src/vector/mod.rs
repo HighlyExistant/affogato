@@ -328,7 +328,7 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.length_squared().sqrt() }
     #[inline]
     fn length_squared(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(self) }
-    fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(other).sqrt() }
+    fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: FloatingPoint { (self.clone()-other.clone()).length() }
     /// Direction gives a normalized vector that points to the given point.
     fn direction_to(&self, point: &Self) -> Self 
         where Self::Scalar: FloatingPoint,
@@ -338,7 +338,7 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     fn point_at(&self, point: &Self, distance: Self::Scalar) -> Self 
     where Self::Scalar: FloatingPoint,
     Self: std::ops::Sub<Output = Self> + Sized {
-        self.direction_to(point).mul(distance)
+        self.direction_to(point).mul(distance)+self.clone()
     }
     fn for_all_points<F: FnMut(&mut Self::Scalar)>(&mut self, mut f: F) {
         for i in 0..self.len() {

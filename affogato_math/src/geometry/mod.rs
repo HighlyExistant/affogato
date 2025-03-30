@@ -17,10 +17,6 @@ pub trait CalculateCentroid {
     /// The centroid is the center of a geometric object.
     fn centroid(&self) -> Self::VectorType;
 }
-pub trait Collision<T> {
-    type CollisionInfo;
-    fn collides(&self, object: &T) -> Option<Self::CollisionInfo>;
-}
 pub type FLinearSegment2D = LinearSegment2D<f32>;
 pub type DLinearSegment2D = LinearSegment2D<f64>;
 pub type FQuadraticSegment2D = QuadraticSegment2D<f32>;
