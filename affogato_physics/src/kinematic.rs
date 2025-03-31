@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use affogato_math::{vector::Vector, FromPrimitive, Real, Zero};
 #[derive(Clone, Debug)]
-pub struct KinematicSegment<V: Vector> 
+struct KinematicSegment<V: Vector> 
     where V::Scalar: Real {
     pos: V,
     length: V::Scalar,
@@ -41,8 +41,9 @@ impl<V: Vector> KinematicSegmentList<V>
             segments: vec![root] 
         }
     }
-    fn fabrik_front(&mut self, to: V) {
-        let mut iter = self.segments.iter_mut().rev();
+    fn fabrik_front(&mut self, to: V, edge_index: usize) {
+        let len = self.segments.len();
+        let mut iter = self.segments[edge_index..len].iter_mut().rev();
         let mut prev_segment: V = to.clone();
         let mut prev_length: V::Scalar =
         { // set last point to destination
@@ -59,8 +60,9 @@ impl<V: Vector> KinematicSegmentList<V>
             current.pos = next_point;
         }
     }
-    fn fabrik_back(&mut self, start: V) {
-        let mut iter = self.segments.iter_mut();
+    fn fabrik_back(&mut self, start: V, edge_index: usize) {
+        let len = self.segments.len();
+        let mut iter = self.segments[edge_index..len].iter_mut();
         let mut prev_segment: V = start.clone();
         { // set first point to start
             let first = iter.next().unwrap();
@@ -74,8 +76,7 @@ impl<V: Vector> KinematicSegmentList<V>
             current.pos = next_point;
         }
     }
-    pub fn fabrik(&mut self, to: &V, iterations: usize, error_margin: V::Scalar) {
-        let mut iter = self.segments.iter();
+    pub fn fabrik(&mut self, to: &V, edge_index: usize, iterations: usize, error_margin: V::Scalar) {
         let start = self.segments[0].pos.clone();
         for _ in 0..iterations {
             {
@@ -85,15 +86,15 @@ impl<V: Vector> KinematicSegmentList<V>
                     break;
                 }
             }
-            self.fabrik_front(to.clone());
-            self.fabrik_back(start.clone());
+            self.fabrik_front(to.clone(), edge_index);
+            self.fabrik_back(start.clone(), edge_index);
         }
     }
-    pub fn in_place_move_to(&mut self, to: &V) {
-        self.fabrik(to, Self::ITERATIONS, <V::Scalar as FromPrimitive>::from_f64(0.001));
+    pub fn in_place_move_to(&mut self, to: &V, edge: usize) {
+        self.fabrik(to, edge, Self::ITERATIONS, <V::Scalar as FromPrimitive>::from_f64(0.001));
     }
-    pub fn move_to(&mut self, to: &V) {
-        self.fabrik_front(to.clone());
+    pub fn move_to(&mut self, to: &V, edge: usize) {
+        self.fabrik_front(to.clone(), edge);
     }
     pub fn add_segment(&mut self, pos: V) {
         let segment = KinematicSegment::new(pos, &self.segments.last().unwrap().pos);
@@ -102,6 +103,9 @@ impl<V: Vector> KinematicSegmentList<V>
     }
     pub fn length(&self) -> V::Scalar {
         self.length
+    }
+    pub fn len(&self) -> usize {
+        self.segments.len()
     }
     pub fn iter(&self) -> impl Iterator<Item = &V> {
         self.segments.iter().map(|v|{

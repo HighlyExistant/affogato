@@ -1,3 +1,4 @@
+use core::fmt;
 use std::ops::{Index, IndexMut};
 
 use crate::{vector::{Vector2, Vector3}, Number, Real};

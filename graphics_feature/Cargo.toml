@@ -1,0 +1,8 @@
+[package]
+name = "graphics_feature"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+affogato_math = { path = "../affogato_math" }
+affogato_physics = { path = "../affogato_physics" }
