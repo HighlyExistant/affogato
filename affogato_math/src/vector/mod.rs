@@ -647,6 +647,39 @@ impl<T: Number> From<[T; 4]> for Vector4<T> {
     }
 }
 
+impl<T: Number> From<Vector2<T>> for (T, T)  {
+    fn from(value: Vector2<T>) -> Self {
+        (value.x, value.y)
+    }
+}
+impl<T: Number> From<Vector3<T>> for (T, T, T)  {
+    fn from(value: Vector3<T>) -> Self {
+        (value.x, value.y, value.z)
+    }
+}
+impl<T: Number> From<Vector4<T>> for (T, T, T, T)  {
+    fn from(value: Vector4<T>) -> Self {
+        (value.x, value.y, value.z, value.w)
+    }
+}
+
+impl<T: Number> From<Vector2<T>> for [T; 2]  {
+    fn from(value: Vector2<T>) -> Self {
+        [value.x, value.y]
+    }
+}
+impl<T: Number> From<Vector3<T>> for [T; 3]  {
+    fn from(value: Vector3<T>) -> Self {
+        [value.x, value.y, value.z]
+    }
+}
+impl<T: Number> From<Vector4<T>> for [T; 4]  {
+    fn from(value: Vector4<T>) -> Self {
+        [value.x, value.y, value.z, value.w]
+    }
+}
+
+
 /// calculates the direction of reflection of an incident vector, where `incident` is the incident vector and
 /// `normal` is the normal of the surface it is reflecting on. Important to note that
 /// both the incident and normal should be normalized vectors. The following snippet was
