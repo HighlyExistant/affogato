@@ -34,6 +34,7 @@ pub trait SquareMatrix: Sized {
     }
 }
 
+/// column major matrix
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Matrix2<T: Number> {
@@ -171,6 +172,7 @@ impl<T: Number> From<T> for Matrix2<T> {
         Self { x: Vector2::new(value, T::ZERO), y: Vector2::new(T::ZERO, value) }
     }
 }
+/// column major matrix
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Matrix3<T: Number> {
@@ -381,6 +383,7 @@ impl<T: Number + Display> SquareMatrix for Matrix3<T> {
         )
     }
 }
+/// column major matrix
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Matrix4<T: Number> {

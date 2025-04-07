@@ -1,5 +1,5 @@
 use affogato_math::{geometry::{Cube, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector, Vector2, Vector3}, Number, Real};
-use affogato_physics::kinematic::KinematicSegmentList;
+use affogato_physics::kinematics::KinematicSegmentList;
 pub enum VertexTopology {
     Point,
     Line,

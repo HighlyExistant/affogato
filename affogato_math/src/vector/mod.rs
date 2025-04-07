@@ -340,11 +340,6 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     Self: std::ops::Sub<Output = Self> + Sized {
         self.direction_to(point).mul(distance)+self.clone()
     }
-    fn for_all_points<F: FnMut(&mut Self::Scalar)>(&mut self, mut f: F) {
-        for i in 0..self.len() {
-            f(&mut self[i])
-        }
-    }
     /// The dot product is a common linear algebra function which is defined as
     /// the sum of the products of each respective scalar value in the vector.
     /// # Properties of the Dot Product

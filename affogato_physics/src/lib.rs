@@ -1,2 +1,2 @@
-pub mod kinematic;
+pub mod kinematics;
 pub mod collision;
