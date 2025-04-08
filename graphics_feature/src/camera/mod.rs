@@ -1,11 +1,17 @@
-use affogato_math::{matrix::SquareMatrix, vector::{CrossProduct, FMat4, FVec3, Vector}};
-pub struct CameraProjection {
+use affogato_math::{matrix::{Matrix4, SquareMatrix}, vector::{CrossProduct, FMat4, FVec3, Vector}};
+pub struct Camera {
     projection: FMat4,
     view: FMat4,
 }
-impl CameraProjection {
+pub trait CameraProjection {
+    fn projection(&self) -> FMat4;
+}
+impl Camera {
     pub fn identity() -> Self {
         Self { projection: FMat4::identity(), view: FMat4::identity() }
+    }
+    pub fn new(projection: impl CameraProjection) -> Self {
+        Self { projection: projection.projection(), view: FMat4::identity() }
     }
     pub fn orthographic(left: f32, right: f32, top: f32, bottom: f32, near: f32, far: f32) -> Self {
         let right_left_dif = right-left;
@@ -88,5 +94,56 @@ impl CameraProjection {
     }
     pub fn get_projection(&self) -> FMat4 {
         self.projection.clone()
+    }
+}
+pub struct PerspectiveCameraProjection {
+    near: f32, 
+    far: f32, 
+    fovy: f32, 
+    aspect_ratio: f32,
+}
+impl PerspectiveCameraProjection {
+    pub fn new(near: f32, far: f32, fovy: f32, aspect_ratio: f32) -> Self {
+        Self { near, far, fovy, aspect_ratio }
+    }
+}
+impl CameraProjection for PerspectiveCameraProjection {
+    fn projection(&self) -> FMat4 {
+        let tan_half_fovy = f32::tan(self.fovy / 2.0);
+        
+        let mut projection = FMat4::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        projection.x.x = 1.0 / (self.aspect_ratio * tan_half_fovy);
+        projection.y.y = 1.0 / (tan_half_fovy);
+        projection.z.z = self.far / (self.far - self.near);
+        projection.z.w = 1.0;
+        projection.w.z = -(self.far * self.near) / (self.far - self.near);
+        projection
+    }
+}
+pub struct OrthographicCameraProjection {
+    left: f32, 
+    right: f32, 
+    top: f32, 
+    bottom: f32,
+    near: f32, 
+    far: f32,
+}
+impl OrthographicCameraProjection {
+    pub fn new(left: f32, right: f32, top: f32, bottom: f32,near: f32, far: f32) -> Self {
+        Self { left, right, top, bottom, near, far }
+    }
+}
+impl CameraProjection for OrthographicCameraProjection {
+    fn projection(&self) -> FMat4 {
+        let right_left_dif = self.right-self.left;
+        let bottom_top_dif = self.bottom-self.top;
+        let far_near_dif = self.far-self.near;
+        let right_left_sum = self.right+self.left;
+        let bottom_top_sum = self.bottom+self.top;
+        FMat4::new(
+            2.0/right_left_dif, 0.0, 0.0, 0.0, 
+            0.0, 2.0/bottom_top_dif, 0.0, 0.0, 
+            0.0, 0.0, 2.0/far_near_dif, 0.0, 
+            (-right_left_sum)/right_left_dif, (-bottom_top_sum)/bottom_top_dif, (-self.near)/far_near_dif, 1.0)
     }
 }
