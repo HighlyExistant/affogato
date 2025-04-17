@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "affogato_math",
  "affogato_physics",
+ "graphics_feature",
  "rand",
  "rand_pcg",
 ]
@@ -44,6 +45,14 @@ dependencies = [
  "cfg-if",
  "libc",
  "wasi",
+]
+
+[[package]]
+name = "graphics_feature"
+version = "0.1.0"
+dependencies = [
+ "affogato_math",
+ "affogato_physics",
 ]
 
 [[package]]

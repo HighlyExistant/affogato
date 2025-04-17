@@ -1,4 +1,4 @@
-use affogato_math::{geometry::{Cube, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector, Vector2, Vector3}, Number, Real};
+use affogato_math::{geometry::{Rect3D, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector, Vector2, Vector3}, Number, Real};
 use affogato_physics::kinematics::KinematicSegmentList;
 pub enum VertexTopology {
     Point,
@@ -12,7 +12,7 @@ pub trait Geometry<V: Vector> {
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>>;
 }
 
-impl<T: Number> Geometry<Vector3<T>> for Cube<T> {
+impl<T: Number> Geometry<Vector3<T>> for Rect3D<T> {
     fn vertices(&self) -> Vec<Vector3<T>> {
         self.get_vertices()
     }

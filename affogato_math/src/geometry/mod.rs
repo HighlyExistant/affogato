@@ -1,10 +1,10 @@
-mod quadrilateral;
+mod rect;
 mod triangle;
 mod sphere;
 mod segment;
 mod ray;
 
-pub use quadrilateral::*;
+pub use rect::*;
 pub use triangle::*;
 pub use sphere::*;
 pub use segment::*;

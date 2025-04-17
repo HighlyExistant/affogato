@@ -11,33 +11,33 @@ pub trait HyperCube<T: Number> {
 }
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
-pub struct Cube<T: Number> {
+pub struct Rect3D<T: Number> {
     min: Vector3<T>,
     max: Vector3<T>,
 }
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
-pub struct ConstCube<T: Number> {
+pub struct ConstRect3D<T: Number> {
     pub min: Vector3<T>,
     pub max: Vector3<T>,
 }
-impl<T: Number> Deref for Cube<T> {
-    type Target = ConstCube<T>;
+impl<T: Number> Deref for Rect3D<T> {
+    type Target = ConstRect3D<T>;
     fn deref(&self) -> &Self::Target {
         unsafe { std::mem::transmute(self) }
     }
 }
-impl<T: Number> std::cmp::PartialEq for Cube<T> {
+impl<T: Number> std::cmp::PartialEq for Rect3D<T> {
     fn eq(&self, other: &Self) -> bool {
         self.min == other.min && self.max == other.max
     }
 }
-impl<T: Number> Default for Cube<T> {
+impl<T: Number> Default for Rect3D<T> {
     fn default() -> Self {
         Self { min: Vector3::from(T::MIN), max: Vector3::from(T::MAX) }
     }
 }
-impl<T: Number> Cube<T> {
+impl<T: Number> Rect3D<T> {
     pub fn new(min: Vector3<T>, max: Vector3<T>) -> Self {
         Self { min: min, max: max }
     }
@@ -149,6 +149,22 @@ impl<T: Number> Cube<T> {
             6, 2,
         ]
     }
+    pub fn intersect_point(&self, point: &Vector3<T>) -> bool {
+        point.x >= self.min.x  &&
+        point.x <= self.max.x &&
+        point.y >= self.min.y &&
+        point.y <= self.max.y &&
+        point.z >= self.min.z &&
+        point.z <= self.max.z
+    }
+    pub fn intersect(&self, rect: &Self) -> bool {
+        self.min.x <= rect.max.x &&
+        self.max.x >= rect.min.x &&
+        self.min.y <= rect.max.y &&
+        self.max.y >= rect.min.y &&
+        self.min.z <= rect.max.z &&
+        self.max.z >= rect.min.z
+    }
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
@@ -156,35 +172,22 @@ impl<T: Number> Cube<T> {
     }
 }
 
-impl CalculateCentroid for Cube<f32> {
-    type VectorType = FVec3;
-    fn centroid(&self) -> FVec3 {
-        FVec3::new(
-            (self.min.x + self.max.x)*0.5, 
-            (self.min.y + self.max.y)*0.5, 
-            (self.min.z + self.max.z)*0.5
-        )
-    }
-}
-impl CalculateCentroid for Cube<f64> {
-    type VectorType = DVec3;
-    fn centroid(&self) -> DVec3 {
-        DVec3::new(
-            (self.min.x + self.max.x)*0.5, 
-            (self.min.y + self.max.y)*0.5, 
-            (self.min.z + self.max.z)*0.5
+impl<T: Real> CalculateCentroid for Rect3D<T> {
+    type VectorType = Vector3<T>;
+    fn centroid(&self) -> Vector3<T> {
+        Vector3::new(
+            (self.min.x + self.max.x)*T::from_f64(0.5), 
+            (self.min.y + self.max.y)*T::from_f64(0.5), 
+            (self.min.z + self.max.z)*T::from_f64(0.5)
         )
     }
 }
 
-impl From<FVec3> for Cube<f32> {
-    fn from(value: FVec3) -> Self {
-        Self { min: value, max: value }
-    }
-}
-impl From<DVec3> for Cube<f64> {
-    fn from(value: DVec3) -> Self {
-        Self { min: value, max: value }
+impl<T: Number> From<Vector3<T>> for Rect3D<T> {
+    fn from(value: Vector3<T>) -> Self {
+        let min = Vector3::ZERO.min(&value);
+        let max = Vector3::ZERO.max(&value);
+        Self { min, max }
     }
 }
 
@@ -347,6 +350,18 @@ impl<T: Number> Rect<T> {
     pub fn invert(&self) -> Self {
         Self { min: self.max, max: self.min }
     }
+    pub fn intersect_point(&self, point: &Vector2<T>) -> bool {
+        point.x >= self.min.x  &&
+        point.x <= self.max.x &&
+        point.y >= self.min.y &&
+        point.y <= self.max.y
+    }
+    pub fn intersect(&self, rect: &Self) -> bool {
+        self.min.x <= rect.max.x &&
+        self.max.x >= rect.min.x &&
+        self.min.y <= rect.max.y &&
+        self.max.y >= rect.min.y
+    }
 }
 impl<T: Number> From<Vector2<T>> for Rect<T> {
     fn from(value: Vector2<T>) -> Self {
@@ -371,8 +386,8 @@ impl<T: Real> CalculateCentroid for Rect<T> {
     }
 }
 
-impl From<Triangle3D<f32>> for Cube<f32> {
-    fn from(value: Triangle3D<f32>) -> Self {
+impl<T: Real> From<Triangle3D<T>> for Rect3D<T> {
+    fn from(value: Triangle3D<T>) -> Self {
         
         Self { min: value[0].min(&value[1].min(&value[2])), max: value[0].max(&value[1].max(&value[2])) }
     }
