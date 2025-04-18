@@ -1,4 +1,4 @@
-use crate::{vector::{CrossProduct, Vector, Vector3}, Real, Zero};
+use crate::{vector::{OuterProduct, Vector, Vector3}, Real, Zero};
 
 use super::{Sphere, Triangle3D};
 #[derive(Default, Clone, Copy, Debug)]

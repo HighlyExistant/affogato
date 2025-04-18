@@ -1,7 +1,6 @@
 use std::{fmt::Display, ops::{Index, IndexMut}};
 
-use crate::{vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
-
+use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
 pub trait SquareMatrix: Sized {
     type Column: Vector;
     type LowerDimension;
@@ -22,6 +21,7 @@ pub trait SquareMatrix: Sized {
             Self: std::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
         self.cofactor_matrix().transpose()*(<Self::Column as Vector>::Scalar::ONE/self.determinant())
     }
+    // Returns None if the determinant is zero
     fn inverse(&self) -> Option<Self> 
         where <Self::Column as Vector>::Scalar: Real, 
             Self: std::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
@@ -32,6 +32,7 @@ pub trait SquareMatrix: Sized {
             Some(self.cofactor_matrix().transpose()*(<Self::Column as Vector>::Scalar::ONE/self.determinant()))
         }
     }
+    fn diagonal(diagonal: Self::Column) -> Self;
 }
 
 /// column major matrix
@@ -94,6 +95,9 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
             self.x.y, self.x.x
         )
     }
+    fn diagonal(diagonal: Self::Column) -> Self {
+        Self::new(diagonal.x, T::ZERO, T::ZERO, diagonal.y)
+    }
 }
 impl<T: Number> Zero for Matrix2<T> {
     const ZERO: Self = Matrix2::empty();
@@ -147,8 +151,8 @@ impl<T: Number> std::ops::Mul<Vector2<T>> for Matrix2<T>  {
     /// a 2x1 matrix * 2x2 matrix since matrix multiplication is not commutative.
     fn mul(self, rhs: Vector2<T>) -> Self::Output {
         Vector2::<T> {
-            x: self.x.x * rhs.x + self.x.y * rhs.y,
-            y: self.y.x * rhs.x + self.y.y * rhs.y
+            x: self.x.x * rhs.x + self.y.x * rhs.y,
+            y: self.x.y * rhs.x + self.y.y * rhs.y
         }
     }
     type Output = Vector2<T>;
@@ -255,8 +259,8 @@ impl<T: Number> std::ops::Mul for Matrix3<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self { 
             x: Vector3::new( 
-                rhs.x.x * self.x.y + rhs.x.y * self.y.y + rhs.x.z * self.z.y,
                 rhs.x.x * self.x.x + rhs.x.y * self.y.x + rhs.x.z * self.z.x,
+                rhs.x.x * self.x.y + rhs.x.y * self.y.y + rhs.x.z * self.z.y,
                 rhs.x.x * self.x.z + rhs.x.y * self.y.z + rhs.x.z * self.z.z,
             ), 
             y: Vector3::new( 
@@ -281,9 +285,9 @@ impl<T: Number> std::ops::Mul<Vector3<T>> for Matrix3<T>  {
     /// a 3x1 matrix * 3x3 matrix since matrix multiplication is not commutative.
     fn mul(self, rhs: Vector3<T>) -> Self::Output {
         Vector3::new(
-           self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z,
-           self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z,
-           self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z
+           self.x.x * rhs.x + self.y.x * rhs.y + self.z.x * rhs.z,
+           self.x.y * rhs.x + self.y.y * rhs.y + self.z.y * rhs.z,
+           self.x.z * rhs.x + self.y.z * rhs.y + self.z.z * rhs.z
         )
     }
     type Output = Vector3<T>;
@@ -296,7 +300,7 @@ impl<T: Number> From<T> for Matrix3<T> {
         Self { x: Vector3::new(value, T::ZERO, T::ZERO), y: Vector3::new(T::ZERO, value, T::ZERO), z: Vector3::new(T::ZERO, T::ZERO, value) }
     }
 }
-impl<T: Number + Display> SquareMatrix for Matrix3<T> {
+impl<T: Number> SquareMatrix for Matrix3<T> {
     type Column = Vector3<T>;
     type LowerDimension = Matrix2<T>;
     fn identity() -> Self {
@@ -382,6 +386,15 @@ impl<T: Number + Display> SquareMatrix for Matrix3<T> {
             self.cofactor(2, 0).determinant(), -self.cofactor(2, 1).determinant(), self.cofactor(2, 2).determinant()
         )
     }
+    fn diagonal(diagonal: Self::Column) -> Self {
+        Self::new(diagonal.x, T::ZERO, T::ZERO, T::ZERO, diagonal.y, T::ZERO, T::ZERO, T::ZERO, diagonal.z)
+    }
+}
+impl<T: Number> std::ops::Mul<T> for Matrix3<T>  {
+    type Output = Self;
+    fn mul(self, rhs: T) -> Self::Output {
+        Matrix3::from_vec(self.x*rhs, self.y*rhs, self.z*rhs)
+    }
 }
 /// column major matrix
 #[repr(C)]
@@ -438,14 +451,26 @@ impl<T: Number> Matrix4<T>  {
         )
     }
     pub fn scale(&self, v: Vector3<T>) -> Self {
-        Self { x: self.x * v.x, y: self.y * v.y, z: self.z * v.z, w: self.w }
+        let mut this = self.clone();
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
+        this
     }
     pub fn translate(&self, v: Vector3<T>) -> Self {
         Self { x: self.x, y: self.y, z: self.z, w: self.w + Vector4::<T>::from(v) }
     }
+    pub fn from_transform(pos: Vector3<T>, rot: Quaternion<T>, scale: Vector3<T>) -> Self 
+        where T: Real {
+        let mut mat = Matrix4::from(Matrix3::from(rot)).scale(scale);
+        mat.w.x = pos.x;
+        mat.w.y = pos.y;
+        mat.w.z = pos.z;
+        mat
+    }
 }
 
-impl<T: Number + Display> SquareMatrix for Matrix4<T> {
+impl<T: Number> SquareMatrix for Matrix4<T> {
     type Column = Vector4<T>;
     type LowerDimension = Matrix3<T>;
     fn identity() -> Self {
@@ -570,6 +595,12 @@ impl<T: Number + Display> SquareMatrix for Matrix4<T> {
                 xz, -yz, zz, -wz, 
                 -xw, yw, -zw, ww)
     }
+    fn diagonal(diagonal: Self::Column) -> Self {
+        Self::new(diagonal.x, T::ZERO, T::ZERO, T::ZERO, 
+            T::ZERO, diagonal.y, T::ZERO, T::ZERO, 
+            T::ZERO, T::ZERO, diagonal.z, T::ZERO, 
+            T::ZERO, T::ZERO, T::ZERO, diagonal.w)
+    }
 }
 impl<T: Number> From<T> for Matrix4<T> {
     ///
@@ -637,10 +668,10 @@ impl<T: Number> std::ops::Mul<Vector4<T>> for Matrix4<T>  {
     /// a 4x1 matrix * 4x4 matrix since matrix multiplication is not commutative.
     fn mul(self, rhs: Vector4<T>) -> Self::Output {
         Vector4::<T> {
-            x: self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w,
-            y: self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z + self.y.w * rhs.w,
-            z: self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z + self.z.w * rhs.w,
-            w: self.w.x * rhs.x + self.w.y * rhs.y + self.w.z * rhs.z + self.w.w * rhs.w
+            x: self.x.x * rhs.x + self.y.x * rhs.y + self.z.x * rhs.z + self.w.x * rhs.w,
+            y: self.x.y * rhs.x + self.y.y * rhs.y + self.z.y * rhs.z + self.w.y * rhs.w,
+            z: self.x.z * rhs.x + self.y.z * rhs.y + self.z.z * rhs.z + self.w.z * rhs.w,
+            w: self.x.w * rhs.x + self.y.w * rhs.y + self.z.w * rhs.z + self.w.w * rhs.w
         }
     }
     type Output = Vector4<T>;

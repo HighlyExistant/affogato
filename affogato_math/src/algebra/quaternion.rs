@@ -85,8 +85,8 @@ impl<T: Real> Quaternion<T>  {
     pub fn angle_axis(angle: T, vector: Vector3<T>) -> Self 
         where T: Real, {
         let half_angle = angle * T::from_f64(0.5);
-        let s = half_angle.sin();
-        Self { i: vector.x * s, j: vector.y * s, k: vector.x * s, scalar: half_angle.cos() }
+        let (s, c) = half_angle.sin_cos();
+        Self { i: vector.x * s, j: vector.y * s, k: vector.z * s, scalar: c }
     }
     pub fn normalize(&self) -> Self {
         let length = self.length();

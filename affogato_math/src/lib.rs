@@ -6,5 +6,7 @@ pub mod spaces;
 pub mod vector;
 pub mod mappings;
 pub mod geometry;
+pub mod transformations;
 pub use sets::*;
 pub use animation::*;
+pub use transformations::*;

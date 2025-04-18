@@ -359,7 +359,7 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     fn min(&self, other: &Self) -> Self;
     fn max(&self, other: &Self) -> Self;
 }
-pub trait CrossProduct: Vector {
+pub trait OuterProduct: Vector {
     fn cross(&self, other: &Self) -> Self::Product;
     type Product;
 }
@@ -398,16 +398,20 @@ impl<T: Number> Vector2<T> {
         where T: Neg<Output = T> {
         Self::new(self.y, -self.x)
     }
+    /// Gives a vector pointing to the right of the graph <1, 0>
     pub fn right() -> Self {
         Self::new(T::ONE, T::ZERO)
     }
+    /// Gives a vector pointing to the left of the graph <-1, 0>
     pub fn left() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(-T::ONE, T::ZERO)
     }
+    /// Gives a vector pointing to the left of the graph <0, 1>
     pub fn top() -> Self {
         Self::new(T::ZERO, T::ONE)
     }
+    /// Gives a vector pointing to the left of the graph <0, -1>
     pub fn bottom() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, -T::ONE)
@@ -439,7 +443,10 @@ impl<T: Number> Vector2<T> {
         Vector2::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()))
     }
 }
-impl<T: Number> CrossProduct for Vector2<T> {
+impl<T: Number> OuterProduct for Vector2<T> {
+    /// In 2 dimensions there is no cross product as we understand it in 3d. Instead of returning
+    /// a vector, it returns a scalar value. The absolute value of this scalar represents the area 
+    /// of the parallelogram formed by the 2 vectors.
     fn cross(&self, other: &Self) -> Self::Product {
         (self.x * other.y) - (self.y * other.x)
     }
@@ -470,23 +477,29 @@ impl<T: Number> Vector3<T> {
     pub const fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z, padding: T::ZERO }
     }
+    /// Gives a vector pointing to the right of the graph <1, 0, 0>
     pub const fn right() -> Self {
         Self::new(T::ONE, T::ZERO, T::ZERO)
     }
+    /// Gives a vector pointing to the left of the graph <-1, 0, 0>
     pub fn left() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(-T::ONE, T::ZERO, T::ZERO)
     }
+    /// Gives a vector pointing to the top of the graph <0, 1, 0>
     pub const fn top() -> Self {
         Self::new(T::ZERO, T::ONE, T::ZERO)
     }
+    /// Gives a vector pointing to the top of the graph <0, -1, 0>
     pub fn bottom() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, -T::ONE, T::ZERO)
     }
+    /// Gives a vector pointing forward to the graph <0, 0, 1>
     pub const fn forward() -> Self {
         Self::new(T::ZERO, T::ZERO, T::ONE)
     }
+    /// Gives a vector pointing backward to the graph <0, 0, -1>
     pub fn backward() -> Self
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, T::ZERO, -T::ONE)
@@ -497,9 +510,10 @@ impl<T: Number> Vector3<T> {
         Vector3::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
     }
 }
-impl<T: Number> CrossProduct for Vector3<T> {
+impl<T: Number> OuterProduct for Vector3<T> {
     type Product = Self;
-    
+    /// The outer product, also known as the cross product, is used to find a vector 
+    /// perpendicular to 2 vectors. 
     fn cross(&self, other: &Self) -> Self::Product {
         Self::new(
             (self.y * other.z) - (self.z * other.y),

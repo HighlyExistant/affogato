@@ -15,6 +15,17 @@ pub struct Rect3D<T: Number> {
     min: Vector3<T>,
     max: Vector3<T>,
 }
+
+impl<T: Number> std::ops::Add<Vector3<T>> for Rect3D<T> {
+    type Output = Self;
+    fn add(self, rhs: Vector3<T>) -> Self::Output {
+        Self {
+            min: self.min+rhs,
+            max: self.max+rhs,
+        }
+    }
+}
+
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
 pub struct ConstRect3D<T: Number> {
