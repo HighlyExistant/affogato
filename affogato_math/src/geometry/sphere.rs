@@ -1,5 +1,38 @@
 use crate::{vector::{Vector, Vector2, Vector3}, Number};
 
+macro_rules! impl_ops_hsphere {
+    ($structure:tt, $vector:tt) => {
+        impl<T: Number> std::ops::Add<$vector<T>> for $structure<T> {
+            type Output = Self;
+            fn add(self, rhs: $vector<T>) -> Self::Output {
+                Self { center: self.center+rhs, radius: self.radius }
+            }
+        }
+        impl<T: Number> std::ops::Sub<$vector<T>> for $structure<T> {
+            type Output = Self;
+            fn sub(self, rhs: $vector<T>) -> Self::Output {
+                Self { center: self.center-rhs, radius: self.radius }
+            }
+        }
+        impl<T: Number> std::ops::Mul<T> for $structure<T> {
+            type Output = Self;
+            fn mul(self, rhs: T) -> Self::Output {
+                Self { center: self.center, radius: self.radius*rhs }
+            }
+        }
+        impl<T: Number> std::ops::Div<T> for $structure<T> {
+            type Output = Self;
+            fn div(self, rhs: T) -> Self::Output {
+                Self { center: self.center, radius: self.radius/rhs }
+            }
+        }
+        impl<T: Number> std::cmp::PartialEq for $structure<T> {
+            fn eq(&self, other: &Self) -> bool {
+                self.center == other.center && self.radius == other.radius
+            }
+        }
+    };
+}
 pub trait HyperSphere<V: Vector> {
     fn center(&self) -> V;
     fn radius(&self) -> V::Scalar;
@@ -25,7 +58,7 @@ impl<T: Number> HyperSphere<Vector2<T>> for Circle<T> {
         self.radius
     }
 }
-
+impl_ops_hsphere!(Circle, Vector2);
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere<T: Number> {
@@ -47,3 +80,5 @@ impl<T: Number> HyperSphere<Vector3<T>> for Sphere<T> {
         self.radius
     }
 }
+
+impl_ops_hsphere!(Sphere, Vector3);

@@ -1,6 +1,4 @@
-use std::fmt::Display;
-
-use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector2, Vector3, Vector4}, Real};
+use crate::{matrix::{Matrix3, Matrix4}, vector::{Vector2, Vector3, Vector4}, Real};
 mod rotate;
 pub use rotate::*;
 pub trait Translation<Pos> {

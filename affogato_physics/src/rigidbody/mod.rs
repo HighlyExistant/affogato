@@ -1,3 +1,6 @@
+
+use affogato_math::{algebra::Quaternion, matrix::{Matrix3, SquareMatrix}, vector::{OuterProduct, Vector, Vector3}, Real, Rotation, Translation, Zero};
+
 pub trait RigidBody {
     type Vector: Vector;
     type Rotor;
@@ -9,11 +12,6 @@ pub trait RigidBody {
     fn step(&mut self, deltatime: <Self::Vector as Vector>::Scalar, gravity: Self::Vector, transform: &mut (impl Rotation<Self::Rotor> + Translation<Self::Vector>));
 }
 
-use std::fmt::Display;
-
-use affogato_math::{algebra::Quaternion, matrix::{Matrix3, Matrix4, SquareMatrix}, vector::{FMat3, FMat4, FVec3, OuterProduct, Vector, Vector3}, One, Real, Rotation, Translation, Zero};
-
-
 #[derive(Clone)]
 pub struct RigidBody3D<T: Real> {
     pub velocity: Vector3<T>,
@@ -24,7 +22,7 @@ pub struct RigidBody3D<T: Real> {
     pub inertia: Matrix3<T>,
 }
 
-impl<T: Real + Display> RigidBody for RigidBody3D<T> {
+impl<T: Real> RigidBody for RigidBody3D<T> {
     type Vector = Vector3<T>;
     type Rotor = Quaternion<T>;
     fn angular_velocity(&self) -> Self::Vector {
@@ -63,7 +61,7 @@ impl<T: Real + Display> RigidBody for RigidBody3D<T> {
         let rotation = Quaternion::angle_axis(
             self.angular_velocity.length() * deltatime, 
             vec);
-        
+            
         // end
         self.net_force = Vector3::ZERO;
         self.net_torque = Vector3::ZERO;
@@ -75,13 +73,16 @@ impl<T: Real + Display> RigidBody for RigidBody3D<T> {
 
 impl<T: Real> RigidBody3D<T> {
     pub fn new(mass: T) -> Self {
+        Self::new_with_inertia(mass, Matrix3::identity() )
+    }
+    pub fn new_with_inertia(mass: T, inertia: Matrix3<T>) -> Self {
         Self { 
             velocity: Vector3::ZERO, 
             angular_velocity: Vector3::ZERO, 
             net_force: Vector3::ZERO, 
             net_torque: Vector3::ZERO, 
             mass, 
-            inertia: Matrix3::identity() 
+            inertia
         }
     }
 }

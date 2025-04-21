@@ -1,12 +1,16 @@
+use std::fmt::Debug;
+
 use crate::{vector::{OuterProduct, Vector, Vector3}, Real, Zero};
 
 use super::{Sphere, Triangle3D};
+
 #[derive(Default, Clone, Copy, Debug)]
 pub struct RayHitInfo<V: Vector> {
     pub distance: V::Scalar,
     pub normal: V,
     pub point: V,
 }
+
 pub trait Ray {
     type Vector: Vector;
     fn set_origin(&mut self, at: Self::Vector);
@@ -14,40 +18,39 @@ pub trait Ray {
     fn at(&self, distance: <Self::Vector as Vector>::Scalar) -> Self::Vector;
     fn origin(&self) -> &Self::Vector;
     fn direction(&self) -> &Self::Vector;
-    
 }
 #[derive(Clone)]
 pub struct Ray3D<T: Real> {
-    orig: Vector3<T>,
-    dir: Vector3<T>,
+    origin: Vector3<T>,
+    direction: Vector3<T>,
 }
 impl<T: Real> Ray3D<T>  {
     pub fn new(orig: Vector3<T>, look_at: Vector3<T>) -> Self {
-        Self { orig, dir: (look_at-orig).normalize() }
+        Self { origin: orig, direction: (look_at-orig).normalize() }
     }
     pub fn left() -> Self {
-        Self { orig: Vector3::ZERO, dir: Vector3::left() }
+        Self { origin: Vector3::ZERO, direction: Vector3::left() }
     }
     pub fn right() -> Self {
-        Self { orig: Vector3::ZERO, dir: Vector3::right() }
+        Self { origin: Vector3::ZERO, direction: Vector3::right() }
     }
     pub fn top() -> Self {
-        Self { orig: Vector3::ZERO, dir: Vector3::top() }
+        Self { origin: Vector3::ZERO, direction: Vector3::top() }
     }
     pub fn bottom() -> Self {
-        Self { orig: Vector3::ZERO, dir: Vector3::bottom() }
+        Self { origin: Vector3::ZERO, direction: Vector3::bottom() }
     }
     pub fn forward() -> Self {
-        Self { orig: Vector3::ZERO, dir: Vector3::forward() }
+        Self { origin: Vector3::ZERO, direction: Vector3::forward() }
     }
     pub fn backward() -> Self {
-        Self { orig: Vector3::ZERO, dir: Vector3::backward() }
+        Self { origin: Vector3::ZERO, direction: Vector3::backward() }
     }
     pub fn intersect_sphere(&self, sphere: &Sphere<T>) -> Option<RayHitInfo<Vector3<T>>> {
         let mut hit_info = None;
-        let oc = sphere.center-self.orig;
-        let a = self.dir.dot(&self.dir);
-        let b = self.dir.dot(&oc)*T::from_f64(-2.0);
+        let oc = sphere.center-self.origin;
+        let a = self.direction.dot(&self.direction);
+        let b = self.direction.dot(&oc)*T::from_f64(-2.0);
         let c = oc.dot(&oc) - sphere.radius*sphere.radius;
         let discriminant = b*b - T::from_f64(4.0)*a*c;
         if discriminant >= T::ZERO  {
@@ -55,7 +58,7 @@ impl<T: Real> Ray3D<T>  {
 
             if dst >= T::ZERO {
                 
-                let point = self.orig + self.dir*dst;
+                let point = self.origin + self.direction*dst;
                 let normal = (point-sphere.center).normalize();
                 hit_info = Some(RayHitInfo { distance: dst, normal, point });
             }
@@ -66,10 +69,10 @@ impl<T: Real> Ray3D<T>  {
         let edge_ab = triangle[1]-triangle[0];
         let edge_ac = triangle[2]-triangle[0];
         let normal = edge_ab.cross(&edge_ac);
-        let ao = self.orig-triangle[0];
-        let dao = ao.cross(&self.dir);
+        let ao = self.origin-triangle[0];
+        let dao = ao.cross(&self.direction);
 
-        let determinant = -self.dir.dot(&normal);
+        let determinant = -self.direction.dot(&normal);
         let inv_determinant = T::ONE/determinant;
 
         let dst = ao.dot(&normal)*inv_determinant;
@@ -81,28 +84,76 @@ impl<T: Real> Ray3D<T>  {
             Some(RayHitInfo { 
                 distance: dst, 
                 normal: normal, 
-                point: self.orig+self.dir*dst, 
+                point: self.origin+self.direction*dst, 
             })
         } else {
             None
         }
     }
+    // This is still in production
+    // pub fn intersect_cube(&self, rect: &Rect3D<T>) -> bool 
+    //     where T: Debug {
+    //     let mut tmin = (rect.min.x - self.origin.x) / self.direction.x; 
+    //     let mut tmax = (rect.max.x - self.origin.x) / self.direction.x; 
+
+    //     if tmin > tmax {
+    //         std::mem::swap(&mut tmin, &mut tmax);
+    //     } 
+
+    //     let mut tymin = (rect.min.y - self.origin.y) / self.direction.y; 
+    //     let mut tymax = (rect.max.y - self.origin.y) / self.direction.y; 
+
+    //     if tymin > tymax {
+    //         std::mem::swap(&mut tymin, &mut tymax);
+    //     } 
+
+    //     if tmin > tymax || tymin > tmax {
+    //         return false; 
+    //     }
+
+    //     if tymin > tmin {
+    //         tmin = tymin
+    //     } 
+    //     if tymax < tmax {
+    //         tmax = tymax
+    //     } 
+
+    //     let mut tzmin = (rect.min.z - self.origin.z) / self.direction.z; 
+    //     let mut tzmax = (rect.max.z - self.origin.z) / self.direction.z; 
+
+    //     if tzmin > tzmax {
+    //         std::mem::swap(&mut tzmin, &mut tzmax);
+    //     } 
+
+    //     if tmin > tzmax || tzmin > tmax {
+    //         return false;
+    //     }
+
+    //     if tzmin > tmin {
+    //         tmin = tzmin
+    //     }
+    //     if tzmax < tmax {
+    //         tmax = tzmax
+    //     } 
+    //     true
+    // }
 }
+
 impl<T: Real> Ray for Ray3D<T>  {
     type Vector = Vector3<T>;
     fn direction(&self) -> &Self::Vector {
-        &self.dir
+        &self.direction
     }
     fn origin(&self) -> &Self::Vector {
-        &self.orig
+        &self.origin
     }
     fn look(&mut self, at: Self::Vector) {
-        self.dir = (at-self.orig).normalize();
+        self.direction = (at-self.origin).normalize();
     }
     fn set_origin(&mut self, origin: Self::Vector) {
-        self.orig = origin;
+        self.origin = origin;
     }
     fn at(&self, distance: <Self::Vector as Vector>::Scalar) -> Self::Vector {
-        return self.orig + self.dir*distance;
+        return self.origin + self.direction*distance;
     }
 }

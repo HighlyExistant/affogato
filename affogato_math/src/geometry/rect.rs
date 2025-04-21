@@ -1,9 +1,55 @@
 #![allow(unused)]
-use std::{fmt::Debug, ops::Deref};
+use std::{fmt::Debug, ops::{Deref, Div}};
 
 use crate::{vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Number, Real, Zero};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
+
+macro_rules! impl_ops_rect {
+    ($structure:tt, $vector:tt) => {
+        impl<T: Number> std::ops::Add<$vector<T>> for $structure<T> {
+            type Output = Self;
+            fn add(self, rhs: $vector<T>) -> Self::Output {
+                Self { min: self.min+rhs, max: self.max+rhs }
+            }
+        }
+        impl<T: Number> std::ops::Sub<$vector<T>> for $structure<T> {
+            type Output = Self;
+            fn sub(self, rhs: $vector<T>) -> Self::Output {
+                Self { min: self.min-rhs, max: self.max-rhs }
+            }
+        }
+        impl<T: Number> std::ops::Mul<$vector<T>> for $structure<T> {
+            type Output = Self;
+            fn mul(self, rhs: $vector<T>) -> Self::Output {
+                Self { min: self.min*rhs, max: self.max*rhs }
+            }
+        }
+        impl<T: Number> std::ops::Div<$vector<T>> for $structure<T> {
+            type Output = Self;
+            fn div(self, rhs: $vector<T>) -> Self::Output {
+                Self { min: self.min/rhs, max: self.max/rhs }
+            }
+        }
+        impl<T: Number> std::ops::Mul<T> for $structure<T> {
+            type Output = Self;
+            fn mul(self, rhs: T) -> Self::Output {
+                Self { min: self.min*rhs, max: self.max*rhs }
+            }
+        }
+        impl<T: Number> std::ops::Div<T> for $structure<T> {
+            type Output = Self;
+            fn div(self, rhs: T) -> Self::Output {
+                Self { min: self.min/rhs, max: self.max/rhs }
+            }
+        }
+        impl<T: Number> std::cmp::PartialEq for $structure<T> {
+            fn eq(&self, other: &Self) -> bool {
+                self.min == other.min && self.max == other.max
+            }
+        }
+    };
+}
 
 /// Represents an abstract N-Dimensional cube
 pub trait HyperCube<T: Number> {
@@ -14,16 +60,6 @@ pub trait HyperCube<T: Number> {
 pub struct Rect3D<T: Number> {
     min: Vector3<T>,
     max: Vector3<T>,
-}
-
-impl<T: Number> std::ops::Add<Vector3<T>> for Rect3D<T> {
-    type Output = Self;
-    fn add(self, rhs: Vector3<T>) -> Self::Output {
-        Self {
-            min: self.min+rhs,
-            max: self.max+rhs,
-        }
-    }
 }
 
 #[repr(C, align(16))]
@@ -38,10 +74,8 @@ impl<T: Number> Deref for Rect3D<T> {
         unsafe { std::mem::transmute(self) }
     }
 }
-impl<T: Number> std::cmp::PartialEq for Rect3D<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.min == other.min && self.max == other.max
-    }
+impl<T: Number> HyperCube<T> for Rect3D<T> {
+    const DIMENSION: usize = 3;
 }
 impl<T: Number> Default for Rect3D<T> {
     fn default() -> Self {
@@ -49,10 +83,74 @@ impl<T: Number> Default for Rect3D<T> {
     }
 }
 impl<T: Number> Rect3D<T> {
+    pub const fn edge_indices() -> [u32; 24] {
+        [
+            0, 2,
+            2, 1,
+            1, 3,
+            3, 0,
+            0, 4,
+            4, 7,
+            7, 3,
+            7, 5,
+            5, 6,
+            6, 4,
+            5, 1,
+            6, 2,
+        ]
+    }
+    pub const fn tri_indices() -> [u32; 36] {
+        [
+            0, 2, 1,
+            1, 3, 0,
+            2, 6, 5,
+            5, 1, 2,
+            6, 4, 7,
+            7, 5, 6,
+            4, 0, 3,
+            3, 7, 4,
+            0, 2, 6,
+            6, 4, 0,
+            3, 1, 5,
+            5, 7, 3
+        ]
+    }
+
     pub fn new(min: Vector3<T>, max: Vector3<T>) -> Self {
         Self { min: min, max: max }
     }
-    /// Using a [`Triangle3D`], adjust the bounds of the [`Cube`] to fit at least the triangle.
+    pub fn volume(&self) -> T {
+        let origin = self.max-self.min;
+        origin.x*origin.y*origin.z
+    }
+    pub fn from_lengths(width: T, height: T, depth: T) -> Self {
+        Self::new(Vector3::ZERO, Vector3::new(width, height, depth))
+    }
+    pub fn width(&self) -> T {
+        self.max.x - self.min.x
+    }
+    pub fn height(&self) -> T {
+        self.max.y - self.min.y
+    }
+    pub fn depth(&self) -> T {
+        self.max.z - self.min.z
+    }
+    /// merge 2 [`Rect3D`] objects together, so that both can fit within eachother.
+    pub fn merge(&self, aabb: &Self) -> Self 
+        where T: Debug {
+        let mut t = *self;
+        t.min = t.min.min(&aabb.min);
+        t.max = t.max.max(&aabb.max);
+        t
+    }
+    /// Using a [`Vector3`], adjust the bounds of the [`Rect3D`] to fit at least the vector.
+    pub fn vector_adjust_bounds(&self, v: Vector3<T>) -> Self {
+        let mut t = *self;
+        t.min = t.min.min(&v);
+        t.max = t.min.max(&v);
+        t
+    }
+    /// Using a [`Triangle3D`], adjust the bounds of the [`Rect3D`] to fit at least the triangle.
     pub fn triangle_adjust_bounds(&self, triangle: &Triangle3D<T>) -> Self {
         let mut t = *self;
         t.min = t.min.min(&triangle[0]);
@@ -63,20 +161,10 @@ impl<T: Number> Rect3D<T> {
         t.max = t.max.max(&triangle[2]);
         t
     }
-    /// merge 2 [`Cube`] objects together, so that both can fit within eachother.
-    pub fn merge(&self, aabb: &Self) -> Self 
-        where T: Debug {
-        let mut t = *self;
-        t.min = t.min.min(&aabb.min);
-        t.max = t.max.max(&aabb.max);
-        t
-    }
-    /// Using a [`Vector3`], adjust the bounds of the [`Cube`] to fit at least the vector.
-    pub fn vector_adjust_bounds(&self, v: Vector3<T>) -> Self {
-        let mut t = *self;
-        t.min = t.min.min(&v);
-        t.max = t.min.max(&v);
-        t
+    pub fn normalize(&self) -> Self 
+        where T: Real {
+        let rect = Vector3::new(self.width(), self.height(), self.depth()).normalize();
+        Self::from_lengths(rect.x, rect.y, rect.z)
     }
     fn fix_bounds(&self) -> Self {
         let mut t = *self;
@@ -90,7 +178,7 @@ impl<T: Number> Rect3D<T> {
     pub fn maximum(&self) -> &Vector3<T> {
         &self.max
     }
-    /// Initializes a [`Cube`] to have the minimum be the largest value and the
+    /// Initializes a [`Rect3D`] to have the minimum be the largest value and the
     /// maximum to be the smallest value, Useful in scenarios when garunteeing 
     /// that the first call to adjust bounds will adjust it correctly.
     pub unsafe fn inverted_bounds_default() -> Self {
@@ -128,22 +216,6 @@ impl<T: Number> Rect3D<T> {
             Vector3::new(self.min.x, self.max.y, self.max.z)
         ]
     }
-    pub fn get_tri_indices(&self) -> Vec<u32> {
-        vec![
-            0, 2, 1,
-            1, 3, 0,
-            2, 6, 5,
-            5, 1, 2,
-            6, 4, 7,
-            7, 5, 6,
-            4, 0, 3,
-            3, 7, 4,
-            0, 2, 6,
-            6, 4, 0,
-            3, 1, 5,
-            5, 7, 3
-        ]
-    }
     pub fn get_edge_indices(&self) -> Vec<u32> {
         vec![
             0, 2,
@@ -158,6 +230,22 @@ impl<T: Number> Rect3D<T> {
             6, 4,
             5, 1,
             6, 2,
+        ]
+    }
+    pub fn get_tri_indices(&self) -> Vec<u32> {
+        vec![
+            0, 2, 1,
+            1, 3, 0,
+            2, 6, 5,
+            5, 1, 2,
+            6, 4, 7,
+            7, 5, 6,
+            4, 0, 3,
+            3, 7, 4,
+            0, 2, 6,
+            6, 4, 0,
+            3, 1, 5,
+            5, 7, 3
         ]
     }
     pub fn intersect_point(&self, point: &Vector3<T>) -> bool {
@@ -175,6 +263,11 @@ impl<T: Number> Rect3D<T> {
         self.max.y >= rect.min.y &&
         self.min.z <= rect.max.z &&
         self.max.z >= rect.min.z
+    }
+    pub fn center_to_origin(&self) -> Self 
+        where T: Real {
+        let origin = (self.max-self.min).div(T::from_f64(2.0));
+        Self { min: -origin, max: origin }
     }
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
@@ -229,7 +322,7 @@ impl<T: Number> Default for Rect<T> {
     }
 }
 impl<T: Number> Rect<T> {
-    pub fn edge_indices() -> [u32; 8] {
+    pub const fn edge_indices() -> [u32; 8] {
         [
             0, 1,
             1, 2,
@@ -237,19 +330,22 @@ impl<T: Number> Rect<T> {
             3, 0
         ]
     }
-    pub fn tri_indices() -> [u32; 6] {
+    pub const fn tri_indices() -> [u32; 6] {
         [
             0, 1, 2,
             2, 3, 0
         ]
     }
-}
-impl<T: Number> Rect<T> {
+
     pub fn new(min: Vector2<T>, max: Vector2<T>) -> Self {
         Self { min: min, max: max }
     }
+    pub fn area(&self) -> T {
+        let origin = self.max-self.min;
+        origin.x*origin.y
+    }
     pub fn from_lengths(width: T, height: T) -> Self {
-        Self::new(Vector2::new(T::ZERO, T::ZERO), Vector2::new(width, height))
+        Self::new(Vector2::ZERO, Vector2::new(width, height))
     }
     pub fn width(&self) -> T {
         self.max.x - self.min.x
@@ -257,17 +353,7 @@ impl<T: Number> Rect<T> {
     pub fn height(&self) -> T {
         self.max.y - self.min.y
     }
-    pub fn triangle_adjust_bounds(&self, triangle: &Triangle2D<T>) -> Self {
-        let mut t = *self;
-        t.min = t.min.min(&triangle[0]);
-        t.min = t.min.min(&triangle[1]);
-        t.min = t.min.min(&triangle[2]);
-        t.max = t.max.max(&triangle[0]);
-        t.max = t.max.max(&triangle[1]);
-        t.max = t.max.max(&triangle[2]);
-        t
-    }
-    pub fn aabb_adjust_bounds(&self, aabb: &Self) -> Self {
+    pub fn merge(&self, aabb: &Self) -> Self {
         let mut t = *self;
         t.min = t.min.min(&aabb.min);
         t.max = t.min.min(&aabb.max);
@@ -279,16 +365,30 @@ impl<T: Number> Rect<T> {
         t.max = t.min.max(&v);
         t
     }
+    pub fn triangle_adjust_bounds(&self, triangle: &Triangle2D<T>) -> Self {
+        let mut t = *self;
+        t.min = t.min.min(&triangle[0]);
+        t.min = t.min.min(&triangle[1]);
+        t.min = t.min.min(&triangle[2]);
+        t.max = t.max.max(&triangle[0]);
+        t.max = t.max.max(&triangle[1]);
+        t.max = t.max.max(&triangle[2]);
+        t
+    }
+    pub fn normalize(&self) -> Self 
+        where T: Real {
+        let rect = Vector2::new(self.width(), self.height()).normalize();
+        Self::from_lengths(rect.x, rect.y)
+    }
+    pub fn to_origin(&self) -> Self 
+        where T: Real {
+        Self::from_lengths(self.width(), self.height())
+    }
     fn fix_bounds(&self) -> Self {
         let mut t = *self;
         t.min = self.min.min(&self.max);
         t.max = self.max.max(&self.min);
         t
-    }
-    #[cfg(feature="rand")]
-    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform {
-            Self::new(Vector2::random(generator, range.clone()), Vector2::random(generator, range)).fix_bounds()
     }
     pub fn minimum(&self) -> &Vector2<T> {
         &self.min
@@ -296,16 +396,7 @@ impl<T: Number> Rect<T> {
     pub fn maximum(&self) -> &Vector2<T> {
         &self.max
     }
-    pub fn normalized(&self) -> Self 
-        where T: Real {
-        let rect = Vector2::new(self.width(), self.height()).normalize();
-        Rect::from_lengths(rect.x, rect.y)
-    }
-    pub fn to_origin(&self) -> Self 
-        where T: Real {
-        Self::from_lengths(self.width(), self.height())
-    }
-    /// Initializes a [`Cube`] to have the minimum be the largest value and the
+    /// Initializes a [`Rect`] to have the minimum be the largest value and the
     /// maximum to be the smallest value, Useful in scenarios when garunteeing 
     /// that the first call to adjust bounds will adjust it correctly.
     pub unsafe fn inverted_bounds_default() -> Self {
@@ -317,6 +408,7 @@ impl<T: Number> Rect<T> {
     pub fn max(&self, other: &Self) -> Self {
         Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
     }
+    /// gets the vertices of the rectangle in the following order
     /// ```
     /// 3─────────2
     /// │         │
@@ -346,21 +438,6 @@ impl<T: Number> Rect<T> {
             2, 3, 0
         ]
     }
-    pub fn move_horizontal(&self, x: T) -> Self {
-        Self { min: Vector2::new(self.min.x+x, self.min.y), max: Vector2::new(self.max.x+x, self.max.y) }
-    }
-    pub fn move_horizontal_vec2(&self, translate: Vector2<T>) -> Self {
-        Self { min: Vector2::new(self.min.x+translate.x, self.min.y+translate.y), max: Vector2::new(self.max.x+translate.x, self.max.y+translate.y) }
-    }
-    pub fn scale(&self, scale: T) -> Self {
-        Self { min: self.min*scale, max: self.max*scale }
-    }
-    pub fn scale_vec2(&self, scale: Vector2<T>) -> Self {
-        Self { min: self.min*scale, max: self.max*scale }
-    }
-    pub fn invert(&self) -> Self {
-        Self { min: self.max, max: self.min }
-    }
     pub fn intersect_point(&self, point: &Vector2<T>) -> bool {
         point.x >= self.min.x  &&
         point.x <= self.max.x &&
@@ -373,7 +450,19 @@ impl<T: Number> Rect<T> {
         self.min.y <= rect.max.y &&
         self.max.y >= rect.min.y
     }
+    pub fn center_to_origin(&self) -> Self 
+        where T: Real {
+        let origin = (self.max-self.min).div(T::from_f64(2.0));
+        Self { min: -origin, max: origin }
+    }
+    #[cfg(feature="rand")]
+    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+        where T: rand::distributions::uniform::SampleUniform {
+            Self::new(Vector2::random(generator, range.clone()), Vector2::random(generator, range)).fix_bounds()
+    }
 }
+impl_ops_rect!(Rect3D, Vector3);
+impl_ops_rect!(Rect, Vector2);
 impl<T: Number> From<Vector2<T>> for Rect<T> {
     fn from(value: Vector2<T>) -> Self {
         let rect = Rect::default();

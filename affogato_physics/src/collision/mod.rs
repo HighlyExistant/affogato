@@ -1,3 +1,4 @@
+#![allow(unused)]
 use affogato_math::vector::Vector;
 mod rect;
 mod sphere;
