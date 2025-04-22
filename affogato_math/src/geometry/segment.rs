@@ -3,6 +3,8 @@ use std::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
 use crate::{lerp, vector::{OuterProduct, Vector, Vector2}, Number, Real, Zero};
 
+use super::Dimension;
+
 pub trait Segment {
     type VectorType: Vector;
     
@@ -493,4 +495,8 @@ impl<T: Number> Segment for Segment2D<T> {
             Segment2D::Cubic(cubic) => cubic.split_in_thirds(),
         }
     }
+}
+
+impl<T: Number> Dimension for Segment2D<T> {
+    const DIMENSION: usize = 2;
 }

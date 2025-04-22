@@ -323,7 +323,7 @@ macro_rules! impl_all_from_vec {
         impl_all_from!($mac, usize, u64, f64, f32, i8, i16, i32, i64, u8, u16, u32);
     };
 }
-pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self> + Clone + Index<usize, Output = Self::Scalar> + IndexMut<usize, Output = Self::Scalar> {
+pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self> + Clone + Index<usize, Output = Self::Scalar> + IndexMut<usize, Output = Self::Scalar> + Zero + One {
     type Scalar: Number;
     fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.length_squared().sqrt() }
     #[inline]
@@ -546,6 +546,9 @@ impl<T: Number> IndexMut<usize> for Vector4<T> {
 impl<T: Number> Vector4<T> {
     pub const fn new(x: T, y: T, z: T, w: T) -> Self {
         Self { x, y, z, w }
+    }
+    pub fn xyz(&self) -> Vector3<T> {
+        Vector3::new(self.x, self.y, self.z)
     }
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 

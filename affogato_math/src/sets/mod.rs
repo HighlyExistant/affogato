@@ -1,4 +1,6 @@
 mod natural;
+use std::fmt::Debug;
+
 pub use natural::*;
 mod properties;
 pub use properties::*;
@@ -80,7 +82,7 @@ pub trait FromPrimitive {
     fn from_f32(val: f32) -> Self;
     fn from_f64(val: f64) -> Self;
 }
-pub trait Real: HasNegatives + UsesArithmetic + FloatingPoint + Number + FromPrimitive {
+pub trait Real: HasNegatives + UsesArithmetic + FloatingPoint + Number + FromPrimitive + Debug {
     
     /// Archimedes' constant (π)
     const PI: Self;
