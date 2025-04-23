@@ -6,7 +6,6 @@ pub use polar::*;
 use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
-        
         impl<T: Number> std::ops::Add for $vector <T>  {
             fn add(self, rhs: Self) -> Self::Output {
                 Self::new($(self.$element + rhs.$element),+)
@@ -145,6 +144,7 @@ macro_rules! impl_ops {
                 true $(&& self.$element == other.$element)+
             }
         }
+        impl<T: Number> std::cmp::Eq for $vector <T> {}
         
         // impl<T: Number + Display> Display for $vector<T> {
         //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -323,7 +323,18 @@ macro_rules! impl_all_from_vec {
         impl_all_from!($mac, usize, u64, f64, f32, i8, i16, i32, i64, u8, u16, u32);
     };
 }
-pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self> + Clone + Index<usize, Output = Self::Scalar> + IndexMut<usize, Output = Self::Scalar> + Zero + One {
+use paste::paste;
+macro_rules! vector_permutations {
+    ($ret:tt, $($x:tt),*) => {
+        paste! {
+            pub fn  [<$($x)*>](&self) -> $ret <T>
+                where T: Real {
+                $ret::<T>::new($(self.$x),*)
+            }
+        }
+    };
+}
+pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self> + Clone + Copy + Index<usize, Output = Self::Scalar> + IndexMut<usize, Output = Self::Scalar> + Zero + One {
     type Scalar: Number;
     fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.length_squared().sqrt() }
     #[inline]
@@ -364,7 +375,7 @@ pub trait OuterProduct: Vector {
     type Product;
 }
 #[repr(C)]
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector2<T: Number> {
     pub x: T,
     pub y: T,
@@ -437,6 +448,8 @@ impl<T: Number> Vector2<T> {
         where T: Real {
         self.cos().acos()
     }
+    vector_permutations!(Vector2, x, y);
+    vector_permutations!(Vector2, y, x);
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
@@ -452,8 +465,25 @@ impl<T: Number> OuterProduct for Vector2<T> {
     }
     type Product = T;
 }
+
+impl<T: HasNegatives + Number> HasNegatives for Vector2<T> {
+    fn abs(self) -> Self {
+        Self::new(self.x.abs(), self.y.abs())
+    }
+    fn flip_sign(self) -> Self {
+        Self::new(-self.x, -self.y)
+    }
+    fn is_negative(self) -> bool {
+        self.x.is_negative() &&
+        self.y.is_negative() 
+    }
+    fn is_positive(self) -> bool {
+        self.x.is_positive() &&
+        self.y.is_positive() 
+    }
+}
 #[repr(C)]
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
     pub x: T,
     pub y: T,
@@ -504,16 +534,67 @@ impl<T: Number> Vector3<T> {
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, T::ZERO, -T::ONE)
     }
+    vector_permutations!(Vector2, x, y);
+    vector_permutations!(Vector2, y, x);
+    vector_permutations!(Vector2, x, z);
+    vector_permutations!(Vector2, z, x);
+    vector_permutations!(Vector2, y, z);
+    vector_permutations!(Vector2, z, y);
+    
+    /// from: https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+    pub fn line_distance(&self, a: Self, b: Self) -> T 
+        where T: Real {
+        let dir_ba = b-a;
+        let dir_pa = *self-a;
+        dir_pa.cross(&dir_ba).length().div(dir_ba.length())
+    }
+    pub fn signed_plane_distance(&self, a: Self, b: Self, c: Self) -> T 
+        where T: Real {
+        let normal = b.sub(a).cross(&c.sub(a)).normalize();
+        normal.dot(&self.sub(a))
+    }
+    pub fn plane_distance(&self, a: Self, b: Self, c: Self) -> T 
+        where T: Real {
+        self.signed_plane_distance(a, b, c).abs()
+    }
+    pub fn equals_with_epsilon(&self, p: Self, epsilon: T) -> bool 
+        where T: Real {
+        let p = (self.clone()-p).abs();
+        p.x <= epsilon &&
+        p.y <= epsilon &&
+        p.z <= epsilon 
+    }
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
         Vector3::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
     }
 }
+impl<T: HasNegatives + Number> HasNegatives for Vector3<T> {
+    fn abs(self) -> Self {
+        Self::new(self.x.abs(), self.y.abs(), self.z.abs())
+    }
+    fn flip_sign(self) -> Self {
+        Self::new(-self.x, -self.y, -self.z)
+    }
+    fn is_negative(self) -> bool {
+        self.x.is_negative() &&
+        self.y.is_negative() &&
+        self.z.is_negative() 
+    }
+    fn is_positive(self) -> bool {
+        self.x.is_positive() &&
+        self.y.is_positive() &&
+        self.z.is_positive() 
+    }
+}
 impl<T: Number> OuterProduct for Vector3<T> {
     type Product = Self;
     /// The outer product, also known as the cross product, is used to find a vector 
     /// perpendicular to 2 vectors. 
+    /// # Properties of the Cross Product
+    /// * finds a vector perpendicular to the 2 given vectors.
+    /// * If the vectors are collinear it will give you a 0 vector.
     fn cross(&self, other: &Self) -> Self::Product {
         Self::new(
             (self.y * other.z) - (self.z * other.y),
@@ -523,7 +604,7 @@ impl<T: Number> OuterProduct for Vector3<T> {
     }
 }
 #[repr(C)]
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector4<T: Number> {
     pub x: T,
     pub y: T,
@@ -550,6 +631,14 @@ impl<T: Number> Vector4<T> {
     pub fn xyz(&self) -> Vector3<T> {
         Vector3::new(self.x, self.y, self.z)
     }
+    pub fn equals_with_epsilon(&self, p: Self, epsilon: T) -> bool 
+        where T: Real {
+        let p = (self.clone()-p).abs();
+        p.x <= epsilon &&
+        p.y <= epsilon &&
+        p.z <= epsilon 
+    }
+
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distributions::uniform::SampleUniform {
@@ -557,6 +646,26 @@ impl<T: Number> Vector4<T> {
     }
 }
 
+impl<T: HasNegatives + Number> HasNegatives for Vector4<T> {
+    fn abs(self) -> Self {
+        Self::new(self.x.abs(), self.y.abs(), self.z.abs(), self.w.abs())
+    }
+    fn flip_sign(self) -> Self {
+        Self::new(-self.x, -self.y, -self.z, -self.w)
+    }
+    fn is_negative(self) -> bool {
+        self.x.is_negative() &&
+        self.y.is_negative() &&
+        self.z.is_negative() &&
+        self.w.is_negative() 
+    }
+    fn is_positive(self) -> bool {
+        self.x.is_positive() &&
+        self.y.is_positive() &&
+        self.z.is_positive() &&
+        self.w.is_positive() 
+    }
+}
 impl<T: Number> Vector for Vector2<T> { 
     type Scalar = T;
     impl_vec!(2,x, y); 

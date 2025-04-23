@@ -3,14 +3,12 @@ mod triangle;
 mod sphere;
 mod segment;
 mod ray;
-mod simplex;
 
 pub use rect::*;
 pub use triangle::*;
 pub use sphere::*;
 pub use segment::*;
 pub use ray::*;
-pub use simplex::*;
 
 use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector, Vector2, Vector3, Vector4}, Number, Real};
 
