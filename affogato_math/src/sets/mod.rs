@@ -158,13 +158,24 @@ pub trait Real: HasNegatives + UsesArithmetic + FloatingPoint + Number + FromPri
     /// ln(10)
     const LN_10: Self;
 }
+/// A helper trait to distinguish all numbers that are not Real numbers. A Real number
 pub trait HasRealProduct<T: Real, Out>: std::ops::Mul<T, Output = Out> + std::ops::Div<T, Output = Out>
     where Self: Sized {}
 impl<T: Real, Out, V> HasRealProduct<T, Out> for V
     where V: std::ops::Mul<T, Output = Out> + std::ops::Div<T, Output = Out> {
 
 }
-pub trait NotRational {}
+mod sealed {
+    #![allow(unused)]
+    use super::{NaturalU8, NaturalU16, NaturalU32, NaturalU64, NaturalU128, NaturalUsize};
+    pub trait Sealed {}
+    impl_structures!(Sealed, u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, NaturalU8, NaturalU16, NaturalU32, NaturalU64, NaturalU128, NaturalUsize);
+
+    /// Helper trait for all non rational numbers. A member should not implement Reals and NotRational.
+    pub trait NotRational: Sealed {}
+
+}
+pub use sealed::NotRational;
 pub trait Set {}
 pub struct Naturals;
 pub struct Cardinals;
@@ -327,3 +338,10 @@ impl Real for f64 {
     /// ln(10)
     const LN_10: f64 = 2.30258509299404568401799145468436421_f64;
 }
+
+
+pub struct RationalNumber;
+pub struct NotRationalNumber;
+pub trait NumberType {}
+impl NumberType for RationalNumber {}
+impl NumberType for NotRationalNumber {}

@@ -40,3 +40,4 @@ The largest portion of this library is filled with code for vectors and matrices
 * [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere) The Ray class is inspired from this site
 * [The Book of Shaders](https://thebookofshaders.com/glossary/?search=reflect) snippets of code for smoothing functions, and other glsl functions were acquired from here
 * [This video on FABRIK](https://www.youtube.com/watch?v=UNoX65PRehA&t=685s&ab_channel=EgoMoose) Where I inspired my kinematics physics code
+* [GJK: Collision detection algorithm in 2D/3D](https://winter.dev/articles/gjk-algorithm) Where I got the GJK collision algorithm code from

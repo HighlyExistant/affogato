@@ -1,5 +1,6 @@
 mod sets;
 mod animation;
+mod util;
 pub mod matrix;
 pub mod algebra;
 pub mod spaces;
@@ -10,3 +11,4 @@ pub mod transformations;
 pub use sets::*;
 pub use animation::*;
 pub use transformations::*;
+pub use util::*;

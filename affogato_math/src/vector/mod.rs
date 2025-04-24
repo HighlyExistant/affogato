@@ -3,7 +3,7 @@ mod types;
 mod polar;
 pub use types::*;
 pub use polar::*;
-use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
+use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, NotRational, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
         impl<T: Number> std::ops::Add for $vector <T>  {
