@@ -1,4 +1,4 @@
-use crate::{vector::{Vector, Vector2, Vector3}, Number};
+use crate::{sdf::SignedDistance, vector::{Vector, Vector2, Vector3}, Number, Real};
 
 macro_rules! impl_ops_hsphere {
     ($structure:tt, $vector:tt) => {
@@ -78,6 +78,20 @@ impl<T: Number> HyperSphere<Vector3<T>> for Sphere<T> {
     }
     fn radius(&self) -> T {
         self.radius
+    }
+}
+
+impl<T: Real> SignedDistance<Vector2<T>> for Circle<T> {
+    type Distance = T;
+    fn sdf(&self, object: &Vector2<T>) -> Self::Distance {
+        self.center.distance(&object)-self.radius
+    }
+}
+
+impl<T: Real> SignedDistance<Self> for Circle<T> {
+    type Distance = T;
+    fn sdf(&self, object: &Self) -> Self::Distance {
+        self.center.distance(&object.center)-self.radius-object.radius
     }
 }
 
