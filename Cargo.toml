@@ -12,5 +12,5 @@ affogato_math = { path = "affogato_math" }
 affogato_physics = { path = "affogato_physics" }
 graphics_feature = { path = "graphics_feature" }
 [features]
-rand = ["dep:rand"]
+rand = ["dep:rand", "affogato_math/rand"]
 physics = []

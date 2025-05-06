@@ -1,7 +1,7 @@
 #![allow(unused)]
 use std::{fmt::Debug, ops::{Deref, Div}};
 
-use crate::{vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Number, Real, Zero};
+use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}, HasNegatives, Number, Real, Zero};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
@@ -125,6 +125,9 @@ impl<T: Number> Rect3D<T> {
     }
     pub fn from_lengths(width: T, height: T, depth: T) -> Self {
         Self::new(Vector3::ZERO, Vector3::new(width, height, depth))
+    }
+    pub fn size(&self) -> Vector3<T> {
+        Vector3::new(self.width(), self.height(), self.depth())
     }
     pub fn width(&self) -> T {
         self.max.x - self.min.x
@@ -271,7 +274,7 @@ impl<T: Number> Rect3D<T> {
     }
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform {
+        where T: rand::distr::uniform::SampleUniform {
             Self::new(Vector3::random(generator, range.clone()), Vector3::random(generator, range)).fix_bounds()
     }
 }
@@ -346,6 +349,9 @@ impl<T: Number> Rect<T> {
     }
     pub fn from_lengths(width: T, height: T) -> Self {
         Self::new(Vector2::ZERO, Vector2::new(width, height))
+    }
+    pub fn size(&self) -> Vector2<T> {
+        Vector2::new(self.width(), self.height())
     }
     pub fn width(&self) -> T {
         self.max.x - self.min.x
@@ -457,7 +463,7 @@ impl<T: Number> Rect<T> {
     }
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform {
+        where T: rand::distr::uniform::SampleUniform {
             Self::new(Vector2::random(generator, range.clone()), Vector2::random(generator, range)).fix_bounds()
     }
 }
@@ -490,5 +496,40 @@ impl<T: Real> From<Triangle3D<T>> for Rect3D<T> {
     fn from(value: Triangle3D<T>) -> Self {
         
         Self { min: value[0].min(&value[1].min(&value[2])), max: value[0].max(&value[1].max(&value[2])) }
+    }
+}
+
+impl<T: Real> SignedDistance<Vector3<T>> for Rect3D<T> {
+    type Distance = T;
+    fn sdf(&self, object: &Vector3<T>) -> Self::Distance {
+        self.round_sdf(object, T::ZERO)
+    }
+}
+impl<T: Real> RoundSignedDistance<Vector3<T>> for Rect3D<T> {
+    type Radius = T;
+    fn round_sdf(&self, object: &Vector3<T>, r: Self::Radius) -> Self::Distance {
+        let centroid = self.centroid();
+        let translated_object = object.clone()-centroid + r;
+        let size = self.size().div(T::from_f64(2.0));
+        let q = translated_object.abs() - size;
+        q.max(&Vector3::ZERO).length() + q.x.max(q.y).min(T::ZERO) - r
+    }
+}
+
+impl<T: Real> SignedDistance<Vector2<T>> for Rect<T> {
+    type Distance = T;
+    fn sdf(&self, object: &Vector2<T>) -> Self::Distance {
+        self.round_sdf(object, T::ZERO)
+    }
+}
+
+impl<T: Real> RoundSignedDistance<Vector2<T>> for Rect<T> {
+    type Radius = T;
+    fn round_sdf(&self, object: &Vector2<T>, r: Self::Radius) -> Self::Distance {
+        let centroid = self.centroid();
+        let translated_object = object.clone()-centroid + r;
+        let size = self.size().div(T::from_f64(2.0));
+        let q = translated_object.abs() - size;
+        q.max(&Vector2::ZERO).length() + q.x.max(q.y).min(T::ZERO) - r
     }
 }

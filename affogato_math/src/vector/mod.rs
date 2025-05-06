@@ -452,7 +452,7 @@ impl<T: Number> Vector2<T> {
     vector_permutations!(Vector2, y, x);
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform {
+        where T: rand::distr::uniform::SampleUniform {
         Vector2::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()))
     }
 }
@@ -482,7 +482,7 @@ impl<T: HasNegatives + Number> HasNegatives for Vector2<T> {
         self.y.is_positive() 
     }
 }
-#[repr(C)]
+
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
     pub x: T,
@@ -566,7 +566,7 @@ impl<T: Number> Vector3<T> {
     }
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform {
+        where T: rand::distr::uniform::SampleUniform {
         Vector3::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
     }
 }
@@ -641,7 +641,7 @@ impl<T: Number> Vector4<T> {
 
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
-        where T: rand::distributions::uniform::SampleUniform {
+        where T: rand::distr::uniform::SampleUniform {
         Vector4::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
     }
 }
