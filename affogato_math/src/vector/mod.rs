@@ -3,7 +3,7 @@ mod types;
 mod polar;
 pub use types::*;
 pub use polar::*;
-use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, NotRational, Number, One, Real, UniversalOperationsOn, Zero};
+use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
         impl<T: Number> std::ops::Add for $vector <T>  {
@@ -453,7 +453,7 @@ impl<T: Number> Vector2<T> {
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
-        Vector2::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()))
+        Vector2::new(generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
 }
 impl<T: Number> OuterProduct for Vector2<T> {
@@ -567,7 +567,7 @@ impl<T: Number> Vector3<T> {
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
-        Vector3::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
+        Vector3::new(generator.random_range(range.clone()), generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
 }
 impl<T: HasNegatives + Number> HasNegatives for Vector3<T> {
@@ -642,7 +642,7 @@ impl<T: Number> Vector4<T> {
     #[cfg(feature="rand")]
     pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
-        Vector4::new(generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()), generator.gen_range(range.clone()))
+        Vector4::new(generator.random_range(range.clone()), generator.random_range(range.clone()), generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
 }
 

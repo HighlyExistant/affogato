@@ -1,4 +1,4 @@
-use crate::{vector::{Vector, Vector3}, HasNegatives, IsNormalized, Number, Real};
+use crate::{vector::{Vector, Vector3}, IsNormalized, Number, Real};
 /// Represents a 3 dimensional hyperplane
 pub struct Plane<T: Number> {
     normal: Vector3<T>, 
