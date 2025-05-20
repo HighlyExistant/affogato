@@ -1,6 +1,8 @@
 #![allow(unused)]
 use std::{fmt::Debug, ops::{Deref, Div}};
 
+use bytemuck::{Pod, Zeroable};
+
 use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}, HasNegatives, Number, Real, Zero};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
@@ -298,6 +300,12 @@ impl<T: Number> From<Vector3<T>> for Rect3D<T> {
     }
 }
 
+unsafe impl<T: Number> Zeroable for Rect3D <T> {
+    fn zeroed() -> Self {
+        Rect3D { min: Vector3::ZERO, max: Vector3::ZERO }
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Rect3D <T> {}
 #[repr(C, align(16))]
 #[derive(Clone, Copy, Debug)]
 pub struct Rect<T: Number> {
@@ -533,3 +541,10 @@ impl<T: Real> RoundSignedDistance<Vector2<T>> for Rect<T> {
         q.max(&Vector2::ZERO).length() + q.x.max(q.y).min(T::ZERO) - r
     }
 }
+
+unsafe impl<T: Number> Zeroable for Rect <T> {
+    fn zeroed() -> Self {
+        Rect { min: Vector2::ZERO, max: Vector2::ZERO }
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Rect <T> {}

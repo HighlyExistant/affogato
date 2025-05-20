@@ -1,6 +1,8 @@
 use std::ops::{Index, IndexMut, Sub};
 
-use crate::{vector::{OuterProduct, Vector, Vector2, Vector3}, Number, Real};
+use bytemuck::{Pod, Zeroable};
+
+use crate::{vector::{OuterProduct, Vector, Vector2, Vector3}, Number, Real, Zero};
 
 use super::CalculateCentroid;
 
@@ -75,6 +77,13 @@ impl<T: Real> CalculateCentroid for Triangle3D<T> {
         )
     }
 }
+unsafe impl<T: Number> Zeroable for Triangle3D <T> {
+    fn zeroed() -> Self {
+        Triangle3D { v: [Vector3::ZERO; 3] }
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Triangle3D <T> {}
+
 impl_triangle_ops!(Triangle3D, Vector3, Add, add);
 impl_triangle_ops!(Triangle3D, Vector3, Sub, sub);
 impl_triangle_ops!(Triangle3D, Vector3, Mul, mul);
@@ -132,6 +141,12 @@ impl<T: Number> IndexMut<usize> for Tetrahedron<T> {
         &mut self.v[index]
     }
 }
+unsafe impl<T: Number> Zeroable for Triangle2D <T> {
+    fn zeroed() -> Self {
+        Triangle2D { v: [Vector2::ZERO; 3] }
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Triangle2D <T> {}
 
 impl<T: Number> Tetrahedron<T> {
     pub fn new(v0: Vector3<T>, v1: Vector3<T>, v2: Vector3<T>, v3: Vector3<T>) -> Self {
@@ -187,3 +202,10 @@ impl_tetrahedron_ops!(Tetrahedron, Vector3, Add, add);
 impl_tetrahedron_ops!(Tetrahedron, Vector3, Sub, sub);
 impl_tetrahedron_ops!(Tetrahedron, Vector3, Mul, mul);
 impl_tetrahedron_ops!(Tetrahedron, Vector3, Div, div);
+
+unsafe impl<T: Number> Zeroable for Tetrahedron <T> {
+    fn zeroed() -> Self {
+        Tetrahedron { v: [Vector3::ZERO; 4] }
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Tetrahedron <T> {}

@@ -1,6 +1,7 @@
 use std::{fmt::Display, ops::{Div, Index, IndexMut, Neg, Sub}};
 mod types;
 mod polar;
+use bytemuck::{Pod, Zeroable};
 pub use types::*;
 pub use polar::*;
 use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
@@ -146,6 +147,12 @@ macro_rules! impl_ops {
         }
         impl<T: Number> std::cmp::Eq for $vector <T> {}
         
+        unsafe impl<T: Number> Zeroable for $vector <T> {
+            fn zeroed() -> Self {
+                Self::ZERO
+            }
+        }
+        unsafe impl<T: Number + Pod> Pod for $vector <T> {}
         // impl<T: Number + Display> Display for $vector<T> {
         //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         //         f.write_str(stringify!(<$($element),*>))

@@ -1,5 +1,7 @@
 use std::{fmt::Display, ops::{Index, IndexMut}};
 
+use bytemuck::{Pod, Zeroable};
+
 use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
 pub trait SquareMatrix: Sized {
     type Column: Vector;
@@ -176,6 +178,13 @@ impl<T: Number> From<T> for Matrix2<T> {
         Self { x: Vector2::new(value, T::ZERO), y: Vector2::new(T::ZERO, value) }
     }
 }
+
+unsafe impl<T: Number> Zeroable for Matrix2<T> {
+    fn zeroed() -> Self {
+        Self::ZERO
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Matrix2<T> {}
 /// column major matrix
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -396,6 +405,13 @@ impl<T: Number> std::ops::Mul<T> for Matrix3<T>  {
         Matrix3::from_vec(self.x*rhs, self.y*rhs, self.z*rhs)
     }
 }
+
+unsafe impl<T: Number> Zeroable for Matrix3<T> {
+    fn zeroed() -> Self {
+        Self::ZERO
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Matrix3<T> {}
 /// column major matrix
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -696,6 +712,13 @@ impl<T: Number> From<Matrix3<T>> for Matrix4<T> {
         }
     }
 }
+
+unsafe impl<T: Number> Zeroable for Matrix4<T> {
+    fn zeroed() -> Self {
+        Self::ZERO
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Matrix4<T> {}
 
 impl<T: Number + Display> Display for Matrix2<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
