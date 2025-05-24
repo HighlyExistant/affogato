@@ -807,25 +807,25 @@ impl<T: Number> From<Vector4<T>> for [T; 4]  {
     }
 }
 
-impl<T: Number> Into<Vec<T>> for Vector2<T> {
-    fn into(self) -> Vec<T> {
+impl<T: Number> From<Vector2<T>> for Vec<T> {
+    fn from(value: Vector2<T>) -> Self {
         vec![
-            self.x, self.y, 
+            value.x, value.y, 
         ]
     }
 }
 
-impl<T: Number> Into<Vec<T>> for Vector3<T> {
-    fn into(self) -> Vec<T> {
+impl<T: Number> From<Vector3<T>> for Vec<T> {
+    fn from(value: Vector3<T>) -> Self {
         vec![
-            self.x, self.y, self.z, 
+            value.x, value.y, value.z, 
         ]
     }
 }
-impl<T: Number> Into<Vec<T>> for Vector4<T> {
-    fn into(self) -> Vec<T> {
+impl<T: Number> From<Vector4<T>> for Vec<T> {
+    fn from(value: Vector4<T>) -> Self {
         vec![
-            self.x, self.y, self.z, self.w,
+            value.x, value.y, value.z, value.w,
         ]
     }
 }

@@ -835,30 +835,30 @@ impl<T: Number + Display> Display for Matrix4<T> {
     }
 }
 
-impl<T: Number> Into<Vec<T>> for Matrix4<T> {
-    fn into(self) -> Vec<T> {
+impl<T: Number> From<Matrix4<T>> for Vec<T> {
+    fn from(value: Matrix4<T>) -> Self {
         vec![
-            self.x.x, self.x.y, self.x.z, self.x.w, 
-            self.y.x, self.y.y, self.y.z, self.y.w, 
-            self.z.x, self.z.y, self.z.z, self.z.w,
-            self.w.x, self.w.y, self.w.z, self.w.w,
+            value.x.x, value.x.y, value.x.z, value.x.w, 
+            value.y.x, value.y.y, value.y.z, value.y.w, 
+            value.z.x, value.z.y, value.z.z, value.z.w,
+            value.w.x, value.w.y, value.w.z, value.w.w,
         ]
     }
 }
-impl<T: Number> Into<Vec<T>> for Matrix3<T> {
-    fn into(self) -> Vec<T> {
+impl<T: Number> From<Matrix3<T>> for Vec<T> {
+    fn from(value: Matrix3<T>) -> Self {
         vec![
-            self.x.x, self.x.y, self.x.z, 
-            self.y.x, self.y.y, self.y.z, 
-            self.z.x, self.z.y, self.z.z,
+            value.x.x, value.x.y, value.x.z, 
+            value.y.x, value.y.y, value.y.z, 
+            value.z.x, value.z.y, value.z.z,
         ]
     }
 }
-impl<T: Number> Into<Vec<T>> for Matrix2<T> {
-    fn into(self) -> Vec<T> {
+impl<T: Number> From<Matrix2<T>> for Vec<T> {
+    fn from(value: Matrix2<T>) -> Self {
         vec![
-            self.x.x, self.x.y, 
-            self.y.x, self.y.y, 
+            value.x.x, value.x.y, 
+            value.y.x, value.y.y, 
         ]
     }
 }
