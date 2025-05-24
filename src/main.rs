@@ -20,7 +20,6 @@ pub fn quickhull(points: &[FVec3]) -> (HashSet<usize>) {
     convex_hull
 }
 fn main() {
-    
     let t = Tetrahedron::new(
         FVec3::new(1.0, 0.0, 0.0), 
         FVec3::new(0.0, 1.0, 0.0), 

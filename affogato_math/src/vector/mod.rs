@@ -807,6 +807,28 @@ impl<T: Number> From<Vector4<T>> for [T; 4]  {
     }
 }
 
+impl<T: Number> Into<Vec<T>> for Vector2<T> {
+    fn into(self) -> Vec<T> {
+        vec![
+            self.x, self.y, 
+        ]
+    }
+}
+
+impl<T: Number> Into<Vec<T>> for Vector3<T> {
+    fn into(self) -> Vec<T> {
+        vec![
+            self.x, self.y, self.z, 
+        ]
+    }
+}
+impl<T: Number> Into<Vec<T>> for Vector4<T> {
+    fn into(self) -> Vec<T> {
+        vec![
+            self.x, self.y, self.z, self.w,
+        ]
+    }
+}
 
 /// calculates the direction of reflection of an incident vector, where `incident` is the incident vector and
 /// `normal` is the normal of the surface it is reflecting on. Important to note that

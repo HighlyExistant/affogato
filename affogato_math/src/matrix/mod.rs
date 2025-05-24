@@ -834,3 +834,31 @@ impl<T: Number + Display> Display for Matrix4<T> {
         f.write_str(row4.as_str())
     }
 }
+
+impl<T: Number> Into<Vec<T>> for Matrix4<T> {
+    fn into(self) -> Vec<T> {
+        vec![
+            self.x.x, self.x.y, self.x.z, self.x.w, 
+            self.y.x, self.y.y, self.y.z, self.y.w, 
+            self.z.x, self.z.y, self.z.z, self.z.w,
+            self.w.x, self.w.y, self.w.z, self.w.w,
+        ]
+    }
+}
+impl<T: Number> Into<Vec<T>> for Matrix3<T> {
+    fn into(self) -> Vec<T> {
+        vec![
+            self.x.x, self.x.y, self.x.z, 
+            self.y.x, self.y.y, self.y.z, 
+            self.z.x, self.z.y, self.z.z,
+        ]
+    }
+}
+impl<T: Number> Into<Vec<T>> for Matrix2<T> {
+    fn into(self) -> Vec<T> {
+        vec![
+            self.x.x, self.x.y, 
+            self.y.x, self.y.y, 
+        ]
+    }
+}

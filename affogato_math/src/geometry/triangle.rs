@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut, Sub};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{vector::{OuterProduct, Vector, Vector2, Vector3}, Number, Real, Zero};
+use crate::{sdf::SignedDistance, vector::{OuterProduct, Vector, Vector2, Vector3}, Number, Real, Zero};
 
 use super::CalculateCentroid;
 
@@ -84,6 +84,31 @@ unsafe impl<T: Number> Zeroable for Triangle3D <T> {
 }
 unsafe impl<T: Number + Pod> Pod for Triangle3D <T> {}
 
+impl<T: Real> SignedDistance<Vector3<T>> for Triangle3D<T> {
+    type Distance = T;
+    fn sdf(&self, object: &Vector3<T>) -> Self::Distance {
+        let ba = self[1] - self[0];
+        let cb = self[2] - self[1];
+        let ac = self[0] - self[2];
+        let pa = *object - self[0];
+        let pb = *object - self[1];
+        let pc = *object - self[2];
+        let ba_ac = ba.cross(&ac);
+        let dst = if ba.cross(&ba_ac).dot(&pa).signum() + 
+            cb.cross(&ba_ac).dot(&pb).signum() + 
+            ac.cross(&ba_ac).dot(&pc).signum() < T::from_f64(2.0) {
+            Vector3::<T>::length_squared(&(ba*T::clamp(Vector3::dot(&ba, &pa)/ba.length_squared(), T::ZERO, T::ONE)-pa)).min(
+                Vector3::<T>::length_squared(&(cb*T::clamp(Vector3::dot(&cb, &pb)/cb.length_squared(), T::ZERO, T::ONE)-pb)).min(
+                    Vector3::<T>::length_squared(&(ac*T::clamp(Vector3::dot(&ac, &pc)/ac.length_squared(), T::ZERO, T::ONE)-pc))
+                )
+            )
+        } else {
+            Vector3::dot(&ba_ac, &pa)*Vector3::dot(&ba_ac, &pa)/ba_ac.length_squared()
+        }; 
+        dst
+    }
+}
+
 impl_triangle_ops!(Triangle3D, Vector3, Add, add);
 impl_triangle_ops!(Triangle3D, Vector3, Sub, sub);
 impl_triangle_ops!(Triangle3D, Vector3, Mul, mul);
@@ -120,6 +145,7 @@ impl<T: Real> CalculateCentroid for Triangle2D<T> {
         )
     }
 }
+
 impl_triangle_ops!(Triangle2D, Vector2, Add, add);
 impl_triangle_ops!(Triangle2D, Vector2, Sub, sub);
 impl_triangle_ops!(Triangle2D, Vector2, Mul, mul);
@@ -152,6 +178,7 @@ impl<T: Number> Tetrahedron<T> {
     pub fn new(v0: Vector3<T>, v1: Vector3<T>, v2: Vector3<T>, v3: Vector3<T>) -> Self {
         Self { v: [v0,v1,v2,v3] }
     }
+    /// Gets the normal of a face from an individual triangle of the tetrahedron 
     pub fn normal(&self, n: usize) -> Vector3<T> 
         where T: Real {
         let v0 = (n)%4;
@@ -166,6 +193,7 @@ impl<T: Number> Tetrahedron<T> {
             -normal.normalize()
         }
     }
+    /// Gets the normal of a face from an individual triangle of the tetrahedron 
     pub fn normal_const<const N: usize>(&self) -> Vector3<T> 
         where T: Real {
         let v0 = const {
