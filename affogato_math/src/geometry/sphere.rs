@@ -1,5 +1,3 @@
-use bytemuck::{Pod, Zeroable};
-
 use crate::{sdf::SignedDistance, vector::{Vector, Vector2, Vector3}, Number, Real};
 
 macro_rules! impl_ops_hsphere {

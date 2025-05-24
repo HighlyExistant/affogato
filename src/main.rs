@@ -1,8 +1,6 @@
 use std::{collections::HashSet, ops::Range};
 
 use affogato::{geometry::{Ray3D, Rect3D, Sphere, Tetrahedron}, mappings::morton::MortonU64, matrix::{Matrix4, SquareMatrix}, vector::{FVec2, FVec3, OuterProduct, Vector}, One, Zero};
-use affogato_physics::collision::{Collision, GJKColliderSolid};
-use graphics_feature::Geometry;
 pub fn quickhull(points: &[FVec3]) -> (HashSet<usize>) {
     if points.len() <= 2 {
         return (0..points.len()).collect::<HashSet<usize>>();
