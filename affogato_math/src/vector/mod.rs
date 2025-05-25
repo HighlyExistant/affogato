@@ -489,7 +489,7 @@ impl<T: HasNegatives + Number> HasNegatives for Vector2<T> {
         self.y.is_positive() 
     }
 }
-
+#[cfg(feature="glsl")]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
     pub x: T,
@@ -497,6 +497,15 @@ pub struct Vector3<T: Number> {
     pub z: T,
     padding: T,
 }
+
+#[cfg(not(feature="glsl"))]
+#[derive(Default, Clone, Copy, Debug, Hash)]
+pub struct Vector3<T: Number> {
+    pub x: T,
+    pub y: T,
+    pub z: T,
+}
+
 impl<T: Number> Index<usize> for Vector3<T> {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
@@ -511,8 +520,13 @@ impl<T: Number> IndexMut<usize> for Vector3<T> {
     }
 }
 impl<T: Number> Vector3<T> {
+    #[cfg(feature="glsl")]
     pub const fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z, padding: T::ZERO }
+    }
+    #[cfg(not(feature="glsl"))]
+    pub const fn new(x: T, y: T, z: T) -> Self {
+        Self { x, y, z }
     }
     /// Gives a vector pointing to the right of the graph <1, 0, 0>
     pub const fn right() -> Self {

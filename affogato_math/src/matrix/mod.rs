@@ -186,6 +186,17 @@ unsafe impl<T: Number> Zeroable for Matrix2<T> {
 }
 unsafe impl<T: Number + Pod> Pod for Matrix2<T> {}
 /// column major matrix
+#[cfg(feature="glsl")]
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct Matrix3<T: Number> {
+    pub x: Vector3<T>,
+    pub y: Vector3<T>,
+    pub z: Vector3<T>,
+    // padding: Vector3<T>,
+}
+/// column major matrix
+#[cfg(not(feature="glsl"))]
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Matrix3<T: Number> {
@@ -217,9 +228,16 @@ impl<T: Number> Matrix3<T>  {
         Self::new(T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO)
     }
     pub const fn new(xx: T, xy: T, xz: T, yx: T, yy: T, yz: T, zx: T, zy: T, zz: T) -> Self {
-        Self { x: Vector3::new(xx,xy,xz), y: Vector3::new(yx, yy, yz ), z: Vector3::new(zx, zy, zz) }
+        Self::from_vec(Vector3::new(xx,xy,xz), Vector3::new(yx, yy, yz), Vector3::new(zx, zy, zz))
     }
-    pub fn from_vec(x: Vector3<T>, y: Vector3<T>, z: Vector3<T>) -> Self {
+
+    #[cfg(not(feature="glsl"))]
+    pub const fn from_vec(x: Vector3<T>, y: Vector3<T>, z: Vector3<T>) -> Self {
+        Self { x, y, z }
+    }
+
+    #[cfg(feature="glsl")]
+    pub const fn from_vec(x: Vector3<T>, y: Vector3<T>, z: Vector3<T>) -> Self {
         Self { x, y, z }
     }
     pub fn translate(mut self, translate: Vector3<T>) -> Self {
@@ -254,35 +272,35 @@ impl<T: Real> Matrix3<T>  {
 }
 impl<T: Number> std::ops::Add for Matrix3<T>  {
     fn add(self, rhs: Self) -> Self::Output {
-        Self { x: (self.x + rhs.x), y: (self.y + rhs.y), z: (self.z + rhs.z) }
+        Self::from_vec((self.x + rhs.x), (self.y + rhs.y), (self.z + rhs.z))
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Sub for Matrix3<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
-        Self { x: (self.x - rhs.x), y: (self.y - rhs.y), z: (self.z - rhs.z) }
+        Self::from_vec((self.x - rhs.x), (self.y - rhs.y), (self.z - rhs.z))
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Mul for Matrix3<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
-        Self { 
-            x: Vector3::new( 
+        Self::from_vec(
+            Vector3::new( 
                 rhs.x.x * self.x.x + rhs.x.y * self.y.x + rhs.x.z * self.z.x,
                 rhs.x.x * self.x.y + rhs.x.y * self.y.y + rhs.x.z * self.z.y,
                 rhs.x.x * self.x.z + rhs.x.y * self.y.z + rhs.x.z * self.z.z,
             ), 
-            y: Vector3::new( 
+            Vector3::new( 
                 rhs.y.x * self.x.x + rhs.y.y * self.y.x + rhs.y.z * self.z.x,
                 rhs.y.x * self.x.y + rhs.y.y * self.y.y + rhs.y.z * self.z.y,
                 rhs.y.x * self.x.z + rhs.y.y * self.y.z + rhs.y.z * self.z.z,
             ),
-            z: Vector3::new(
+            Vector3::new(
                 rhs.z.x * self.x.x + rhs.z.y * self.y.x + rhs.z.z * self.z.x,
                 rhs.z.x * self.x.y + rhs.z.y * self.y.y + rhs.z.z * self.z.y,
                 rhs.z.x * self.x.z + rhs.z.y * self.y.z + rhs.z.z * self.z.z,
             )
-        }
+        )
     }
     type Output = Self;
 }
@@ -306,49 +324,49 @@ impl<T: Number> From<T> for Matrix3<T> {
     /// Makes the identity element in  the matrix the value specified
     /// 
     fn from(value: T) -> Self {
-        Self { x: Vector3::new(value, T::ZERO, T::ZERO), y: Vector3::new(T::ZERO, value, T::ZERO), z: Vector3::new(T::ZERO, T::ZERO, value) }
+        Self::from_vec(Vector3::new(value, T::ZERO, T::ZERO), Vector3::new(T::ZERO, value, T::ZERO), Vector3::new(T::ZERO, T::ZERO, value))
     }
 }
 impl<T: Number> SquareMatrix for Matrix3<T> {
     type Column = Vector3<T>;
     type LowerDimension = Matrix2<T>;
     fn identity() -> Self {
-        Self { 
-            x: Vector3::new( 
+        Self::from_vec( 
+            Vector3::new( 
                 T::ONE, 
                 T::ZERO, 
                 T::ZERO 
             ), 
-            y: Vector3::new( 
+            Vector3::new( 
                 T::ZERO, 
                 T::ONE, 
                 T::ZERO 
             ), 
-            z: Vector3::new( 
+            Vector3::new( 
                 T::ZERO, 
                 T::ZERO, 
                 T::ONE 
             ) 
-        }
+        )
     }
     fn transpose(&self) -> Self {
-        Self { 
-            x: Vector3::new( 
+        Self::from_vec(
+            Vector3::new( 
                 self.x.x, 
                 self.y.x, 
                 self.z.x
             ), 
-            y: Vector3::new( 
+            Vector3::new( 
                 self.x.y,
                 self.y.y,
                 self.z.y
             ), 
-            z: Vector3::new( 
+            Vector3::new( 
                 self.x.z, 
                 self.y.z, 
                 self.z.z
-            )
-        }
+            ) 
+        )
     }
     fn determinant(&self) -> <Self::Column as Vector>::Scalar {
         let m1 = Matrix2::from_vec(
@@ -695,11 +713,11 @@ impl<T: Number> std::ops::Mul<Vector4<T>> for Matrix4<T>  {
 
 impl<T: Number> From<Matrix4<T>> for Matrix3<T> {
     fn from(value: Matrix4<T>) -> Self {
-        Self { 
-            x: Vector3::new(value.x.x, value.x.y, value.x.z), 
-            y: Vector3::new(value.y.x, value.y.y, value.y.z), 
-            z: Vector3::new(value.z.x, value.z.y, value.z.z) 
-        }
+        Self::from_vec(
+            Vector3::new(value.x.x, value.x.y, value.x.z), 
+            Vector3::new(value.y.x, value.y.y, value.y.z), 
+            Vector3::new(value.z.x, value.z.y, value.z.z) 
+        )
     }
 }
 impl<T: Number> From<Matrix3<T>> for Matrix4<T> {

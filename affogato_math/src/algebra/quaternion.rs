@@ -187,23 +187,23 @@ impl<T: Real> From<Quaternion<T>> for Matrix3<T> {
         let sz2 = z2 * value.w;
         let sx2 = x2 * value.w;
 
-        Self { 
-            x: Vector3::new( 
+        Self::from_vec(
+            Vector3::new( 
                  T::ONE - yy2 - zz2, 
                  xy2 + sz2, 
                  xz2 - sy2, 
             ), 
-            y: Vector3::new( 
+            Vector3::new( 
                 xy2 - sz2, 
                 T::ONE - xx2 - zz2, 
                 yz2 + sx2, 
             ), 
-            z: Vector3::new( 
+            Vector3::new( 
                 xz2 + sy2, 
                 yz2 - sx2, 
                 T::ONE - xx2 - yy2, 
             ), 
-        }
+        )
     }
 }
 // traits for bitwise operations

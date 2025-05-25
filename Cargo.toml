@@ -14,3 +14,4 @@ graphics_feature = { path = "graphics_feature" }
 [features]
 rand = ["dep:rand", "affogato_math/rand"]
 physics = []
+glsl = ["affogato_math/glsl"]
