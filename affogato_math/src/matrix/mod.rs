@@ -7,6 +7,14 @@ pub trait SquareMatrix: Sized {
     type Column: Vector;
     type LowerDimension;
     fn set_identity(&mut self) { *self = Self::identity(); }
+    /// The identity of the matrix is one that when multiplied does nothing to a matrix. 
+    /// The components of this matrix look like:
+    /// ```no_run, ignore
+    /// ┌1 . . 0┐
+    /// │. .    │
+    /// │.   .  │
+    /// └0     1┘
+    /// ```
     fn identity() -> Self;
     fn transpose(&self) -> Self;
     fn determinant(&self) -> <Self::Column as Vector>::Scalar;
@@ -117,7 +125,20 @@ impl<T: Number> Matrix2<T>  {
     pub fn from_vec(x: Vector2<T>, y: Vector2<T>) -> Self {
         Self { x, y }
     }
+    pub fn from_scale(scale: Vector2<T>) -> Self {
+        Self::new(T::ONE*scale.x, T::ZERO, T::ZERO, T::ONE*scale.y)
+    }
 }
+
+impl<T: Real> Matrix2<T> {
+    pub fn from_rotation(angle: T) -> Self {
+        Matrix2::new(
+            angle.cos(), angle.sin(), 
+            -angle.sin(), angle.cos()
+        )
+    }
+}
+
 impl<T: Number> std::ops::Add for Matrix2<T>  {
     fn add(self, rhs: Self) -> Self::Output {
         Self { x: (self.x + rhs.x), y: (self.y + rhs.y) }
@@ -272,13 +293,13 @@ impl<T: Real> Matrix3<T>  {
 }
 impl<T: Number> std::ops::Add for Matrix3<T>  {
     fn add(self, rhs: Self) -> Self::Output {
-        Self::from_vec((self.x + rhs.x), (self.y + rhs.y), (self.z + rhs.z))
+        Self::from_vec(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Sub for Matrix3<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::from_vec((self.x - rhs.x), (self.y - rhs.y), (self.z - rhs.z))
+        Self::from_vec(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
     type Output = Self;
 }
@@ -325,6 +346,16 @@ impl<T: Number> From<T> for Matrix3<T> {
     /// 
     fn from(value: T) -> Self {
         Self::from_vec(Vector3::new(value, T::ZERO, T::ZERO), Vector3::new(T::ZERO, value, T::ZERO), Vector3::new(T::ZERO, T::ZERO, value))
+    }
+}
+
+impl<T: Number> From<Matrix2<T>> for Matrix3<T> {
+    fn from(value: Matrix2<T>) -> Self {
+        Self::new(
+            value.x.x, value.x.y, T::ZERO, 
+            value.y.x, value.y.y, T::ZERO, 
+            T::ZERO, T::ZERO, T::ONE, 
+        )
     }
 }
 impl<T: Number> SquareMatrix for Matrix3<T> {

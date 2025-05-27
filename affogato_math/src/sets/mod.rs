@@ -157,6 +157,9 @@ pub trait Real: HasNegatives + UsesArithmetic + FloatingPoint + Number + FromPri
 
     /// ln(10)
     const LN_10: Self;
+
+    /// epsilone
+    const EPSILON: Self;
 }
 /// A helper trait to distinguish all numbers that are not Real numbers. A Real number
 pub trait HasRealProduct<T: Real, Out>: std::ops::Mul<T, Output = Out> + std::ops::Div<T, Output = Out>
@@ -261,6 +264,9 @@ impl Real for f32 {
 
     /// ln(10)
     const LN_10: f32 = 2.30258509299404568401799145468436421_f32;
+    
+    /// epsilon
+    const EPSILON: f32 = 1.19209290e-07_f32;
 }
 impl Real for f64 {
     
@@ -337,6 +343,9 @@ impl Real for f64 {
 
     /// ln(10)
     const LN_10: f64 = 2.30258509299404568401799145468436421_f64;
+
+    /// ln(10)
+    const EPSILON: f64 = 2.2204460492503131e-16_f64;
 }
 
 

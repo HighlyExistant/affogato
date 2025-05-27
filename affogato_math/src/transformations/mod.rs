@@ -9,7 +9,5 @@ pub trait Transformation: Translation<Self::Translate> + Rotation<Self::Rotate> 
     type Scale;
     type Rotate;
     type Translate;
-    fn transform() {
-        
-    }
+    fn transform(position: Self::Translate, rotation: Self::Rotate, scaling: Self::Scale);
 }

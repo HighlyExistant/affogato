@@ -196,7 +196,7 @@ impl<T: Number> Rect3D<T> {
         Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
     }
     /// gets the vertices of the cube in the following order
-    /// ```
+    /// ```no_run,ignore
     ///         7───────────────────5
     ///        ╱                   ╱│
     ///       ╱                   ╱ │
@@ -423,7 +423,7 @@ impl<T: Number> Rect<T> {
         Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
     }
     /// gets the vertices of the rectangle in the following order
-    /// ```
+    /// ```no_run,ignore
     /// 3─────────2
     /// │         │
     /// │         │

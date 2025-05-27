@@ -12,6 +12,7 @@ macro_rules! impl_ops_float {
         )*
     };
 }
+/// A lonely imaginary number. It has the property that `i*i == -1`.
 pub struct Imaginary<T: Real>(T);
 
 impl<T: Real> From<T> for Imaginary<T> {

@@ -1,7 +1,8 @@
 use std::{fmt::Display, ops::{Add, Div, Mul}};
 
 use crate::{matrix::Matrix2, vector::Vector2, Real};
-
+/// Represents a number with 1 real component and 1 imaginary component `i`, where `i^*i == -1.0`.
+/// This is useful for when you want to represent rotations in 2 dimensions algebraically.
 pub struct ComplexNumber<T: Real> {
     real: T,
     imaginary: T,

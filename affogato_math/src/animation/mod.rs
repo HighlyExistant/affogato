@@ -23,7 +23,7 @@ pub fn remap<V: HasRealProduct<T, V> + UsesArithmetic + Copy + Real, T: Real>(im
     lerp::<V, V>(omin, omax, t2)
 }
 /// interpolate value by using 4 values with weights in accordance to a square.
-/// ```
+/// ```no_run,ignore
 /// q12─────────q22
 ///  │           │
 ///  │ (x, y)    │

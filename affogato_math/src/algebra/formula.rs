@@ -1,11 +1,12 @@
 use std::fmt::Debug;
 
 use crate::{Number, Real};
-
+/// Contains all real solutions to a polynomial. Any imaginary solutions are discarded.
 pub struct PolynomialSolutions<T: Number, const N: usize> {
     solutions: [T; N],
     total: usize,
 }
+
 impl<T: Debug + Number, const N: usize> Debug for PolynomialSolutions<T, N> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut solutions = Vec::with_capacity(self.total);
@@ -42,6 +43,7 @@ impl<T: Number, const N: usize> Iterator for PolynomialSolutions<T, N> {
         Some(self.solutions[self.total])
     }
 }
+/// Gets all real roots of a quadratic equation in the form ax^2 + bx + c
 pub fn solve_quadratic<T: Real>(a: T, b: T, c: T) -> Option<PolynomialSolutions<T, 2>> {
     if a == T::ZERO || b.abs() > T::from_f64(1e12)*a.abs() {
         if b == T::ZERO {
@@ -101,6 +103,7 @@ fn solve_cubic_normed<T: Real>(a: T, b: T, c: T) -> Option<PolynomialSolutions<T
     }
 }
 
+/// Gets all real roots of a cubic equation in the form ax^3 + bx^2 + cx + d
 pub fn solve_cubic<T: Real>(a: T, b: T, c: T, d: T) -> Option<PolynomialSolutions<T, 3>> {
     if a != T::ZERO {
         let bn = b/a;

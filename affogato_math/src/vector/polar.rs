@@ -3,7 +3,13 @@ use std::fmt::Debug;
 use crate::Real;
 
 use super::{Vector, Vector2, Vector3, Vector4};
-
+/// This trait is for all vectors that are represented as a list of angles
+/// and a length. This is useful for when you want to transform a points angle, 
+/// while preserving the length.
+/// # Types of Radial Coordinates
+/// [`PolarCoordinate`]: Is for 2d vectors.
+/// [`SphericalCoordinate`]: Is for 3d vectors.
+/// [`HyperSphereD4Coordinate`]: Is for 3d vectors.
 pub trait RadialCoordinate {
     type Vector: Vector;
     type Angles;
@@ -14,7 +20,7 @@ pub trait RadialCoordinate {
         Self::Vector::from(self)
     }
 }
-
+/// Implements [`RadialCoordinate`], is supposed to represent a 2d Vector, using a length and an angle.
 #[derive(Clone, Copy)]
 pub struct PolarCoordinate<T> {
     pub length: T,
@@ -25,6 +31,16 @@ impl<T: Real> PolarCoordinate<T> {
         Self { length, angle }
     }
 }
+
+impl<T: Debug> Debug for PolarCoordinate<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PolarCoordinate")
+            .field("length", &self.length)
+            .field("angle", &self.angle)
+            .finish()
+    }
+}
+
 impl<T: Real> RadialCoordinate for PolarCoordinate<T> {
     type Angles = T;
     type Vector = Vector2<T>;
@@ -113,13 +129,13 @@ impl<T: Real> From<&Vector3<T>> for SphericalCoordinate<T> {
 }
 
 #[derive(Clone, Copy)]
-pub struct HyperSphereD4Coordinates<T: Real> {
+pub struct HyperSphereD4Coordinate<T: Real> {
     pub length: T,
     pub polar: T,
     pub azimuth: T,
     pub phi: T,
 }
-impl<T: Real> RadialCoordinate for HyperSphereD4Coordinates<T> {
+impl<T: Real> RadialCoordinate for HyperSphereD4Coordinate<T> {
     type Vector = Vector4<T>;
     type Angles = (T, T, T);
     fn angles(&self) -> (T, T, T) {
@@ -130,15 +146,15 @@ impl<T: Real> RadialCoordinate for HyperSphereD4Coordinates<T> {
     }
 }
 
-impl<T: Real> HyperSphereD4Coordinates<T> {
+impl<T: Real> HyperSphereD4Coordinate<T> {
     pub fn new(length: T,  polar: T, azimuth: T, phi: T) -> Self {
         Self { length,  polar, azimuth, phi }
     }
 }
 
-impl<T: Real + Debug> Debug for HyperSphereD4Coordinates<T> {
+impl<T: Real + Debug> Debug for HyperSphereD4Coordinate<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("SphericalCoordinate")
+        f.debug_struct("HyperSphereD4Coordinate")
             .field("length", &self.length)
             .field("polar", &self.polar)
             .field("azimuth", &self.azimuth)
@@ -147,8 +163,8 @@ impl<T: Real + Debug> Debug for HyperSphereD4Coordinates<T> {
     }
 }
 
-impl<T: Real> From<HyperSphereD4Coordinates<T>> for Vector4<T> {
-    fn from(value: HyperSphereD4Coordinates<T>) -> Self {
+impl<T: Real> From<HyperSphereD4Coordinate<T>> for Vector4<T> {
+    fn from(value: HyperSphereD4Coordinate<T>) -> Self {
         Vector4::new(
             value.length*value.phi.sin()*value.polar.sin()*value.azimuth.cos(), 
             value.length*value.phi.sin()*value.polar.sin()*value.azimuth.sin(), 
@@ -157,7 +173,7 @@ impl<T: Real> From<HyperSphereD4Coordinates<T>> for Vector4<T> {
         )
     }
 }
-impl<T: Real> From<Vector4<T>> for HyperSphereD4Coordinates<T> {
+impl<T: Real> From<Vector4<T>> for HyperSphereD4Coordinate<T> {
     fn from(value: Vector4<T>) -> Self {
         let acos = value.z.div(Vector3::from(value).length()).acos();
         let acos2 = value.w.div(value.length()).acos();

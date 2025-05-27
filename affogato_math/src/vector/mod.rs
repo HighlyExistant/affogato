@@ -4,7 +4,7 @@ mod polar;
 use bytemuck::{Pod, Zeroable};
 pub use types::*;
 pub use polar::*;
-use crate::{Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
+use crate::{epsilon_eq, Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
         impl<T: Number> std::ops::Add for $vector <T>  {
@@ -462,6 +462,11 @@ impl<T: Number> Vector2<T> {
         where T: rand::distr::uniform::SampleUniform {
         Vector2::new(generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
+    pub fn epsilon_eq(&self, other: Self, epsilon: T) -> bool 
+        where T: Real {
+        epsilon_eq(self.x, other.x, epsilon) &&
+        epsilon_eq(self.y, other.y, epsilon)
+    }
 }
 impl<T: Number> OuterProduct for Vector2<T> {
     /// In 2 dimensions there is no cross product as we understand it in 3d. Instead of returning
@@ -489,6 +494,7 @@ impl<T: HasNegatives + Number> HasNegatives for Vector2<T> {
         self.y.is_positive() 
     }
 }
+#[repr(C)]
 #[cfg(feature="glsl")]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
@@ -498,6 +504,7 @@ pub struct Vector3<T: Number> {
     padding: T,
 }
 
+#[repr(C)]
 #[cfg(not(feature="glsl"))]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
@@ -574,11 +581,7 @@ impl<T: Number> Vector3<T> {
         let normal = b.sub(a).cross(&c.sub(a)).normalize();
         normal.dot(&self.sub(a))
     }
-    pub fn plane_distance(&self, a: Self, b: Self, c: Self) -> T 
-        where T: Real {
-        self.signed_plane_distance(a, b, c).abs()
-    }
-    pub fn equals_with_epsilon(&self, p: Self, epsilon: T) -> bool 
+    pub fn epsilon_eq(&self, p: Self, epsilon: T) -> bool 
         where T: Real {
         let p = (self.clone()-p).abs();
         p.x <= epsilon &&
@@ -649,15 +652,18 @@ impl<T: Number> Vector4<T> {
     pub const fn new(x: T, y: T, z: T, w: T) -> Self {
         Self { x, y, z, w }
     }
+    
     pub fn xyz(&self) -> Vector3<T> {
         Vector3::new(self.x, self.y, self.z)
     }
-    pub fn equals_with_epsilon(&self, p: Self, epsilon: T) -> bool 
+
+    pub fn epsilon_eq(&self, p: Self, epsilon: T) -> bool 
         where T: Real {
         let p = (self.clone()-p).abs();
         p.x <= epsilon &&
         p.y <= epsilon &&
-        p.z <= epsilon 
+        p.z <= epsilon &&
+        p.w <= epsilon
     }
 
     #[cfg(feature="rand")]
