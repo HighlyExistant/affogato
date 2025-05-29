@@ -1,3 +1,5 @@
+use super::{FromPrimitive, IntoPrimitive};
+
 macro_rules! impl_properties {
     ($zero:tt, $one:tt, $($structure:tt),*) => {
         $(
@@ -313,7 +315,9 @@ pub trait Number
     One + 
     Zero + 
     PartialOrd + 
-    Bounds
+    Bounds + 
+    FromPrimitive +
+    IntoPrimitive
     {}
 impl<T> Number for T 
     where T: Sized + 
@@ -332,7 +336,9 @@ impl<T> Number for T
     One + 
     Zero + 
     PartialOrd + 
-    Bounds {
+    Bounds +
+    FromPrimitive +
+    IntoPrimitive {
     
 }
 pub trait HasNegatives: std::ops::Neg<Output = Self> {

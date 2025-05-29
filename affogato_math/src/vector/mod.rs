@@ -190,6 +190,7 @@ macro_rules! impl_scalar_ops {
         }
     };
 }
+
 macro_rules! impl_all_scalar_ops {
     ($structure: ident, $($element:tt),+) => {
         impl_scalar_ops!($structure, u8, $($element),+);
@@ -208,6 +209,7 @@ macro_rules! impl_all_scalar_ops {
         impl_scalar_ops!($structure, f64, $($element),+);
     };
 }
+
 macro_rules! impl_vec {
     ($len_:expr, $($element:tt),+) => {
         fn dot(&self, other: &Self) -> Self::Scalar {
@@ -454,6 +456,10 @@ impl<T: Number> Vector2<T> {
     pub fn angle(&self) -> T 
         where T: Real {
         self.cos().acos()
+    }
+    pub fn from_angle(angle: T) -> Self
+        where T: Real {
+        Self::new(angle.cos(), angle.sin())
     }
     vector_permutations!(Vector2, x, y);
     vector_permutations!(Vector2, y, x);

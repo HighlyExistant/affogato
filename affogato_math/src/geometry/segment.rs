@@ -10,21 +10,32 @@ pub trait Segment {
     
     /// Represents the order of the curve
     fn order(&self) -> usize;
+    /// Gives the starting point of the [`Segment`]
     fn start(&self) -> Self::VectorType;
+    /// Gives the end point of the [`Segment`]
     fn end(&self) -> Self::VectorType;
+    /// Gets an arbitrary point on a given [`Segment`] according to some
+    /// t value, between 0.0 and 1.0. If you are using a constant t value of
+    /// 0.0 or 1.0, consider using `start` or `end`. 
     fn get(&self, t: f64) -> Self::VectorType
         where <Self::VectorType as Vector>::Scalar: Real;
+    /// Retrieves a control point that forms the [`Segment`]. The idx must be between
+    /// 0 and the number given by `order`.
     fn control_point(&self, idx: usize) -> Self::VectorType;
+    /// Gets the direction from the starting 2 control points.
     fn direction_at_start(&self) -> Self::VectorType {
         self.control_point(1) - self.control_point(0)
     }
+    /// Gets the direction from the ending 2 control points.
     fn direction_at_end(&self) -> Self::VectorType {
         self.control_point(self.order()) - self.control_point(self.order()-1)
     }
+    /// Gets the direction at some t value between 0.0 and 1.0.
     fn direction_at(&self, t: f64) -> Self::VectorType
     where <Self::VectorType as Vector>::Scalar: Real;
     fn adjust_end_point(&mut self, to: Self::VectorType);
     fn adjust_start_point(&mut self, to: Self::VectorType);
+    /// Splits the [`Segment`] into 3 segments.
     fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
         where <Self::VectorType as Vector>::Scalar: Real,
         Self: 'static;

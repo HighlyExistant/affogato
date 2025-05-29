@@ -1,4 +1,4 @@
-use affogato_math::{matrix::SquareMatrix, vector::{OuterProduct, FMat4, FVec3, Vector}};
+use affogato_math::{matrix::SquareMatrix, vector::{FMat3, FMat4, FVec3, OuterProduct, Vector}, Zero};
 pub struct Camera {
     projection: FMat4,
     view: FMat4,
@@ -39,6 +39,12 @@ impl Camera {
         projection.w.z = -(far * near) / (far - near);
         Self { projection, view: FMat4::identity() }
     }
+    pub fn set_view(&mut self, view: FMat4) {
+        self.view = view;
+    }
+    pub fn set_projection(&mut self, projection: FMat4) {
+        self.projection = projection;
+    }
     pub fn set_view_target(&mut self, position: FVec3, target: FVec3, up: FVec3) {
       self.set_view_direction(position, target - position, up);
     }
@@ -61,7 +67,7 @@ impl Camera {
         self.view.w.y = -v.dot(&position);
         self.view.w.z = -w.dot(&position);
     }
-    pub fn set_view(&mut self, position: FVec3, rotation: FVec3) {
+    pub fn set_view_from_transform(&mut self, position: FVec3, rotation: FVec3) {
         let c3 = rotation.z.cos();
         let s3 = rotation.z.sin();
         let c2 = rotation.x.cos();
@@ -111,7 +117,7 @@ impl CameraProjection for PerspectiveCameraProjection {
     fn projection(&self) -> FMat4 {
         let tan_half_fovy = f32::tan(self.fovy / 2.0);
         
-        let mut projection = FMat4::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        let mut projection = FMat4::ZERO;
         projection.x.x = 1.0 / (self.aspect_ratio * tan_half_fovy);
         projection.y.y = 1.0 / (tan_half_fovy);
         projection.z.z = self.far / (self.far - self.near);
@@ -145,5 +151,37 @@ impl CameraProjection for OrthographicCameraProjection {
             0.0, 2.0/bottom_top_dif, 0.0, 0.0, 
             0.0, 0.0, 2.0/far_near_dif, 0.0, 
             (-right_left_sum)/right_left_dif, (-bottom_top_sum)/bottom_top_dif, (-self.near)/far_near_dif, 1.0)
+    }
+}
+
+
+pub struct IsometricCameraProjection {
+    rotate_x_axis: u8,
+    rotate_y_axis: u8,
+}
+impl Default for IsometricCameraProjection {
+    fn default() -> Self {
+        Self { 
+            rotate_x_axis: 0, 
+            rotate_y_axis: 0 
+        }
+    }
+}
+impl IsometricCameraProjection {
+    pub fn new(rotate_x_90deg: u8, rotate_y_90deg: u8) -> Self {
+        Self { rotate_x_axis: rotate_x_90deg%4, rotate_y_axis: rotate_y_90deg%4 }
+    }
+}
+impl CameraProjection for IsometricCameraProjection {
+    fn projection(&self) -> FMat4 {
+        let rot_a = (35.264389701728f32+(90.0*self.rotate_y_axis as f32)).to_radians();
+        let rot_b = (45.0f32+(90.0*self.rotate_x_axis as f32)).to_radians();
+        let mat = FMat3::new(
+            rot_b.cos(), rot_b.sin()*rot_a.sin(), 0.0, 
+            0.0, rot_a.cos(), 0.0, 
+            rot_b.sin(), -rot_a.sin()*rot_b.cos(), 0.0
+        );
+
+        FMat4::from(mat)
     }
 }

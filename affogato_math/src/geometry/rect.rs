@@ -548,3 +548,89 @@ unsafe impl<T: Number> Zeroable for Rect <T> {
     }
 }
 unsafe impl<T: Number + Pod> Pod for Rect <T> {}
+
+pub struct PackingInfo<T> {
+    /// Estimated width it will take to pack objects.
+    pub width_hint: T,
+    /// Estimated height it will take to pack objects.
+    pub height_hint: T,
+    // provides padding to the left and right sides of each rectangle
+    pub padding_x: T,
+    // provides padding to the top and bottom of each rectangle
+    pub padding_y: T,
+    // provides a margin over the entire packed rectangle on the left and right side
+    pub margin_x: T,
+    // provides a margin over the entire packed rectangle on the top and bottom
+    pub margin_y: T,
+}
+/// similar to `pack_rects_rows` packs the rectangles in place, while also sorting a payload.
+pub fn pack_rects_rows_payload<T: Number + Ord, K: Clone>(rects: &mut [(Rect<T>, K)], info: PackingInfo<T>) -> Rect<T> {
+    let PackingInfo { 
+        width_hint: width, 
+        height_hint: height, 
+        padding_x, 
+        padding_y, 
+        margin_x, 
+        margin_y 
+    } = info;
+
+    const GROWTH_FACTOR: f64 = (f64::PHI-1.0)*0.5+1.0;
+    rects.sort_by_cached_key(|(rect, k)|{
+        T::MAX-rect.height()
+    });
+    let mut x_pos = T::ZERO;
+    let mut y_pos = margin_y;
+    let mut largest_height = T::ZERO;
+    let mut tight_width = T::ZERO;
+    // let mut tight_height = T::ZERO;
+    for i in 0..rects.len() {
+        {
+            x_pos += margin_x;
+            let rect = &rects[i].0;
+
+            if x_pos + rect.width() > width {
+                y_pos += largest_height+margin_y;
+                x_pos = margin_x;
+                largest_height = T::ZERO;
+            }
+
+            let pos_width = x_pos + rect.width();
+
+            if tight_width < pos_width {
+                tight_width = pos_width;
+            }
+
+            if y_pos + rect.height() > height {
+                println!("{} {}", width.to_f64()*GROWTH_FACTOR, height.to_f64()*GROWTH_FACTOR);
+                let info = PackingInfo {
+                    width_hint: T::from_f64(width.to_f64()*GROWTH_FACTOR),
+                    height_hint: T::from_f64(height.to_f64()*GROWTH_FACTOR),
+                    ..info
+                };
+                return pack_rects_rows_payload(rects, info);
+            }
+        }
+
+        rects[i].0 = Rect::from_lengths(rects[i].0.width(), rects[i].0.height())+Vector2::new(x_pos, y_pos);
+
+        x_pos += rects[i].0.width();
+        if rects[i].0.height() > largest_height {
+            largest_height = rects[i].0.height();
+        }
+    }
+    Rect::from_lengths(tight_width+margin_x, y_pos+largest_height+margin_y)
+}
+
+/// Packs the `rects` with a padding and margin according to a given [`PackingInfo`]. This uses a naive packing approach
+/// from [the following blog post](https://www.david-colson.com/2020/03/10/exploring-rect-packing.html). It organizes the
+/// rectangles according to their height, giving a staircase pattern. 
+/// 
+/// # Notes
+/// 
+/// * The `width_hint` and `height_hint` variables inside [`PackingInfo`] are not the final width and height, instead 
+/// it is the [`Rect`] returned by the function.
+/// * This function will order in place
+pub fn pack_rects_rows<T: Number + Ord>(rects: &mut [Rect<T>], info: PackingInfo<T>) -> Rect<T> {
+    let rects: &mut [(Rect<T>, ())] = unsafe { std::slice::from_raw_parts_mut(rects.as_mut() as *mut _ as _, rects.len()) };
+    pack_rects_rows_payload(rects, info)
+}
