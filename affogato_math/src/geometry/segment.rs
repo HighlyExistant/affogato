@@ -77,26 +77,26 @@ impl<T: Number> LinearSegment2D<T> {
         where T: Real {
         let dx = angle.cos()*length;
         let dy = angle.sin()*length;
-        Self { start, end: Vector2::new(start.x+dx, start.y+dy) }
+        Self { start, end: Vector2::new(start.x()+dx, start.y()+dy) }
     }
     pub fn recalculate_endpoint(&self, length: T, angle: T) -> Self
         where T: Real + Debug {
         println!("{:?}", angle);
         let dx = angle.cos()*length;
         let dy = angle.sin()*length;
-        Self { start: self.start, end: Vector2::new(self.start.x+dx, self.start.y+dy) }
+        Self { start: self.start, end: Vector2::new(self.start.x()+dx, self.start.y()+dy) }
     }
     // obtained from https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
     pub fn intersection(&self, other: &Self) -> Option<Vector2<T>> {
         // Line AB represented as a1x + b1y = c1
-        let a1 = self.end.y-self.start.y;
-        let b1 = self.start.x-self.end.x;
-        let c1 = (self.start.x)*a1 + self.start.y*b1;
+        let a1 = self.end.y()-self.start.y();
+        let b1 = self.start.x()-self.end.x();
+        let c1 = (self.start.x())*a1 + self.start.y()*b1;
 
         // Line CD represented as a2x + b2y = c2
-        let a2 = other.end.y-other.start.y;
-        let b2 = other.start.x-other.end.x;
-        let c2 = (other.start.x)*a2 + other.start.y*b2;
+        let a2 = other.end.y()-other.start.y();
+        let b2 = other.start.x()-other.end.x();
+        let c2 = (other.start.x())*a2 + other.start.y()*b2;
 
         let determinant = a1*b2 - a2*b1;
 

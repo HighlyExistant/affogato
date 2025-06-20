@@ -1,3 +1,4 @@
+#![allow(unused)]
 mod sets;
 mod animation;
 mod util;
@@ -12,3 +13,9 @@ pub use sets::*;
 pub use animation::*;
 pub use transformations::*;
 pub use util::*;
+
+// Features
+#[cfg(feature = "godot")]
+mod godot;
+#[cfg(feature = "godot")]
+pub use godot::*;

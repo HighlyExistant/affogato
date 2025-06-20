@@ -46,7 +46,7 @@ pub fn normalize_radians<T: Real>(a: T) -> T {
 }
 impl<T: Real> From<Vector4<T>> for Quaternion<T> {
     fn from(value: Vector4<T>) -> Self {
-        Self { w: value.x, i: value.y, j: value.z, k: value.w }
+        Self { w: value.x(), i: value.y(), j: value.z(), k: value.w() }
     }
 }
 impl<T: Real> Quaternion<T>  {
@@ -54,7 +54,7 @@ impl<T: Real> Quaternion<T>  {
         Self { w, i, j, k }
     }
     pub const fn from_scalar_vector(v: Vector3<T>, s: T) -> Self {
-        Self::new(s, v.x, v.y, v.z)
+        Self::new(s, v.x(), v.y(), v.z())
     }
     pub const fn identity() -> Self {
         Self::from_scalar_vector(Vector3::ZERO, T::ONE)
@@ -65,12 +65,12 @@ impl<T: Real> Quaternion<T>  {
     pub fn from_euler(v: Vector3<T>) -> Self 
         where T: Real, {
         // this function is heavily inspired by [this wikipedia article](https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles)
-        let cy = (v.z*T::from_f64(0.5)).cos();
-        let sy = (v.z*T::from_f64(0.5)).sin();
-        let cr = (v.x*T::from_f64(0.5)).cos();
-        let sr = (v.x*T::from_f64(0.5)).sin();
-        let cp = (v.y*T::from_f64(0.5)).cos();
-        let sp = (v.y*T::from_f64(0.5)).sin();
+        let cy = (v.z()*T::from_f64(0.5)).cos();
+        let sy = (v.z()*T::from_f64(0.5)).sin();
+        let cr = (v.x()*T::from_f64(0.5)).cos();
+        let sr = (v.x()*T::from_f64(0.5)).sin();
+        let cp = (v.y()*T::from_f64(0.5)).cos();
+        let sp = (v.y()*T::from_f64(0.5)).sin();
         Self::new(
             cy * cr * cp + sy * sr * sp,
             cy * sr * cp - sy * cr * sp,
@@ -90,7 +90,12 @@ impl<T: Real> Quaternion<T>  {
         where T: Real, {
         let half_angle = angle * T::from_f64(0.5);
         let (s, c) = half_angle.sin_cos();
-        Self { i: vector.x * s, j: vector.y * s, k: vector.z * s, w: c }
+        Self::new(
+            c,
+            vector.x() * s,
+            vector.y() * s,
+            vector.z() * s
+        )
     }
     pub fn normalize(&self) -> Self {
         let length = self.length();
@@ -227,9 +232,9 @@ impl<T: Real> std::ops::Mul<Vector3<T>> for Quaternion<T> {
         let sx2 = x2 * self.w;
 
         Vector3::new(
-            (T::ONE - (yy2 + zz2)) * rhs.x + (xy2 - sz2) * rhs.y + (xz2 + sy2) * rhs.z,
-            (xy2 + sz2) * rhs.x + (T::ONE - (xx2 + zz2)) * rhs.y + (yz2 - sx2) * rhs.z,
-            (xz2 - sy2) * rhs.x + (yz2 + sx2) * rhs.y + (T::ONE - (xx2 + yy2)) * rhs.z,
+            (T::ONE - (yy2 + zz2)) * rhs.x() + (xy2 - sz2) * rhs.y() + (xz2 + sy2) * rhs.z(),
+            (xy2 + sz2) * rhs.x() + (T::ONE - (xx2 + zz2)) * rhs.y() + (yz2 - sx2) * rhs.z(),
+            (xz2 - sy2) * rhs.x() + (yz2 + sx2) * rhs.y() + (T::ONE - (xx2 + yy2)) * rhs.z(),
         )
     }
     type Output = Vector3<T>;

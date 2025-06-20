@@ -121,7 +121,7 @@ fn furthest_point<T: Real>(direction: Vector3<T>, vertices: &Vec<Vector3<T>>, tr
     let mut max = Vector3::<T>::ZERO;
 
     for vertex in vertices.clone() {
-        let point = Vector3::<T>::from(*transform * Vector4::<T>::new(vertex.x, vertex.y, vertex.z, T::ONE));
+        let point = Vector3::<T>::from(*transform * Vector4::<T>::new(vertex.x(), vertex.y(), vertex.z(), T::ONE));
         let distance = point.dot(&direction);
         if distance > max_distance {
             max_distance = distance;
@@ -254,7 +254,7 @@ fn get_face_normals<T: Real>(polytope: &Vec<Vector3<T>>, faces: &[u32]) -> (Vec<
             distance = distance * -T::from_f64(1.0);
         }
 
-        normals.push(Vector4::<T>::new(normal.x, normal.y, normal.z, distance));
+        normals.push(Vector4::<T>::new(normal.x(), normal.y(), normal.z(), distance));
 
         if distance < min_distance {
             min_triangle = i / 3;
@@ -301,7 +301,7 @@ fn epa<T: Real>(simplex: Simplex<Vector3<T>, 4>, vertices1: &Vec<Vector3<T>>, ve
 
     while min_distance == T::MAX {
         min_normal = normals[min_face].xyz();
-        min_distance = normals[min_face].w;
+        min_distance = normals[min_face].w();
         let support = minkowski_support(min_normal, &vertices1, &vertices2, &transform1, &transform2);
         let distance = min_normal.dot(&support);
 
@@ -347,13 +347,13 @@ fn epa<T: Real>(simplex: Simplex<Vector3<T>, 4>, vertices1: &Vec<Vector3<T>>, ve
 
             let mut old_min_distance = T::MAX;
             for i in 0..normals.len() {
-                if normals[i].w < old_min_distance {
-                    old_min_distance = normals[i].w;
+                if normals[i].w() < old_min_distance {
+                    old_min_distance = normals[i].w();
                     min_face = i;
                 }
             }
             if !new_normals.is_empty() {
-                if new_normals[new_min_face].w < old_min_distance {
+                if new_normals[new_min_face].w() < old_min_distance {
                     min_face = new_min_face + normals.len();
                 }
             }

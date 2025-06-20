@@ -42,7 +42,7 @@ impl<T: Real> Mul for ComplexNumber<T> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let mat = self.matrix()*rhs.matrix();
-        Self::new(mat.x.x, mat.y.x)
+        Self::new(mat.x.x(), mat.y.x())
     }
 }
 impl<T: Real> Div for ComplexNumber<T> 

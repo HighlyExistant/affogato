@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 use affogato_math::{vector::Vector, FromPrimitive, Real, Zero};
 #[derive(Clone, Debug)]
 struct KinematicSegment<V: Vector> 
@@ -22,8 +20,8 @@ pub struct KinematicSegmentList<V: Vector>
     segments: Vec<KinematicSegment<V>>,
     length: V::Scalar,
 }
-impl<V: Vector + Debug> Debug for KinematicSegmentList<V>
-    where V::Scalar: Real + Debug {
+impl<V: Vector + std::fmt::Debug> std::fmt::Debug for KinematicSegmentList<V>
+    where V::Scalar: Real + std::fmt::Debug {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("KinematicSegmentList")
             .field("segments", &self.segments)

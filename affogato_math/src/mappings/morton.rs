@@ -26,7 +26,7 @@ impl Binary for MortonU16 {
 
 impl From<UI8Vec2> for MortonU16{
     fn from(value: UI8Vec2) -> Self {
-        Self::encode_xy(value.x, value.y)
+        Self::encode_xy(value.x(), value.y())
     }
 }
 impl MortonU16 {
@@ -90,7 +90,7 @@ impl MortonU32 {
 }
 impl From<UI16Vec2> for MortonU32 {
     fn from(value: UI16Vec2) -> Self {
-        Self::encode_xy(value.x, value.y)
+        Self::encode_xy(value.x(), value.y())
     }
 }
 #[repr(transparent)]

@@ -71,9 +71,9 @@ impl<T: Real> CalculateCentroid for Triangle3D<T> {
     type VectorType = Vector3<T>;
     fn centroid(&self) -> Vector3<T> {
         Vector3::new(
-            (self.v[0].x + self.v[1].x + self.v[2].x)*T::from_f64(1.0/3.0),
-            (self.v[0].y + self.v[1].y + self.v[2].y)*T::from_f64(1.0/3.0), 
-            (self.v[0].z + self.v[1].z + self.v[2].z)*T::from_f64(1.0/3.0)
+            (self.v[0].x() + self.v[1].x() + self.v[2].x())*T::from_f64(1.0/3.0),
+            (self.v[0].y() + self.v[1].y() + self.v[2].y())*T::from_f64(1.0/3.0), 
+            (self.v[0].z() + self.v[1].z() + self.v[2].z())*T::from_f64(1.0/3.0)
         )
     }
 }
@@ -140,8 +140,8 @@ impl<T: Real> CalculateCentroid for Triangle2D<T> {
     type VectorType = Vector2<T>;
     fn centroid(&self) -> Vector2<T> {
         Vector2::new(
-            (self.v[0].x + self.v[1].x + self.v[2].x)*T::from_f64(1.0/3.0),
-            (self.v[0].y + self.v[1].y + self.v[2].y)*T::from_f64(1.0/3.0), 
+            (self.v[0].x() + self.v[1].x() + self.v[2].x())*T::from_f64(1.0/3.0),
+            (self.v[0].y() + self.v[1].y() + self.v[2].y())*T::from_f64(1.0/3.0), 
         )
     }
 }
@@ -220,9 +220,9 @@ impl<T: Real> CalculateCentroid for Tetrahedron<T> {
     type VectorType = Vector3<T>;
     fn centroid(&self) -> Vector3<T> {
         Vector3::new(
-            (self.v[0].x + self.v[1].x + self.v[2].x + self.v[3].x)*T::from_f64(1.0/4.0),
-            (self.v[0].y + self.v[1].y + self.v[2].y + self.v[3].y)*T::from_f64(1.0/4.0), 
-            (self.v[0].z + self.v[1].z + self.v[2].z + self.v[3].z)*T::from_f64(1.0/4.0), 
+            (self.v[0].x() + self.v[1].x() + self.v[2].x() + self.v[3].x())*T::from_f64(1.0/4.0),
+            (self.v[0].y() + self.v[1].y() + self.v[2].y() + self.v[3].y())*T::from_f64(1.0/4.0), 
+            (self.v[0].z() + self.v[1].z() + self.v[2].z() + self.v[3].z())*T::from_f64(1.0/4.0), 
         )
     }
 }

@@ -23,15 +23,15 @@ impl<T: Real> Translation<Vector4<T>> for Vector4<T> {
 
 impl<T: Real> Translation<Vector2<T>> for Matrix3<T> {
     fn translate(&mut self, translation: Vector2<T>) {
-        self.z.x += translation.x;
-        self.z.y += translation.y;
+        self.z.set_x(self.z.x() + translation.x());
+        self.z.set_y(self.z.y() + translation.y());
     }
 }
 
 impl<T: Real> Translation<Vector3<T>> for Matrix4<T> {
     fn translate(&mut self, translation: Vector3<T>) {
-        self.w.x += translation.x;
-        self.w.y += translation.y;
-        self.w.z += translation.z;
+        self.w.set_w(self.w.x() + translation.x());
+        self.w.set_w(self.w.y() + translation.y());
+        self.w.set_w(self.w.z() + translation.z());
     }
 }

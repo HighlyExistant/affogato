@@ -1,7 +1,6 @@
 use std::{fmt::Display, ops::{Index, IndexMut}};
 
 use bytemuck::{Pod, Zeroable};
-
 use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
 pub trait SquareMatrix: Sized {
     type Column: Vector;
@@ -10,9 +9,9 @@ pub trait SquareMatrix: Sized {
     /// The identity of the matrix is one that when multiplied does nothing to a matrix. 
     /// The components of this matrix look like:
     /// ```no_run, ignore
-    /// ┌1 . . 0┐
-    /// │. .    │
-    /// │.   .  │
+    /// ┌1     0┐
+    /// │  .    │
+    /// │    .  │
     /// └0     1┘
     /// ```
     fn identity() -> Self;
@@ -70,29 +69,30 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
     type LowerDimension = T;
     fn identity() -> Self {
         Self { 
-            x: Vector2 { 
-                x: T::ONE, 
-                y: T::ZERO }, 
-            y: Vector2 { 
-                x: T::ZERO, 
-                y: T::ONE 
-            } 
+            x: Vector2::new( 
+                T::ONE, 
+                T::ZERO 
+            ), 
+            y: Vector2::new( 
+                T::ZERO, 
+                T::ONE 
+            )
         }
     }
     fn transpose(&self) -> Self {
         Self { 
-            x: Vector2 { 
-                x: self.x.x, 
-                y: self.y.x 
-            }, 
-            y: Vector2 { 
-                x: self.x.y, 
-                y: self.y.y
-            } 
+            x: Vector2::new(
+                self.x.x(), 
+                self.y.x() 
+            ), 
+            y: Vector2::new(
+                self.x.y(), 
+                self.y.y()
+            )
         }
     }
     fn determinant(&self) -> <Self::Column as Vector>::Scalar {
-        self.x.x*self.y.y-self.x.y*self.y.x
+        self.x.x()*self.y.y()-self.x.y()*self.y.x()
     }
     fn cofactor(&self, column: usize, row: usize) -> T {
         let x = if column == 0 { 1 } else { 0 };
@@ -101,12 +101,12 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
     }
     fn cofactor_matrix(&self) -> Self {
         Self::new(
-            self.y.y, self.y.x, 
-            self.x.y, self.x.x
+            self.y.y(), self.y.x(), 
+            self.x.y(), self.x.x()
         )
     }
     fn diagonal(diagonal: Self::Column) -> Self {
-        Self::new(diagonal.x, T::ZERO, T::ZERO, diagonal.y)
+        Self::new(diagonal.x(), T::ZERO, T::ZERO, diagonal.y())
     }
 }
 impl<T: Number> Zero for Matrix2<T> {
@@ -120,13 +120,22 @@ impl<T: Number> Matrix2<T>  {
         Self::new(T::ZERO, T::ZERO, T::ZERO, T::ZERO)
     }
     pub const fn new(xx: T, xy: T, yx: T, yy: T) -> Self {
-        Self { x: Vector2 { x: xx, y: xy }, y: Vector2 { x: yx, y: yy } }
+        Self { 
+            x: Vector2::new(xx, xy), 
+            y: Vector2::new(yx, yy) 
+        }
     }
     pub fn from_vec(x: Vector2<T>, y: Vector2<T>) -> Self {
         Self { x, y }
     }
     pub fn from_scale(scale: Vector2<T>) -> Self {
-        Self::new(T::ONE*scale.x, T::ZERO, T::ZERO, T::ONE*scale.y)
+        Self::new(T::ONE*scale.x(), T::ZERO, T::ZERO, T::ONE*scale.y())
+    }
+    pub const fn x(&self) -> Vector2<T> {
+        self.x
+    }
+    pub const fn y(&self) -> Vector2<T> {
+        self.y
     }
 }
 
@@ -141,27 +150,27 @@ impl<T: Real> Matrix2<T> {
 
 impl<T: Number> std::ops::Add for Matrix2<T>  {
     fn add(self, rhs: Self) -> Self::Output {
-        Self { x: (self.x + rhs.x), y: (self.y + rhs.y) }
+        Self { x: (self.x + rhs.x()), y: (self.y + rhs.y()) }
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Sub for Matrix2<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
-        Self { x: (self.x - rhs.x), y: (self.y - rhs.y) }
+        Self { x: (self.x - rhs.x()), y: (self.y - rhs.y()) }
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Mul for Matrix2<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self { 
-            x: Vector2 { 
-                x: self.x.x * rhs.x.x + self.y.x * rhs.x.y, 
-                y: self.x.y * rhs.x.x + self.y.y * rhs.x.y 
-            }, 
-            y: Vector2 { 
-                x: self.x.x * rhs.y.x + self.y.x * rhs.y.y, 
-                y: self.x.y * rhs.y.x + self.y.y * rhs.y.y 
-            } 
+            x: Vector2::new(
+                self.x.x() * rhs.x().x() + self.y.x() * rhs.x().y(), 
+                self.x.y() * rhs.x().x() + self.y.y() * rhs.x().y() 
+            ), 
+            y: Vector2::new( 
+                self.x.x() * rhs.y().x() + self.y.x() * rhs.y().y(), 
+                self.x.y() * rhs.y().x() + self.y.y() * rhs.y().y() 
+            )
         }
     }
     type Output = Self;
@@ -173,10 +182,10 @@ impl<T: Number> std::ops::Mul<Vector2<T>> for Matrix2<T>  {
     /// as a 2x2 matrix * 2x1 matrix since it is impossible to multiply
     /// a 2x1 matrix * 2x2 matrix since matrix multiplication is not commutative.
     fn mul(self, rhs: Vector2<T>) -> Self::Output {
-        Vector2::<T> {
-            x: self.x.x * rhs.x + self.y.x * rhs.y,
-            y: self.x.y * rhs.x + self.y.y * rhs.y
-        }
+        Vector2::<T>::new(
+            self.x.x() * rhs.x() + self.y.x() * rhs.y(),
+            self.x.y() * rhs.x() + self.y.y() * rhs.y()
+        )
     }
     type Output = Vector2<T>;
 }
@@ -251,6 +260,15 @@ impl<T: Number> Matrix3<T>  {
     pub const fn new(xx: T, xy: T, xz: T, yx: T, yy: T, yz: T, zx: T, zy: T, zz: T) -> Self {
         Self::from_vec(Vector3::new(xx,xy,xz), Vector3::new(yx, yy, yz), Vector3::new(zx, zy, zz))
     }
+    pub const fn x(&self) -> Vector3<T> {
+        self.x
+    }
+    pub const fn y(&self) -> Vector3<T> {
+        self.y
+    }
+    pub const fn z(&self) -> Vector3<T> {
+        self.z
+    }
 
     #[cfg(not(feature="glsl"))]
     pub const fn from_vec(x: Vector3<T>, y: Vector3<T>, z: Vector3<T>) -> Self {
@@ -262,44 +280,44 @@ impl<T: Number> Matrix3<T>  {
         Self { x, y, z }
     }
     pub fn translate(mut self, translate: Vector3<T>) -> Self {
-        self.x.z = translate.x;
-        self.y.z = translate.y;
-        self.z.z = translate.z;
+        self.x.set_z(translate.x());
+        self.y.set_z(translate.y());
+        self.z.set_z(translate.z());
         self
     }
     pub fn from_scale(v: Vector3<T>) -> Self {
         Matrix3::new(
-            v.x, T::ZERO, T::ZERO, 
-            T::ZERO, v.y, T::ZERO, 
-            T::ZERO, T::ZERO, v.z
+            v.x(), T::ZERO, T::ZERO, 
+            T::ZERO, v.y(), T::ZERO, 
+            T::ZERO, T::ZERO, v.z()
         )
     }
     pub fn from_translation(v: Vector3<T>) -> Self {
         Matrix3::new(
             T::ONE, T::ZERO, T::ZERO, 
             T::ZERO, T::ONE, T::ZERO, 
-            v.x, v.y, v.z
+            v.x(), v.y(), v.z()
         )
     }
 }
 impl<T: Real> Matrix3<T>  {
     pub fn from_transform(translation: Vector2<T>, scaling: Vector2<T>, rotation: T) -> Self {
         Matrix3::new(
-            rotation.cos()*scaling.x, -(rotation.sin()), T::ZERO, 
-            rotation.sin(), rotation.cos()*scaling.y, T::ZERO, 
-            translation.x, translation.y, T::ONE
+            rotation.cos()*scaling.x(), -(rotation.sin()), T::ZERO, 
+            rotation.sin(), rotation.cos()*scaling.y(), T::ZERO, 
+            translation.x(), translation.y(), T::ONE
         )
     }
 }
 impl<T: Number> std::ops::Add for Matrix3<T>  {
     fn add(self, rhs: Self) -> Self::Output {
-        Self::from_vec(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+        Self::from_vec(self.x + rhs.x(), self.y + rhs.y(), self.z + rhs.z())
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Sub for Matrix3<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::from_vec(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+        Self::from_vec(self.x - rhs.x(), self.y - rhs.y(), self.z - rhs.z())
     }
     type Output = Self;
 }
@@ -307,19 +325,19 @@ impl<T: Number> std::ops::Mul for Matrix3<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self::from_vec(
             Vector3::new( 
-                rhs.x.x * self.x.x + rhs.x.y * self.y.x + rhs.x.z * self.z.x,
-                rhs.x.x * self.x.y + rhs.x.y * self.y.y + rhs.x.z * self.z.y,
-                rhs.x.x * self.x.z + rhs.x.y * self.y.z + rhs.x.z * self.z.z,
+                rhs.x().x() * self.x.x() + rhs.x().y() * self.y.x() + rhs.x().z() * self.z.x(),
+                rhs.x().x() * self.x.y() + rhs.x().y() * self.y.y() + rhs.x().z() * self.z.y(),
+                rhs.x().x() * self.x.z() + rhs.x().y() * self.y.z() + rhs.x().z() * self.z.z(),
             ), 
             Vector3::new( 
-                rhs.y.x * self.x.x + rhs.y.y * self.y.x + rhs.y.z * self.z.x,
-                rhs.y.x * self.x.y + rhs.y.y * self.y.y + rhs.y.z * self.z.y,
-                rhs.y.x * self.x.z + rhs.y.y * self.y.z + rhs.y.z * self.z.z,
+                rhs.y().x() * self.x.x() + rhs.y().y() * self.y.x() + rhs.y().z() * self.z.x(),
+                rhs.y().x() * self.x.y() + rhs.y().y() * self.y.y() + rhs.y().z() * self.z.y(),
+                rhs.y().x() * self.x.z() + rhs.y().y() * self.y.z() + rhs.y().z() * self.z.z(),
             ),
             Vector3::new(
-                rhs.z.x * self.x.x + rhs.z.y * self.y.x + rhs.z.z * self.z.x,
-                rhs.z.x * self.x.y + rhs.z.y * self.y.y + rhs.z.z * self.z.y,
-                rhs.z.x * self.x.z + rhs.z.y * self.y.z + rhs.z.z * self.z.z,
+                rhs.z().x() * self.x.x() + rhs.z().y() * self.y.x() + rhs.z().z() * self.z.x(),
+                rhs.z().x() * self.x.y() + rhs.z().y() * self.y.y() + rhs.z().z() * self.z.y(),
+                rhs.z().x() * self.x.z() + rhs.z().y() * self.y.z() + rhs.z().z() * self.z.z(),
             )
         )
     }
@@ -333,9 +351,9 @@ impl<T: Number> std::ops::Mul<Vector3<T>> for Matrix3<T>  {
     /// a 3x1 matrix * 3x3 matrix since matrix multiplication is not commutative.
     fn mul(self, rhs: Vector3<T>) -> Self::Output {
         Vector3::new(
-           self.x.x * rhs.x + self.y.x * rhs.y + self.z.x * rhs.z,
-           self.x.y * rhs.x + self.y.y * rhs.y + self.z.y * rhs.z,
-           self.x.z * rhs.x + self.y.z * rhs.y + self.z.z * rhs.z
+           self.x.x() * rhs.x() + self.y.x() * rhs.y() + self.z.x() * rhs.z(),
+           self.x.y() * rhs.x() + self.y.y() * rhs.y() + self.z.y() * rhs.z(),
+           self.x.z() * rhs.x() + self.y.z() * rhs.y() + self.z.z() * rhs.z()
         )
     }
     type Output = Vector3<T>;
@@ -352,8 +370,8 @@ impl<T: Number> From<T> for Matrix3<T> {
 impl<T: Number> From<Matrix2<T>> for Matrix3<T> {
     fn from(value: Matrix2<T>) -> Self {
         Self::new(
-            value.x.x, value.x.y, T::ZERO, 
-            value.y.x, value.y.y, T::ZERO, 
+            value.x().x(), value.x().y(), T::ZERO, 
+            value.y().x(), value.y().y(), T::ZERO, 
             T::ZERO, T::ZERO, T::ONE, 
         )
     }
@@ -383,36 +401,36 @@ impl<T: Number> SquareMatrix for Matrix3<T> {
     fn transpose(&self) -> Self {
         Self::from_vec(
             Vector3::new( 
-                self.x.x, 
-                self.y.x, 
-                self.z.x
+                self.x.x(), 
+                self.y.x(), 
+                self.z.x()
             ), 
             Vector3::new( 
-                self.x.y,
-                self.y.y,
-                self.z.y
+                self.x.y(),
+                self.y.y(),
+                self.z.y()
             ), 
             Vector3::new( 
-                self.x.z, 
-                self.y.z, 
-                self.z.z
+                self.x.z(), 
+                self.y.z(), 
+                self.z.z()
             ) 
         )
     }
     fn determinant(&self) -> <Self::Column as Vector>::Scalar {
         let m1 = Matrix2::from_vec(
-            Vector2::new(self.y.y, self.y.z), 
-            Vector2::new(self.z.y, self.z.z));
+            Vector2::new(self.y.y(), self.y.z()), 
+            Vector2::new(self.z.y(), self.z.z()));
         let m2 = Matrix2::from_vec(
-            Vector2::new(self.x.y, self.x.z), 
-            Vector2::new(self.z.y, self.z.z));
+            Vector2::new(self.x.y(), self.x.z()), 
+            Vector2::new(self.z.y(), self.z.z()));
         let m3 = Matrix2::from_vec(
-            Vector2::new(self.x.y, self.x.z), 
-            Vector2::new(self.y.y, self.y.z));
+            Vector2::new(self.x.y(), self.x.z()), 
+            Vector2::new(self.y.y(), self.y.z()));
         
-        let m1_det = m1.determinant()*self.x.x;
-        let m2_det = m2.determinant()*self.y.x;
-        let m3_det = m3.determinant()*self.z.x;
+        let m1_det = m1.determinant()*self.x.x();
+        let m2_det = m2.determinant()*self.y.x();
+        let m3_det = m3.determinant()*self.z.x();
         
         let det = m1_det - m2_det + m3_det;
         det
@@ -445,7 +463,7 @@ impl<T: Number> SquareMatrix for Matrix3<T> {
         )
     }
     fn diagonal(diagonal: Self::Column) -> Self {
-        Self::new(diagonal.x, T::ZERO, T::ZERO, T::ZERO, diagonal.y, T::ZERO, T::ZERO, T::ZERO, diagonal.z)
+        Self::new(diagonal.x(), T::ZERO, T::ZERO, T::ZERO, diagonal.y(), T::ZERO, T::ZERO, T::ZERO, diagonal.z())
     }
 }
 impl<T: Number> std::ops::Mul<T> for Matrix3<T>  {
@@ -499,38 +517,51 @@ impl<T: Number> Matrix4<T>  {
     pub fn from_vec(x: Vector4<T>, y: Vector4<T>, z: Vector4<T>, w: Vector4<T>) -> Self {
         Self { x, y, z, w }
     }
+    pub const fn x(&self) -> Vector4<T> {
+        self.x
+    }
+    pub const fn y(&self) -> Vector4<T> {
+        self.y
+    }
+    pub const fn z(&self) -> Vector4<T> {
+        self.z
+    }
+    pub const fn w(&self) -> Vector4<T> {
+        self.w
+    }
     pub fn from_translation(v: Vector3<T>) -> Self {
         Matrix4::new(
             T::ONE, T::ZERO, T::ZERO, T::ZERO,
             T::ZERO, T::ONE, T::ZERO, T::ZERO,
             T::ZERO, T::ZERO, T::ONE, T::ZERO,
-            v.x, v.y, v.z, T::ONE,
+            v.x(), v.y(), v.z(), T::ONE,
         )
     }
     pub fn from_scale(v: Vector3<T>) -> Self {
         Matrix4::new(
-            v.x, T::ZERO, T::ZERO, T::ZERO,
-            T::ZERO, v.y, T::ZERO, T::ZERO,
-            T::ZERO, T::ZERO, v.z, T::ZERO,
+            v.x(), T::ZERO, T::ZERO, T::ZERO,
+            T::ZERO, v.y(), T::ZERO, T::ZERO,
+            T::ZERO, T::ZERO, v.z(), T::ZERO,
             T::ZERO, T::ZERO, T::ZERO, T::ONE,
         )
     }
     pub fn scale(&self, v: Vector3<T>) -> Self {
         let mut this = self.clone();
-        this.x *= v.x;
-        this.y *= v.y;
-        this.z *= v.z;
+        this.x *= v.x();
+        this.y *= v.y();
+        this.z *= v.z();
         this
     }
     pub fn translate(&self, v: Vector3<T>) -> Self {
         Self { x: self.x, y: self.y, z: self.z, w: self.w + Vector4::<T>::from(v) }
     }
     pub fn from_transform(pos: Vector3<T>, rot: Quaternion<T>, scale: Vector3<T>) -> Self 
-        where T: Real {
+        where T: Real + Display{
         let mut mat = Matrix4::from(Matrix3::from(rot)).scale(scale);
-        mat.w.x = pos.x;
-        mat.w.y = pos.y;
-        mat.w.z = pos.z;
+        mat.w.set_x(pos.x());
+        mat.w.set_y(pos.y());
+        mat.w.set_z(pos.z());
+        println!("{}", mat);
         mat
     }
 }
@@ -540,81 +571,81 @@ impl<T: Number> SquareMatrix for Matrix4<T> {
     type LowerDimension = Matrix3<T>;
     fn identity() -> Self {
         Self { 
-            x: Vector4 { 
-                x: T::ONE,  
-                y: T::ZERO, 
-                z: T::ZERO, 
-                w: T::ZERO 
-            }, 
-            y: Vector4 { 
-                x: T::ZERO, 
-                y: T::ONE, 
-                z: T::ZERO, 
-                w: T::ZERO 
-            }, 
-            z: Vector4 { 
-                x: T::ZERO, 
-                y: T::ZERO, 
-                z: T::ONE, 
-                w: T::ZERO 
-            }, 
-            w: Vector4 { 
-                x: T::ZERO, 
-                y: T::ZERO, 
-                z: T::ZERO, 
-                w: T::ONE 
-            } 
+            x: Vector4::new( 
+                T::ONE,  
+                T::ZERO, 
+                T::ZERO, 
+                T::ZERO 
+            ), 
+            y: Vector4::new(
+                T::ZERO, 
+                T::ONE, 
+                T::ZERO, 
+                T::ZERO 
+            ), 
+            z: Vector4::new( 
+                T::ZERO, 
+                T::ZERO, 
+                T::ONE, 
+                T::ZERO 
+            ), 
+            w: Vector4::new( 
+                T::ZERO, 
+                T::ZERO, 
+                T::ZERO, 
+                T::ONE 
+            )
         }
     }
     fn transpose(&self) -> Self {
         Self { 
-            x: Vector4 { 
-                x: self.x.x, 
-                y: self.y.x, 
-                z: self.z.x, 
-                w: self.w.x,
-            }, 
-            y: Vector4 { 
-                x: self.x.y, 
-                y: self.y.y, 
-                z: self.z.y, 
-                w: self.w.y, 
-            }, 
-            z: Vector4 { 
-                x: self.x.z, 
-                y: self.y.z, 
-                z: self.z.z, 
-                w: self.w.z, 
-            }, 
-            w: Vector4 { 
-                x: self.x.w, 
-                y: self.y.w, 
-                z: self.z.w, 
-                w: self.w.w, 
-            } 
+            x: Vector4::new(
+                self.x.x(), 
+                self.y.x(), 
+                self.z.x(), 
+                self.w.x(),
+            ), 
+            y: Vector4::new( 
+                self.x.y(), 
+                self.y.y(), 
+                self.z.y(), 
+                self.w.y(), 
+            ), 
+            z: Vector4::new( 
+                self.x.z(), 
+                self.y.z(), 
+                self.z.z(), 
+                self.w.z(), 
+            ), 
+            w: Vector4::new( 
+                self.x.w(), 
+                self.y.w(), 
+                self.z.w(), 
+                self.w.w(), 
+            )
         }
     }
     fn determinant(&self) -> <Self::Column as Vector>::Scalar {
         let m1 = Matrix3::new(
-            self.y.y, self.y.z, self.y.w, 
-            self.z.y, self.z.z, self.z.w, 
-            self.w.y, self.w.z, self.w.w);
+            self.y.y(), self.y.z(), self.y.w(), 
+            self.z.y(), self.z.z(), self.z.w(), 
+            self.w.y(), self.w.z(), self.w.w());
         let m2 = Matrix3::new(
-            self.x.y, self.x.z, self.x.w, 
-            self.z.y, self.z.z, self.z.w, 
-            self.w.y, self.w.z, self.w.w);
+            self.x.y(), self.x.z(), self.x.w(), 
+            self.z.y(), self.z.z(), self.z.w(), 
+            self.w.y(), self.w.z(), self.w.w());
         let m3 = Matrix3::new(
-            self.x.y, self.x.z, self.x.w, 
-            self.y.y, self.y.z, self.y.w, 
-            self.w.y, self.w.z, self.w.w);
+            self.x.y(), self.x.z(), self.x.w(), 
+            self.y.y(), self.y.z(), self.y.w(), 
+            self.w.y(), self.w.z(), self.w.w());
         let m4 = Matrix3::new(
-            self.x.y, self.x.z, self.x.w, 
-            self.y.y, self.y.z, self.y.w, 
-            self.z.y, self.z.z, self.z.w);
-        m1.determinant()*self.x.x -
-        m2.determinant()*self.y.x +
-        m3.determinant()*self.z.x -
-        m4.determinant()*self.w.x
+            self.x.y(), self.x.z(), self.x.w(), 
+            self.y.y(), self.y.z(), self.y.w(), 
+            self.z.y(), self.z.z(), self.z.w());
+        m1.determinant()*self.x.x() -
+        m2.determinant()*self.y.x() +
+        m3.determinant()*self.z.x() -
+        m4.determinant()*self.w.x()
     }
     fn cofactor(&self, column: usize, row: usize) -> Matrix3<T> {
         let mut mat3 = Matrix3::empty();
@@ -661,10 +692,10 @@ impl<T: Number> SquareMatrix for Matrix4<T> {
                 -xw, yw, -zw, ww)
     }
     fn diagonal(diagonal: Self::Column) -> Self {
-        Self::new(diagonal.x, T::ZERO, T::ZERO, T::ZERO, 
-            T::ZERO, diagonal.y, T::ZERO, T::ZERO, 
-            T::ZERO, T::ZERO, diagonal.z, T::ZERO, 
-            T::ZERO, T::ZERO, T::ZERO, diagonal.w)
+        Self::new(diagonal.x(), T::ZERO, T::ZERO, T::ZERO, 
+            T::ZERO, diagonal.y(), T::ZERO, T::ZERO, 
+            T::ZERO, T::ZERO, diagonal.z(), T::ZERO, 
+            T::ZERO, T::ZERO, T::ZERO, diagonal.w())
     }
 }
 impl<T: Number> From<T> for Matrix4<T> {
@@ -677,43 +708,43 @@ impl<T: Number> From<T> for Matrix4<T> {
 }
 impl<T: Number> std::ops::Add for Matrix4<T>  {
     fn add(self, rhs: Self) -> Self::Output {
-        Self { x: (self.x + rhs.x), y: (self.y + rhs.y), z: (self.z + rhs.z), w: (self.w + rhs.w) }
+        Self { x: (self.x + rhs.x()), y: (self.y + rhs.y()), z: (self.z + rhs.z()), w: (self.w + rhs.w()) }
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Sub for Matrix4<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
-        Self { x: (self.x - rhs.x), y: (self.y - rhs.y), z: (self.z - rhs.z), w: (self.w - rhs.w) }
+        Self { x: (self.x - rhs.x()), y: (self.y - rhs.y()), z: (self.z - rhs.z()), w: (self.w - rhs.w()) }
     }
     type Output = Self;
 }
 impl<T: Number> std::ops::Mul for Matrix4<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self { 
-            x: Vector4 { 
-                x: rhs.x.x * self.x.x + rhs.x.y * self.y.x + rhs.x.z * self.z.x + rhs.x.w * self.w.x,
-                y: rhs.x.x * self.x.y + rhs.x.y * self.y.y + rhs.x.z * self.z.y + rhs.x.w * self.w.y,
-                z: rhs.x.x * self.x.z + rhs.x.y * self.y.z + rhs.x.z * self.z.z + rhs.x.w * self.w.z,
-                w: rhs.x.x * self.x.w + rhs.x.y * self.y.w + rhs.x.z * self.z.w + rhs.x.w * self.w.w 
-            }, 
-            y: Vector4 { 
-                x: rhs.y.x * self.x.x + rhs.y.y * self.y.x + rhs.y.z * self.z.x + rhs.y.w * self.w.x,
-                y: rhs.y.x * self.x.y + rhs.y.y * self.y.y + rhs.y.z * self.z.y + rhs.y.w * self.w.y,
-                z: rhs.y.x * self.x.z + rhs.y.y * self.y.z + rhs.y.z * self.z.z + rhs.y.w * self.w.z,
-                w: rhs.y.x * self.x.w + rhs.y.y * self.y.w + rhs.y.z * self.z.w + rhs.y.w * self.w.w 
-            },
-            z: Vector4 { 
-                x: rhs.z.x * self.x.x + rhs.z.y * self.y.x + rhs.z.z * self.z.x + rhs.z.w * self.w.x,
-                y: rhs.z.x * self.x.y + rhs.z.y * self.y.y + rhs.z.z * self.z.y + rhs.z.w * self.w.y,
-                z: rhs.z.x * self.x.z + rhs.z.y * self.y.z + rhs.z.z * self.z.z + rhs.z.w * self.w.z,
-                w: rhs.z.x * self.x.w + rhs.z.y * self.y.w + rhs.z.z * self.z.w + rhs.z.w * self.w.w 
-            },
-            w: Vector4 { 
-                x: rhs.w.x * self.x.x + rhs.w.y * self.y.x + rhs.w.z * self.z.x + rhs.w.w * self.w.x, 
-                y: rhs.w.x * self.x.y + rhs.w.y * self.y.y + rhs.w.z * self.z.y + rhs.w.w * self.w.y, 
-                z: rhs.w.x * self.x.z + rhs.w.y * self.y.z + rhs.w.z * self.z.z + rhs.w.w * self.w.z, 
-                w: rhs.w.x * self.x.w + rhs.w.y * self.y.w + rhs.w.z * self.z.w + rhs.w.w * self.w.w 
-            }
+            x: Vector4::new(
+                rhs.x().x() * self.x.x() + rhs.x().y() * self.y.x() + rhs.x().z() * self.z.x() + rhs.x().w() * self.w.x(),
+                rhs.x().x() * self.x.y() + rhs.x().y() * self.y.y() + rhs.x().z() * self.z.y() + rhs.x().w() * self.w.y(),
+                rhs.x().x() * self.x.z() + rhs.x().y() * self.y.z() + rhs.x().z() * self.z.z() + rhs.x().w() * self.w.z(),
+                rhs.x().x() * self.x.w() + rhs.x().y() * self.y.w() + rhs.x().z() * self.z.w() + rhs.x().w() * self.w.w() 
+            ), 
+            y: Vector4::new(
+                rhs.y().x() * self.x.x() + rhs.y().y() * self.y.x() + rhs.y().z() * self.z.x() + rhs.y().w() * self.w.x(),
+                rhs.y().x() * self.x.y() + rhs.y().y() * self.y.y() + rhs.y().z() * self.z.y() + rhs.y().w() * self.w.y(),
+                rhs.y().x() * self.x.z() + rhs.y().y() * self.y.z() + rhs.y().z() * self.z.z() + rhs.y().w() * self.w.z(),
+                rhs.y().x() * self.x.w() + rhs.y().y() * self.y.w() + rhs.y().z() * self.z.w() + rhs.y().w() * self.w.w() 
+            ),
+            z: Vector4::new( 
+                rhs.z().x() * self.x.x() + rhs.z().y() * self.y.x() + rhs.z().z() * self.z.x() + rhs.z().w() * self.w.x(),
+                rhs.z().x() * self.x.y() + rhs.z().y() * self.y.y() + rhs.z().z() * self.z.y() + rhs.z().w() * self.w.y(),
+                rhs.z().x() * self.x.z() + rhs.z().y() * self.y.z() + rhs.z().z() * self.z.z() + rhs.z().w() * self.w.z(),
+                rhs.z().x() * self.x.w() + rhs.z().y() * self.y.w() + rhs.z().z() * self.z.w() + rhs.z().w() * self.w.w() 
+            ),
+            w: Vector4::new( 
+                rhs.w().x() * self.x.x() + rhs.w().y() * self.y.x() + rhs.w().z() * self.z.x() + rhs.w().w() * self.w.x(), 
+                rhs.w().x() * self.x.y() + rhs.w().y() * self.y.y() + rhs.w().z() * self.z.y() + rhs.w().w() * self.w.y(), 
+                rhs.w().x() * self.x.z() + rhs.w().y() * self.y.z() + rhs.w().z() * self.z.z() + rhs.w().w() * self.w.z(), 
+                rhs.w().x() * self.x.w() + rhs.w().y() * self.y.w() + rhs.w().z() * self.z.w() + rhs.w().w() * self.w.w() 
+            )
         }
     }
     type Output = Self;
@@ -732,12 +763,12 @@ impl<T: Number> std::ops::Mul<Vector4<T>> for Matrix4<T>  {
     /// as a 4x4 matrix * 4x1 matrix since it is impossible to multiply
     /// a 4x1 matrix * 4x4 matrix since matrix multiplication is not commutative.
     fn mul(self, rhs: Vector4<T>) -> Self::Output {
-        Vector4::<T> {
-            x: self.x.x * rhs.x + self.y.x * rhs.y + self.z.x * rhs.z + self.w.x * rhs.w,
-            y: self.x.y * rhs.x + self.y.y * rhs.y + self.z.y * rhs.z + self.w.y * rhs.w,
-            z: self.x.z * rhs.x + self.y.z * rhs.y + self.z.z * rhs.z + self.w.z * rhs.w,
-            w: self.x.w * rhs.x + self.y.w * rhs.y + self.z.w * rhs.z + self.w.w * rhs.w
-        }
+        Vector4::<T>::new(
+            self.x.x() * rhs.x() + self.y.x() * rhs.y() + self.z.x() * rhs.z() + self.w.x() * rhs.w(),
+            self.x.y() * rhs.x() + self.y.y() * rhs.y() + self.z.y() * rhs.z() + self.w.y() * rhs.w(),
+            self.x.z() * rhs.x() + self.y.z() * rhs.y() + self.z.z() * rhs.z() + self.w.z() * rhs.w(),
+            self.x.w() * rhs.x() + self.y.w() * rhs.y() + self.z.w() * rhs.z() + self.w.w() * rhs.w()
+        )
     }
     type Output = Vector4<T>;
 }
@@ -745,19 +776,19 @@ impl<T: Number> std::ops::Mul<Vector4<T>> for Matrix4<T>  {
 impl<T: Number> From<Matrix4<T>> for Matrix3<T> {
     fn from(value: Matrix4<T>) -> Self {
         Self::from_vec(
-            Vector3::new(value.x.x, value.x.y, value.x.z), 
-            Vector3::new(value.y.x, value.y.y, value.y.z), 
-            Vector3::new(value.z.x, value.z.y, value.z.z) 
+            Vector3::new(value.x().x(), value.x().y(), value.x().z()), 
+            Vector3::new(value.y().x(), value.y().y(), value.y().z()), 
+            Vector3::new(value.z().x(), value.z().y(), value.z().z()) 
         )
     }
 }
 impl<T: Number> From<Matrix3<T>> for Matrix4<T> {
     fn from(value: Matrix3<T>) -> Self {
         Self { 
-            x: Vector4 { x: value.x.x, y: value.x.y, z: value.x.z, w: T::ZERO }, 
-            y: Vector4 { x: value.y.x, y: value.y.y, z: value.y.z, w: T::ZERO }, 
-            z: Vector4 { x: value.z.x, y: value.z.y, z: value.z.z, w: T::ZERO },
-            w: Vector4 { x: T::ZERO, y: T::ZERO, z: T::ZERO, w: T::ONE },
+            x: Vector4::new(value.x().x(), value.x().y(), value.x().z(), T::ZERO ), 
+            y: Vector4::new(value.y().x(), value.y().y(), value.y().z(), T::ZERO ), 
+            z: Vector4::new(value.z().x(), value.z().y(), value.z().z(), T::ZERO ),
+            w: Vector4::new(T::ZERO, T::ZERO, T::ZERO, T::ONE ),
         }
     }
 }
@@ -774,16 +805,16 @@ impl<T: Number + Display> Display for Matrix2<T> {
         let mut row1 = String::from('┌');
         let mut row2 = String::from('└');
         {
-            let mut str_row1 = format!("{}, ", self.x.x);
-            let mut str_row2 = format!("{}, ", self.x.y);
+            let mut str_row1 = format!("{}, ", self.x.x());
+            let mut str_row2 = format!("{}, ", self.x.y());
             let max = str_row1.len().max(str_row2.len());
             str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
             str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
             row1.push_str(str_row1.as_str());
             row2.push_str(str_row2.as_str());
         }
-        let mut str_row1 = format!("{}", self.y.x);
-        let mut str_row2 = format!("{}", self.y.y);
+        let mut str_row1 = format!("{}", self.y.x());
+        let mut str_row2 = format!("{}", self.y.y());
         let max = str_row1.len().max(str_row2.len());
         str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
         str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
@@ -803,9 +834,9 @@ impl<T: Number + Display> Display for Matrix3<T> {
         let mut row3 = String::from('└');
 
         for i in 0..2 {
-            let mut str_row1 = format!("{}, ", self[i].x);
-            let mut str_row2 = format!("{}, ", self[i].y);
-            let mut str_row3 = format!("{}, ", self[i].z);
+            let mut str_row1 = format!("{}, ", self[i].x());
+            let mut str_row2 = format!("{}, ", self[i].y());
+            let mut str_row3 = format!("{}, ", self[i].z());
             let max = str_row1.len().max(str_row2.len().max(str_row3.len()));
             str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
             str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
@@ -814,9 +845,9 @@ impl<T: Number + Display> Display for Matrix3<T> {
             row2.push_str(str_row2.as_str());
             row3.push_str(str_row3.as_str());
         }
-        let mut str_row1 = format!("{}", self.z.x);
-        let mut str_row2 = format!("{}", self.z.y);
-        let mut str_row3 = format!("{}", self.z.z);
+        let mut str_row1 = format!("{}", self.z.x());
+        let mut str_row2 = format!("{}", self.z.y());
+        let mut str_row3 = format!("{}", self.z.z());
         let max = str_row1.len().max(str_row2.len().max(str_row3.len()));
         str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
         str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
@@ -836,19 +867,19 @@ impl<T: Number + Display> Display for Matrix3<T> {
 
 impl<T: Number + Display> Display for Matrix4<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // let row1 = format!("┌{}, {}, {}, {}\n", self.x.x, self.y.x, self.z.x, self.w.x);
-        // let row2 = format!("│{}, {}, {}, {}\n", self.x.y, self.y.y, self.z.y, self.w.y);
-        // let row3 = format!("│{}, {}, {}, {}\n", self.x.z, self.y.z, self.z.z, self.w.z);
-        // let row4 = format!("└{}, {}, {}, {}\n", self.w.z, self.w.z, self.w.z, self.w.w);
+        // let row1 = format!("┌{}, {}, {}, {}\n", self.x.x(), self.y.x(), self.z.x(), self.w.x());
+        // let row2 = format!("│{}, {}, {}, {}\n", self.x.y(), self.y.y(), self.z.y(), self.w.y());
+        // let row3 = format!("│{}, {}, {}, {}\n", self.x.z(), self.y.z(), self.z.z(), self.w.z());
+        // let row4 = format!("└{}, {}, {}, {}\n", self.w.z(), self.w.z(), self.w.z(), self.w.w());
         let mut row1 = String::from('┌');
         let mut row2 = String::from('│');
         let mut row3 = String::from('│');
         let mut row4 = String::from('└');
         for i in 0..3 {
-            let mut str_row1 = format!("{}, ", self[i].x);
-            let mut str_row2 = format!("{}, ", self[i].y);
-            let mut str_row3 = format!("{}, ", self[i].z);
-            let mut str_row4 = format!("{}, ", self[i].w);
+            let mut str_row1 = format!("{}, ", self[i].x());
+            let mut str_row2 = format!("{}, ", self[i].y());
+            let mut str_row3 = format!("{}, ", self[i].z());
+            let mut str_row4 = format!("{}, ", self[i].w());
             let max = str_row1.len().max(str_row2.len().max(str_row3.len().max(str_row4.len())));
             str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
             str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
@@ -859,10 +890,10 @@ impl<T: Number + Display> Display for Matrix4<T> {
             row3.push_str(str_row3.as_str());
             row4.push_str(str_row4.as_str());
         }
-        let mut str_row1 = format!("{}", self.w.x);
-        let mut str_row2 = format!("{}", self.w.y);
-        let mut str_row3 = format!("{}", self.w.z);
-        let mut str_row4 = format!("{}", self.w.w);
+        let mut str_row1 = format!("{}", self.w.x());
+        let mut str_row2 = format!("{}", self.w.y());
+        let mut str_row3 = format!("{}", self.w.z());
+        let mut str_row4 = format!("{}", self.w.w());
         let max = str_row1.len().max(str_row2.len().max(str_row3.len().max(str_row4.len())));
         str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
         str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
@@ -887,27 +918,27 @@ impl<T: Number + Display> Display for Matrix4<T> {
 impl<T: Number> From<Matrix4<T>> for Vec<T> {
     fn from(value: Matrix4<T>) -> Self {
         vec![
-            value.x.x, value.x.y, value.x.z, value.x.w, 
-            value.y.x, value.y.y, value.y.z, value.y.w, 
-            value.z.x, value.z.y, value.z.z, value.z.w,
-            value.w.x, value.w.y, value.w.z, value.w.w,
+            value.x().x(), value.x().y(), value.x().z(), value.x().w(), 
+            value.y().x(), value.y().y(), value.y().z(), value.y().w(), 
+            value.z().x(), value.z().y(), value.z().z(), value.z().w(),
+            value.w().x(), value.w().y(), value.w().z(), value.w().w(),
         ]
     }
 }
 impl<T: Number> From<Matrix3<T>> for Vec<T> {
     fn from(value: Matrix3<T>) -> Self {
         vec![
-            value.x.x, value.x.y, value.x.z, 
-            value.y.x, value.y.y, value.y.z, 
-            value.z.x, value.z.y, value.z.z,
+            value.x().x(), value.x().y(), value.x().z(), 
+            value.y().x(), value.y().y(), value.y().z(), 
+            value.z().x(), value.z().y(), value.z().z(),
         ]
     }
 }
 impl<T: Number> From<Matrix2<T>> for Vec<T> {
     fn from(value: Matrix2<T>) -> Self {
         vec![
-            value.x.x, value.x.y, 
-            value.y.x, value.y.y, 
+            value.x().x(), value.x().y(), 
+            value.y().x(), value.y().y(), 
         ]
     }
 }

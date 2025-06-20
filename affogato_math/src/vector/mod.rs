@@ -386,8 +386,8 @@ pub trait OuterProduct: Vector {
 #[repr(C)]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector2<T: Number> {
-    pub x: T,
-    pub y: T,
+    x: T,
+    y: T,
 }
 impl<T: Number> Index<usize> for Vector2<T> {
     type Output = T;
@@ -461,6 +461,27 @@ impl<T: Number> Vector2<T> {
         where T: Real {
         Self::new(angle.cos(), angle.sin())
     }
+
+    #[inline(always)]
+    pub fn x(&self) -> T {
+        self.x
+    }
+
+    #[inline(always)]
+    pub const fn y(&self) -> T {
+        self.y
+    }
+
+    #[inline(always)]
+    pub const fn set_x(&mut self, x: T) {
+        self.x = x;
+    }
+
+    #[inline(always)]
+    pub fn set_y(&mut self, y: T) {
+        self.y = y;
+    }
+
     vector_permutations!(Vector2, x, y);
     vector_permutations!(Vector2, y, x);
     #[cfg(feature="rand")]
@@ -504,9 +525,9 @@ impl<T: HasNegatives + Number> HasNegatives for Vector2<T> {
 #[cfg(feature="glsl")]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
-    pub x: T,
-    pub y: T,
-    pub z: T,
+    x: T,
+    y: T,
+    z: T,
     padding: T,
 }
 
@@ -514,9 +535,9 @@ pub struct Vector3<T: Number> {
 #[cfg(not(feature="glsl"))]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
-    pub x: T,
-    pub y: T,
-    pub z: T,
+    x: T,
+    y: T,
+    z: T,
 }
 
 impl<T: Number> Index<usize> for Vector3<T> {
@@ -568,6 +589,37 @@ impl<T: Number> Vector3<T> {
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, T::ZERO, -T::ONE)
     }
+
+    #[inline(always)]
+    pub const fn x(&self) -> T {
+        self.x
+    }
+
+    #[inline(always)]
+    pub const fn y(&self) -> T {
+        self.y
+    }
+
+    #[inline(always)]
+    pub const fn z(&self) -> T {
+        self.z
+    }
+
+    #[inline(always)]
+    pub fn set_x(&mut self, x: T) {
+        self.x = x;
+    }
+
+    #[inline(always)]
+    pub fn set_y(&mut self, y: T) {
+        self.y = y;
+    }
+
+    #[inline(always)]
+    pub fn set_z(&mut self, z: T) {
+        self.z = z;
+    }
+
     vector_permutations!(Vector2, x, y);
     vector_permutations!(Vector2, y, x);
     vector_permutations!(Vector2, x, z);
@@ -636,10 +688,10 @@ impl<T: Number> OuterProduct for Vector3<T> {
 #[repr(C)]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector4<T: Number> {
-    pub x: T,
-    pub y: T,
-    pub z: T,
-    pub w: T,
+    x: T,
+    y: T,
+    z: T,
+    w: T,
 }
 impl<T: Number> Index<usize> for Vector4<T> {
     type Output = T;
@@ -663,6 +715,45 @@ impl<T: Number> Vector4<T> {
         Vector3::new(self.x, self.y, self.z)
     }
 
+    #[inline(always)]
+    pub const fn x(&self) -> T {
+        self.x
+    }
+
+    #[inline(always)]
+    pub const fn y(&self) -> T {
+        self.y
+    }
+
+    #[inline(always)]
+    pub const fn z(&self) -> T {
+        self.z
+    }
+
+    #[inline(always)]
+    pub const fn w(&self) -> T {
+        self.w
+    }
+
+    #[inline(always)]
+    pub fn set_x(&mut self, x: T) {
+        self.x = x;
+    }
+
+    #[inline(always)]
+    pub fn set_y(&mut self, y: T) {
+        self.y = y;
+    }
+
+    #[inline(always)]
+    pub fn set_z(&mut self, z: T) {
+        self.z = z;
+    }
+
+    #[inline(always)]
+    pub fn set_w(&mut self, w: T) {
+        self.w = w;
+    }
     pub fn epsilon_eq(&self, p: Self, epsilon: T) -> bool 
         where T: Real {
         let p = (self.clone()-p).abs();

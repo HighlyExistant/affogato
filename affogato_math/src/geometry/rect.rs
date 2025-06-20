@@ -123,7 +123,7 @@ impl<T: Number> Rect3D<T> {
     }
     pub fn volume(&self) -> T {
         let origin = self.max-self.min;
-        origin.x*origin.y*origin.z
+        origin.x()*origin.y()*origin.z()
     }
     pub fn from_lengths(width: T, height: T, depth: T) -> Self {
         Self::new(Vector3::ZERO, Vector3::new(width, height, depth))
@@ -132,13 +132,13 @@ impl<T: Number> Rect3D<T> {
         Vector3::new(self.width(), self.height(), self.depth())
     }
     pub fn width(&self) -> T {
-        self.max.x - self.min.x
+        self.max.x() - self.min.x()
     }
     pub fn height(&self) -> T {
-        self.max.y - self.min.y
+        self.max.y() - self.min.y()
     }
     pub fn depth(&self) -> T {
-        self.max.z - self.min.z
+        self.max.z() - self.min.z()
     }
     /// merge 2 [`Rect3D`] objects together, so that both can fit within eachother.
     pub fn merge(&self, aabb: &Self) -> Self 
@@ -169,7 +169,7 @@ impl<T: Number> Rect3D<T> {
     pub fn normalize(&self) -> Self 
         where T: Real {
         let rect = Vector3::new(self.width(), self.height(), self.depth()).normalize();
-        Self::from_lengths(rect.x, rect.y, rect.z)
+        Self::from_lengths(rect.x(), rect.y(), rect.z())
     }
     fn fix_bounds(&self) -> Self {
         let mut t = *self;
@@ -211,14 +211,14 @@ impl<T: Number> Rect3D<T> {
     /// ```
     pub fn get_vertices(&self) -> Vec<Vector3<T>> {
         vec![
-            Vector3::new(self.min.x, self.min.y, self.min.z),
-            Vector3::new(self.max.x, self.max.y, self.min.z),
-            Vector3::new(self.max.x, self.min.y, self.min.z),
-            Vector3::new(self.min.x, self.max.y, self.min.z),
-            Vector3::new(self.min.x, self.min.y, self.max.z),
-            Vector3::new(self.max.x, self.max.y, self.max.z),
-            Vector3::new(self.max.x, self.min.y, self.max.z),
-            Vector3::new(self.min.x, self.max.y, self.max.z)
+            Vector3::new(self.min.x(), self.min.y(), self.min.z()),
+            Vector3::new(self.max.x(), self.max.y(), self.min.z()),
+            Vector3::new(self.max.x(), self.min.y(), self.min.z()),
+            Vector3::new(self.min.x(), self.max.y(), self.min.z()),
+            Vector3::new(self.min.x(), self.min.y(), self.max.z()),
+            Vector3::new(self.max.x(), self.max.y(), self.max.z()),
+            Vector3::new(self.max.x(), self.min.y(), self.max.z()),
+            Vector3::new(self.min.x(), self.max.y(), self.max.z())
         ]
     }
     pub fn get_edge_indices(&self) -> Vec<u32> {
@@ -254,20 +254,20 @@ impl<T: Number> Rect3D<T> {
         ]
     }
     pub fn intersect_point(&self, point: &Vector3<T>) -> bool {
-        point.x >= self.min.x  &&
-        point.x <= self.max.x &&
-        point.y >= self.min.y &&
-        point.y <= self.max.y &&
-        point.z >= self.min.z &&
-        point.z <= self.max.z
+        point.x() >= self.min.x()  &&
+        point.x() <= self.max.x() &&
+        point.y() >= self.min.y() &&
+        point.y() <= self.max.y() &&
+        point.z() >= self.min.z() &&
+        point.z() <= self.max.z()
     }
     pub fn intersect(&self, rect: &Self) -> bool {
-        self.min.x <= rect.max.x &&
-        self.max.x >= rect.min.x &&
-        self.min.y <= rect.max.y &&
-        self.max.y >= rect.min.y &&
-        self.min.z <= rect.max.z &&
-        self.max.z >= rect.min.z
+        self.min.x() <= rect.max.x() &&
+        self.max.x() >= rect.min.x() &&
+        self.min.y() <= rect.max.y() &&
+        self.max.y() >= rect.min.y() &&
+        self.min.z() <= rect.max.z() &&
+        self.max.z() >= rect.min.z()
     }
     pub fn center_to_origin(&self) -> Self 
         where T: Real {
@@ -285,9 +285,9 @@ impl<T: Real> CalculateCentroid for Rect3D<T> {
     type VectorType = Vector3<T>;
     fn centroid(&self) -> Vector3<T> {
         Vector3::new(
-            (self.min.x + self.max.x)*T::from_f64(0.5), 
-            (self.min.y + self.max.y)*T::from_f64(0.5), 
-            (self.min.z + self.max.z)*T::from_f64(0.5)
+            (self.min.x() + self.max.x())*T::from_f64(0.5), 
+            (self.min.y() + self.max.y())*T::from_f64(0.5), 
+            (self.min.z() + self.max.z())*T::from_f64(0.5)
         )
     }
 }
@@ -353,7 +353,7 @@ impl<T: Number> Rect<T> {
     }
     pub fn area(&self) -> T {
         let origin = self.max-self.min;
-        origin.x*origin.y
+        origin.x()*origin.y()
     }
     pub fn from_lengths(width: T, height: T) -> Self {
         Self::new(Vector2::ZERO, Vector2::new(width, height))
@@ -362,10 +362,10 @@ impl<T: Number> Rect<T> {
         Vector2::new(self.width(), self.height())
     }
     pub fn width(&self) -> T {
-        self.max.x - self.min.x
+        self.max.x() - self.min.x()
     }
     pub fn height(&self) -> T {
-        self.max.y - self.min.y
+        self.max.y() - self.min.y()
     }
     pub fn merge(&self, aabb: &Self) -> Self {
         let mut t = *self;
@@ -392,7 +392,7 @@ impl<T: Number> Rect<T> {
     pub fn normalize(&self) -> Self 
         where T: Real {
         let rect = Vector2::new(self.width(), self.height()).normalize();
-        Self::from_lengths(rect.x, rect.y)
+        Self::from_lengths(rect.x(), rect.y())
     }
     pub fn to_origin(&self) -> Self 
         where T: Real {
@@ -432,10 +432,10 @@ impl<T: Number> Rect<T> {
     /// ```
     pub fn get_vertices(&self) -> Vec<Vector2<T>> {
         vec![
-            Vector2::new(self.min.x, self.min.y),
-            Vector2::new(self.max.x, self.min.y),
-            Vector2::new(self.max.x, self.max.y),
-            Vector2::new(self.min.x, self.max.y),
+            Vector2::new(self.min.x(), self.min.y()),
+            Vector2::new(self.max.x(), self.min.y()),
+            Vector2::new(self.max.x(), self.max.y()),
+            Vector2::new(self.min.x(), self.max.y()),
         ]
     }
     pub fn get_edge_indices(&self) -> Vec<u32> {
@@ -453,16 +453,16 @@ impl<T: Number> Rect<T> {
         ]
     }
     pub fn intersect_point(&self, point: &Vector2<T>) -> bool {
-        point.x >= self.min.x  &&
-        point.x <= self.max.x &&
-        point.y >= self.min.y &&
-        point.y <= self.max.y
+        point.x() >= self.min.x()  &&
+        point.x() <= self.max.x() &&
+        point.y() >= self.min.y() &&
+        point.y() <= self.max.y()
     }
     pub fn intersect(&self, rect: &Self) -> bool {
-        self.min.x <= rect.max.x &&
-        self.max.x >= rect.min.x &&
-        self.min.y <= rect.max.y &&
-        self.max.y >= rect.min.y
+        self.min.x() <= rect.max.x() &&
+        self.max.x() >= rect.min.x() &&
+        self.min.y() <= rect.max.y() &&
+        self.max.y() >= rect.min.y()
     }
     pub fn center_to_origin(&self) -> Self 
         where T: Real {
@@ -494,8 +494,8 @@ impl<T: Real> CalculateCentroid for Rect<T> {
     type VectorType = Vector2<T>;
     fn centroid(&self) -> Vector2<T> {
         Vector2::new(
-            (self.min.x + self.max.x)*T::from_f64(0.5), 
-            (self.min.y + self.max.y)*T::from_f64(0.5), 
+            (self.min.x() + self.max.x())*T::from_f64(0.5), 
+            (self.min.y() + self.max.y())*T::from_f64(0.5), 
         )
     }
 }
@@ -520,7 +520,7 @@ impl<T: Real> RoundSignedDistance<Vector3<T>> for Rect3D<T> {
         let translated_object = object.clone()-centroid + r;
         let size = self.size().div(T::from_f64(2.0));
         let q = translated_object.abs() - size;
-        q.max(&Vector3::ZERO).length() + q.x.max(q.y).min(T::ZERO) - r
+        q.max(&Vector3::ZERO).length() + q.x().max(q.y()).min(T::ZERO) - r
     }
 }
 
@@ -538,7 +538,7 @@ impl<T: Real> RoundSignedDistance<Vector2<T>> for Rect<T> {
         let translated_object = object.clone()-centroid + r;
         let size = self.size().div(T::from_f64(2.0));
         let q = translated_object.abs() - size;
-        q.max(&Vector2::ZERO).length() + q.x.max(q.y).min(T::ZERO) - r
+        q.max(&Vector2::ZERO).length() + q.x().max(q.y()).min(T::ZERO) - r
     }
 }
 
