@@ -154,7 +154,6 @@ impl CameraProjection for OrthographicCameraProjection {
     }
 }
 
-
 pub struct IsometricCameraProjection {
     rotate_x_axis: u8,
     rotate_y_axis: u8,

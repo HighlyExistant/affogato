@@ -12,7 +12,7 @@ macro_rules! impl_ops {
                 Self::new($(self.$element + rhs.$element),+)
             }
             type Output = Self;
-        }
+        } 
         impl<T: Number> std::ops::Rem for $vector<T>  {
             fn rem(self, rhs: Self) -> Self::Output {
                 Self::new($(self.$element % rhs.$element),+)

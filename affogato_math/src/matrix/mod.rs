@@ -45,10 +45,11 @@ pub trait SquareMatrix: Sized {
             Some(self.cofactor_matrix().transpose()*(<Self::Column as Vector>::Scalar::ONE/self.determinant()))
         }
     }
+    /// Returns a matrix where the diagonal of the matrix is given by a vector.
     fn diagonal(diagonal: Self::Column) -> Self;
 }
 
-/// column major matrix
+/// column major 2x2 matrix
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix2<T: Number> {
@@ -72,28 +73,28 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
     type Column = Vector2<T>;
     type LowerDimension = T;
     fn identity() -> Self {
-        Self { 
-            x: Vector2::new( 
+        Self::from_vec(
+            Vector2::new( 
                 T::ONE, 
                 T::ZERO 
             ), 
-            y: Vector2::new( 
+            Vector2::new( 
                 T::ZERO, 
                 T::ONE 
             )
-        }
+        )
     }
     fn transpose(&self) -> Self {
-        Self { 
-            x: Vector2::new(
+        Self::from_vec(
+            Vector2::new(
                 self.x.x(), 
                 self.y.x() 
             ), 
-            y: Vector2::new(
+            Vector2::new(
                 self.x.y(), 
                 self.y.y()
             )
-        }
+        )
     }
     fn determinant(&self) -> <Self::Column as Vector>::Scalar {
         self.x.x()*self.y.y()-self.x.y()*self.y.x()
@@ -125,20 +126,22 @@ impl<T: Number> Matrix2<T>  {
         Self::new(T::ZERO, T::ZERO, T::ZERO, T::ZERO)
     }
     pub const fn new(xx: T, xy: T, yx: T, yy: T) -> Self {
-        Self { 
-            x: Vector2::new(xx, xy), 
-            y: Vector2::new(yx, yy) 
-        }
+        Self::from_vec(
+            Vector2::new(xx, xy), 
+            Vector2::new(yx, yy) 
+        )
     }
-    pub fn from_vec(x: Vector2<T>, y: Vector2<T>) -> Self {
+    pub const fn from_vec(x: Vector2<T>, y: Vector2<T>) -> Self {
         Self { x, y }
     }
     pub fn from_scale(scale: Vector2<T>) -> Self {
         Self::new(T::ONE*scale.x(), T::ZERO, T::ZERO, T::ONE*scale.y())
     }
+    #[inline(always)]
     pub const fn x(&self) -> Vector2<T> {
         self.x
     }
+    #[inline(always)]
     pub const fn y(&self) -> Vector2<T> {
         self.y
     }
@@ -176,16 +179,16 @@ impl<T: Number> std::ops::Sub for Matrix2<T>  {
 }
 impl<T: Number> std::ops::Mul for Matrix2<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
-        Self { 
-            x: Vector2::new(
+        Self::from_vec(
+            Vector2::new(
                 self.x.x() * rhs.x().x() + self.y.x() * rhs.x().y(), 
                 self.x.y() * rhs.x().x() + self.y.y() * rhs.x().y() 
             ), 
-            y: Vector2::new( 
+            Vector2::new( 
                 self.x.x() * rhs.y().x() + self.y.x() * rhs.y().y(), 
                 self.x.y() * rhs.y().x() + self.y.y() * rhs.y().y() 
             )
-        }
+        )
     }
     type Output = Self;
 }
@@ -219,7 +222,10 @@ impl<T: Number> From<T> for Matrix2<T> {
     /// Makes the identity element in  the matrix the value specified
     /// 
     fn from(value: T) -> Self {
-        Self { x: Vector2::new(value, T::ZERO), y: Vector2::new(T::ZERO, value) }
+        Self::from_vec(
+            Vector2::new(value, T::ZERO), 
+            Vector2::new(T::ZERO, value)
+        )
     }
 }
 
@@ -274,12 +280,15 @@ impl<T: Number> Matrix3<T>  {
     pub const fn new(xx: T, xy: T, xz: T, yx: T, yy: T, yz: T, zx: T, zy: T, zz: T) -> Self {
         Self::from_vec(Vector3::new(xx,xy,xz), Vector3::new(yx, yy, yz), Vector3::new(zx, zy, zz))
     }
+    #[inline(always)]
     pub const fn x(&self) -> Vector3<T> {
         self.x
     }
+    #[inline(always)]
     pub const fn y(&self) -> Vector3<T> {
         self.y
     }
+    #[inline(always)]
     pub const fn z(&self) -> Vector3<T> {
         self.z
     }
@@ -300,14 +309,14 @@ impl<T: Number> Matrix3<T>  {
         self
     }
     pub fn from_scale(v: Vector3<T>) -> Self {
-        Matrix3::new(
+        Self::new(
             v.x(), T::ZERO, T::ZERO, 
             T::ZERO, v.y(), T::ZERO, 
             T::ZERO, T::ZERO, v.z()
         )
     }
     pub fn from_translation(v: Vector3<T>) -> Self {
-        Matrix3::new(
+        Self::new(
             T::ONE, T::ZERO, T::ZERO, 
             T::ZERO, T::ONE, T::ZERO, 
             v.x(), v.y(), v.z()
@@ -325,7 +334,7 @@ impl<T: Number> Matrix3<T>  {
 }
 impl<T: Real> Matrix3<T>  {
     pub fn from_transform(translation: Vector2<T>, scaling: Vector2<T>, rotation: T) -> Self {
-        Matrix3::new(
+        Self::new(
             rotation.cos()*scaling.x(), -(rotation.sin()), T::ZERO, 
             rotation.sin(), rotation.cos()*scaling.y(), T::ZERO, 
             translation.x(), translation.y(), T::ONE
@@ -386,7 +395,11 @@ impl<T: Number> From<T> for Matrix3<T> {
     /// Makes the identity element in  the matrix the value specified
     /// 
     fn from(value: T) -> Self {
-        Self::from_vec(Vector3::new(value, T::ZERO, T::ZERO), Vector3::new(T::ZERO, value, T::ZERO), Vector3::new(T::ZERO, T::ZERO, value))
+        Self::from_vec(
+            Vector3::new(value, T::ZERO, T::ZERO), 
+            Vector3::new(T::ZERO, value, T::ZERO), 
+            Vector3::new(T::ZERO, T::ZERO, value)
+        )
     }
 }
 
@@ -532,27 +545,41 @@ impl<T: Number> IndexMut<usize> for Matrix4<T> {
 }
 impl<T: Number> Matrix4<T>  {
     pub const fn empty() -> Self {
-        Self::new(T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO)
+        Self::new(
+            T::ZERO, T::ZERO, T::ZERO, T::ZERO, 
+            T::ZERO, T::ZERO, T::ZERO, T::ZERO, 
+            T::ZERO, T::ZERO, T::ZERO, T::ZERO, 
+            T::ZERO, T::ZERO, T::ZERO, T::ZERO
+        )
     }
     pub const fn new(xx: T, xy: T, xz: T, xw: T, yx: T, yy: T, yz: T, yw: T, zx: T, zy: T, zz: T, zw: T, wx: T, wy: T, wz: T, ww: T) -> Self {
-        Self { x: Vector4::new(xx, xy, xz, xw), y: Vector4::new(yx, yy, yz, yw), z: Vector4::new(zx, zy, zz, zw), w: Vector4::new(wx, wy, wz, ww) }
+        Self::from_vec(
+            Vector4::new(xx, xy, xz, xw), 
+            Vector4::new(yx, yy, yz, yw), 
+            Vector4::new(zx, zy, zz, zw), 
+            Vector4::new(wx, wy, wz, ww) 
+        )
     }
-    pub fn from_vec(x: Vector4<T>, y: Vector4<T>, z: Vector4<T>, w: Vector4<T>) -> Self {
+    pub const fn from_vec(x: Vector4<T>, y: Vector4<T>, z: Vector4<T>, w: Vector4<T>) -> Self {
         Self { x, y, z, w }
     }
+    #[inline(always)]
     pub const fn x(&self) -> Vector4<T> {
         self.x
     }
+    #[inline(always)]
     pub const fn y(&self) -> Vector4<T> {
         self.y
     }
+    #[inline(always)]
     pub const fn z(&self) -> Vector4<T> {
         self.z
     }
+    #[inline(always)]
     pub const fn w(&self) -> Vector4<T> {
         self.w
     }
-    pub fn from_translation(v: Vector3<T>) -> Self {
+    pub const fn from_translation(v: Vector3<T>) -> Self {
         Matrix4::new(
             T::ONE, T::ZERO, T::ZERO, T::ZERO,
             T::ZERO, T::ONE, T::ZERO, T::ZERO,
@@ -560,7 +587,7 @@ impl<T: Number> Matrix4<T>  {
             v.x(), v.y(), v.z(), T::ONE,
         )
     }
-    pub fn from_scale(v: Vector3<T>) -> Self {
+    pub const fn from_scale(v: Vector3<T>) -> Self {
         Matrix4::new(
             v.x(), T::ZERO, T::ZERO, T::ZERO,
             T::ZERO, v.y(), T::ZERO, T::ZERO,
@@ -576,7 +603,12 @@ impl<T: Number> Matrix4<T>  {
         this
     }
     pub fn translate(&self, v: Vector3<T>) -> Self {
-        Self { x: self.x, y: self.y, z: self.z, w: self.w + Vector4::<T>::from(v) }
+        Self::from_vec( 
+            self.x, 
+            self.y, 
+            self.z, 
+            self.w + Vector4::<T>::from(v) 
+        )
     }
     pub fn from_transform(pos: Vector3<T>, rot: Quaternion<T>, scale: Vector3<T>) -> Self 
         where T: Real + Display{
@@ -817,12 +849,12 @@ impl<T: Number> From<Matrix4<T>> for Matrix3<T> {
 }
 impl<T: Number> From<Matrix3<T>> for Matrix4<T> {
     fn from(value: Matrix3<T>) -> Self {
-        Self { 
-            x: Vector4::new(value.x().x(), value.x().y(), value.x().z(), T::ZERO ), 
-            y: Vector4::new(value.y().x(), value.y().y(), value.y().z(), T::ZERO ), 
-            z: Vector4::new(value.z().x(), value.z().y(), value.z().z(), T::ZERO ),
-            w: Vector4::new(T::ZERO, T::ZERO, T::ZERO, T::ONE ),
-        }
+        Self::from_vec(
+            Vector4::new(value.x().x(), value.x().y(), value.x().z(), T::ZERO ), 
+            Vector4::new(value.y().x(), value.y().y(), value.y().z(), T::ZERO ), 
+            Vector4::new(value.z().x(), value.z().y(), value.z().z(), T::ZERO ),
+            Vector4::new(T::ZERO, T::ZERO, T::ZERO, T::ONE ),
+        )
     }
 }
 
@@ -900,10 +932,6 @@ impl<T: Number + Display> Display for Matrix3<T> {
 
 impl<T: Number + Display> Display for Matrix4<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // let row1 = format!("┌{}, {}, {}, {}\n", self.x.x(), self.y.x(), self.z.x(), self.w.x());
-        // let row2 = format!("│{}, {}, {}, {}\n", self.x.y(), self.y.y(), self.z.y(), self.w.y());
-        // let row3 = format!("│{}, {}, {}, {}\n", self.x.z(), self.y.z(), self.z.z(), self.w.z());
-        // let row4 = format!("└{}, {}, {}, {}\n", self.w.z(), self.w.z(), self.w.z(), self.w.w());
         let mut row1 = String::from('┌');
         let mut row2 = String::from('│');
         let mut row3 = String::from('│');
@@ -1032,20 +1060,9 @@ impl<T: Number> From<Matrix2<T>> for [Vector2<T>; 2] {
 
 #[cfg(test)]
 mod tests {
-    use crate::{matrix::SquareMatrix, vector::{FMat2, FMat3, FMat4, Vector}, One};
-    // #[test]
-    // fn identity_test() {
-    //     fn inner_test<M: SquareMatrix + PartialEq>(matrix: M) 
-    //         where M: std::ops::Mul<Output = M> + Copy {
-    //         let identity = M::identity();
-    //         let multiplied = matrix*identity;
-    //         assert!(multiplied == matrix, "The identity matrix is supposed to leave the matrix unchaged");
-    //         assert!(identity.determinant() == <M::Column as Vector>::Scalar::ONE, "The identity matrix is supposed to have a determinant of one");
-    //     }
-    //     inner_test(FMat2::new(1.0, 2.0, 3.0, 4.0));
-    //     inner_test(FMat3::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0));
-    //     inner_test(FMat4::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0));
-    // }
+    use std::ops::Mul;
+
+    use crate::{matrix::SquareMatrix, vector::{FMat2, FMat3, FMat4, FVec2, FVec3, FVec4, Vector}, One};
     #[test]
     fn determinant_test() {
         fn inner_test<M: SquareMatrix>(matrix: M, expected: <M::Column as Vector>::Scalar) {
@@ -1111,12 +1128,33 @@ mod tests {
         );
     }
     #[test]
-    fn matrix_mul() {
-        // fn cofactor(&self, column: usize, row: usize);
-        // fn cofactor_matrix(&self); 
-        // fn adjoint(&self);
-        // fn inverse(&self);
-        // fn diagonal(diagonal: Self::Column) -> Self;
-        // fn from_transform(diagonal: Self::Column) -> Self;
+    fn mul_test() {
+        // Matrix2 mul test
+        let a = FMat2::new(1.0, 2.0, 3.0, 4.0);
+        let b = FMat2::new(2.0, 4.0, 6.0, 8.0);
+        assert!(a.mul(b) == FMat2::new(14.0, 20.0, 30.0, 44.0), "Implemented mul incorrectly");
+        assert!(b.mul(a) == FMat2::new(14.0, 20.0, 30.0, 44.0), "Implemented mul incorrectly");
+        // Matrix3 mul test
+        let a = FMat3::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+        let b = FMat3::new(2.0, 4.0, 6.0, 2.0, 4.0, 6.0, 2.0, 4.0, 6.0);
+        assert!(a.mul(b) == FMat3::new(60.0, 72.0, 84.0, 60.0, 72.0, 84.0, 60.0, 72.0, 84.0), "Implemented mul incorrectly");
+        assert!(b.mul(a) == FMat3::new(12.0, 24.0, 36.0, 30.0, 60.0, 90.0, 48.0, 96.0, 144.0), "Implemented mul incorrectly");
+        // Matrix4 mul test
+        let a = FMat4::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0);
+        let b = FMat4::new(2.0, 4.0, 6.0, 8.0, 2.0, 4.0, 6.0, 8.0,  2.0, 4.0, 6.0, 8.0,  2.0, 4.0, 6.0, 8.0);
+        assert!(a.mul(b) == FMat4::new(180.0, 200.0, 220.0, 240.0, 180.0, 200.0, 220.0, 240.0, 180.0, 200.0, 220.0, 240.0, 180.0, 200.0, 220.0, 240.0), "Implemented mul incorrectly");
+        assert!(b.mul(a) == FMat4::new(20.0, 40.0, 60.0, 80.0, 52.0, 104.0, 156.0, 208.0, 84.0, 168.0, 252.0, 336.0, 116.0, 232.0, 348.0, 464.0), "Implemented mul incorrectly");
+    }
+    #[test]
+    fn mul_vector_test() {
+        let a = FMat2::new(1.0, 2.0, 3.0, 4.0);
+        let vb = FVec2::new(1.0, 2.0);
+        assert!(a.mul(vb) == FVec2::new(7.0, 10.0), "Implemented mul for vectors incorrectly");
+        let a = FMat3::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+        let vb = FVec3::new(1.0, 2.0, 3.0);
+        assert!(a.mul(vb) == FVec3::new(30.0, 36.0, 42.0), "Implemented mul for vectors incorrectly");
+        let a = FMat4::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0);
+        let vb = FVec4::new(1.0, 2.0, 3.0, 4.0);
+        assert!(a.mul(vb) == FVec4::new(90.0, 100.0, 110.0, 120.0), "Implemented mul for vectors incorrectly");
     }
 }
