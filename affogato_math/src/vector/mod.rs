@@ -418,20 +418,20 @@ impl<T: Number> Vector2<T> {
         where T: Neg<Output = T> {
         Self::new(self.y, -self.x)
     }
-    /// Gives a vector pointing to the right of the graph <1, 0>
+    /// Returns a vector pointing to the right of the graph <1, 0>
     pub fn right() -> Self {
         Self::new(T::ONE, T::ZERO)
     }
-    /// Gives a vector pointing to the left of the graph <-1, 0>
+    /// Returns a vector pointing to the left of the graph <-1, 0>
     pub fn left() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(-T::ONE, T::ZERO)
     }
-    /// Gives a vector pointing to the left of the graph <0, 1>
+    /// Returns a vector pointing to the left of the graph <0, 1>
     pub fn top() -> Self {
         Self::new(T::ZERO, T::ONE)
     }
-    /// Gives a vector pointing to the left of the graph <0, -1>
+    /// Returns a vector pointing to the left of the graph <0, -1>
     pub fn bottom() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, -T::ONE)
@@ -562,29 +562,29 @@ impl<T: Number> Vector3<T> {
     pub const fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
     }
-    /// Gives a vector pointing to the right of the graph <1, 0, 0>
+    /// Returns a vector pointing to the right of the graph <1, 0, 0>
     pub const fn right() -> Self {
         Self::new(T::ONE, T::ZERO, T::ZERO)
     }
-    /// Gives a vector pointing to the left of the graph <-1, 0, 0>
+    /// Returns a vector pointing to the left of the graph <-1, 0, 0>
     pub fn left() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(-T::ONE, T::ZERO, T::ZERO)
     }
-    /// Gives a vector pointing to the top of the graph <0, 1, 0>
+    /// Returns a vector pointing to the top of the graph <0, 1, 0>
     pub const fn top() -> Self {
         Self::new(T::ZERO, T::ONE, T::ZERO)
     }
-    /// Gives a vector pointing to the top of the graph <0, -1, 0>
+    /// Returns a vector pointing to the top of the graph <0, -1, 0>
     pub fn bottom() -> Self 
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, -T::ONE, T::ZERO)
     }
-    /// Gives a vector pointing forward to the graph <0, 0, 1>
+    /// Returns a vector pointing forward to the graph <0, 0, 1>
     pub const fn forward() -> Self {
         Self::new(T::ZERO, T::ZERO, T::ONE)
     }
-    /// Gives a vector pointing backward to the graph <0, 0, -1>
+    /// Returns a vector pointing backward to the graph <0, 0, -1>
     pub fn backward() -> Self
         where T: std::ops::Neg<Output = T> {
         Self::new(T::ZERO, T::ZERO, -T::ONE)

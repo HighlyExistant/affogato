@@ -28,21 +28,27 @@ impl<T: Real> Ray3D<T>  {
     pub fn new(orig: Vector3<T>, look_at: Vector3<T>) -> Self {
         Self { origin: orig, direction: (look_at-orig).normalize() }
     }
+    /// Returns a ray pointing to the left of the graph <-1, 0, 0>
     pub fn left() -> Self {
         Self { origin: Vector3::ZERO, direction: Vector3::left() }
     }
+    /// Returns a ray pointing to the right of the graph <1, 0, 0>
     pub fn right() -> Self {
         Self { origin: Vector3::ZERO, direction: Vector3::right() }
     }
+    /// Returns a ray pointing to the top of the graph <0, 1, 0>
     pub fn top() -> Self {
         Self { origin: Vector3::ZERO, direction: Vector3::top() }
     }
+    /// Returns a ray pointing to the top of the graph <0, -1, 0>
     pub fn bottom() -> Self {
         Self { origin: Vector3::ZERO, direction: Vector3::bottom() }
     }
+    /// Returns a ray pointing forward to the graph <0, 0, 1>
     pub fn forward() -> Self {
         Self { origin: Vector3::ZERO, direction: Vector3::forward() }
     }
+    /// Returns a ray pointing backward to the graph <0, 0, -1>
     pub fn backward() -> Self {
         Self { origin: Vector3::ZERO, direction: Vector3::backward() }
     }

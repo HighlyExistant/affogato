@@ -16,6 +16,10 @@ pub trait SquareMatrix: Sized {
     /// ```
     fn identity() -> Self;
     fn transpose(&self) -> Self;
+    /// The determinant can be understood as the area of the parallelogram formed by
+    /// the vectors represented in a matrix. It can help distinguish if the matrix has
+    /// been scaled in any way. A matrix whos scale has not changed will have a determinant
+    /// of 1.
     fn determinant(&self) -> <Self::Column as Vector>::Scalar;
     fn cofactor(&self, column: usize, row: usize) -> Self::LowerDimension;
     fn cofactor_matrix(&self) -> Self 
@@ -46,7 +50,7 @@ pub trait SquareMatrix: Sized {
 
 /// column major matrix
 #[repr(C)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix2<T: Number> {
     pub x: Vector2<T>,
     pub y: Vector2<T>,
@@ -99,10 +103,11 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
         let y = if row == 0 { 1 } else { 0};
         self[x][y]
     }
-    fn cofactor_matrix(&self) -> Self {
+    fn cofactor_matrix(&self) -> Self 
+        where <Self::Column as Vector>::Scalar: HasNegatives {
         Self::new(
-            self.y.y(), self.y.x(), 
-            self.x.y(), self.x.x()
+            self.y.y(), -self.y.x(), 
+            -self.x.y(), self.x.x()
         )
     }
     fn diagonal(diagonal: Self::Column) -> Self {
@@ -136,6 +141,15 @@ impl<T: Number> Matrix2<T>  {
     }
     pub const fn y(&self) -> Vector2<T> {
         self.y
+    }
+    pub fn epsilon_eq(&self, other: &Self, epsilon: T) -> bool 
+        where T: Real {
+        for (a, b) in Into::<[Vector2<T>; 2]>::into(*self).into_iter().zip(Into::<[Vector2<T>; 2]>::into(*other)) {
+            if !a.epsilon_eq(b, epsilon){
+                return false;
+            }
+        }
+        true
     }
 }
 
@@ -218,7 +232,7 @@ unsafe impl<T: Number + Pod> Pod for Matrix2<T> {}
 /// column major matrix
 #[cfg(feature="glsl")]
 #[repr(C)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3<T: Number> {
     pub x: Vector3<T>,
     pub y: Vector3<T>,
@@ -228,7 +242,7 @@ pub struct Matrix3<T: Number> {
 /// column major matrix
 #[cfg(not(feature="glsl"))]
 #[repr(C)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3<T: Number> {
     pub x: Vector3<T>,
     pub y: Vector3<T>,
@@ -298,6 +312,15 @@ impl<T: Number> Matrix3<T>  {
             T::ZERO, T::ONE, T::ZERO, 
             v.x(), v.y(), v.z()
         )
+    }
+    pub fn epsilon_eq(&self, other: &Self, epsilon: T) -> bool 
+        where T: Real {
+        for (a, b) in Into::<[Vector3<T>; 3]>::into(*self).into_iter().zip(Into::<[Vector3<T>; 3]>::into(*other)) {
+            if !a.epsilon_eq(b, epsilon){
+                return false;
+            }
+        }
+        true
     }
 }
 impl<T: Real> Matrix3<T>  {
@@ -481,7 +504,7 @@ unsafe impl<T: Number> Zeroable for Matrix3<T> {
 unsafe impl<T: Number + Pod> Pod for Matrix3<T> {}
 /// column major matrix
 #[repr(C)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix4<T: Number> {
     pub x: Vector4<T>,
     pub y: Vector4<T>,
@@ -563,6 +586,16 @@ impl<T: Number> Matrix4<T>  {
         mat.w.set_z(pos.z());
         println!("{}", mat);
         mat
+    }
+    
+    pub fn epsilon_eq(&self, other: &Self, epsilon: T) -> bool 
+        where T: Real {
+        for (a, b) in Into::<[Vector4<T>; 4]>::into(*self).into_iter().zip(Into::<[Vector4<T>; 4]>::into(*other)) {
+            if !a.epsilon_eq(b, epsilon){
+                return false;
+            }
+        }
+        true
     }
 }
 
@@ -940,5 +973,150 @@ impl<T: Number> From<Matrix2<T>> for Vec<T> {
             value.x().x(), value.x().y(), 
             value.y().x(), value.y().y(), 
         ]
+    }
+}
+impl<T: Number> From<Matrix4<T>> for [T; 4*4] {
+    fn from(value: Matrix4<T>) -> Self {
+        [
+            value.x().x(), value.x().y(), value.x().z(), value.x().w(), 
+            value.y().x(), value.y().y(), value.y().z(), value.y().w(), 
+            value.z().x(), value.z().y(), value.z().z(), value.z().w(),
+            value.w().x(), value.w().y(), value.w().z(), value.w().w(),
+        ]
+    }
+}
+impl<T: Number> From<Matrix3<T>> for [T; 3*3] {
+    fn from(value: Matrix3<T>) -> Self {
+        [
+            value.x().x(), value.x().y(), value.x().z(), 
+            value.y().x(), value.y().y(), value.y().z(), 
+            value.z().x(), value.z().y(), value.z().z(),
+        ]
+    }
+}
+impl<T: Number> From<Matrix2<T>> for [T; 2*2] {
+    fn from(value: Matrix2<T>) -> Self {
+        [
+            value.x().x(), value.x().y(), 
+            value.y().x(), value.y().y(), 
+        ]
+    }
+}
+impl<T: Number> From<Matrix4<T>> for [Vector4<T>; 4] {
+    fn from(value: Matrix4<T>) -> Self {
+        [
+            value.x(), 
+            value.y(), 
+            value.z(),
+            value.w(),
+        ]
+    }
+}
+impl<T: Number> From<Matrix3<T>> for [Vector3<T>; 3] {
+    fn from(value: Matrix3<T>) -> Self {
+        [
+            value.x(), 
+            value.y(), 
+            value.z(),
+        ]
+    }
+}
+impl<T: Number> From<Matrix2<T>> for [Vector2<T>; 2] {
+    fn from(value: Matrix2<T>) -> Self {
+        [
+            value.x(), 
+            value.y(), 
+        ]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{matrix::SquareMatrix, vector::{FMat2, FMat3, FMat4, Vector}, One};
+    // #[test]
+    // fn identity_test() {
+    //     fn inner_test<M: SquareMatrix + PartialEq>(matrix: M) 
+    //         where M: std::ops::Mul<Output = M> + Copy {
+    //         let identity = M::identity();
+    //         let multiplied = matrix*identity;
+    //         assert!(multiplied == matrix, "The identity matrix is supposed to leave the matrix unchaged");
+    //         assert!(identity.determinant() == <M::Column as Vector>::Scalar::ONE, "The identity matrix is supposed to have a determinant of one");
+    //     }
+    //     inner_test(FMat2::new(1.0, 2.0, 3.0, 4.0));
+    //     inner_test(FMat3::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0));
+    //     inner_test(FMat4::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0));
+    // }
+    #[test]
+    fn determinant_test() {
+        fn inner_test<M: SquareMatrix>(matrix: M, expected: <M::Column as Vector>::Scalar) {
+            let determinant = matrix.determinant();
+            assert!(determinant == expected, "determinant function is not implemented correctly");
+        }
+        inner_test(FMat2::new(1.0, 2.0, 3.0, 4.0), -2.0);
+        inner_test(FMat3::new(1.0, 4.0, 5.0, 4.0, 5.0, 4.0, 1.0, 8.0, 6.0), 53.0);
+        inner_test(FMat4::new(
+            1.0, 4.0, 6.0, 3.0, 
+            12.0, 3.0, 5.0, 6.0,
+            0.0, 0.0, 45.0, 1.0,
+            3.0, 2.0, 0.0, 2.0 
+        ), 535.0);
+    }
+    #[test]
+    fn transpose_test() {
+        assert!(
+            FMat2::new(1.0, 2.0, 3.0, 4.0).transpose().epsilon_eq(&FMat2::new(1.0, 3.0, 2.0, 4.0), 0.00001), 
+            "The transpose of a matrix was implemented incorrectly"
+        );
+        assert!(
+            FMat3::new(1.0, 4.0, 5.0, 4.0, 5.0, 4.0, 1.0, 8.0, 6.0).transpose().epsilon_eq( 
+                &FMat3::new(1.0, 4.0, 1.0, 4.0, 5.0, 8.0, 5.0, 4.0, 6.0),
+                0.00001
+            ), "The transpose of a matrix was implemented incorrectly"
+        );
+        assert!(
+            FMat4::new(
+                1.0, 4.0, 6.0, 3.0, 
+                12.0, 3.0, 5.0, 6.0,
+                0.0, 0.0, 45.0, 1.0,
+                3.0, 2.0, 0.0, 2.0 
+            ).transpose().epsilon_eq(
+                &FMat4::new(
+                    1.0, 12.0, 0.0, 3.0,
+                    4.0, 3.0, 0.0, 2.0, 
+                    6.0, 5.0, 45.0, 0.0, 
+                    3.0, 6.0, 1.0, 2.0
+                ),
+                0.00001
+            ), "The transpose of a matrix was implemented incorrectly"
+        );
+    }
+    #[test]
+    fn inverse_test() {
+        let matrix = FMat2::new(1.0, 2.0, 3.0, 4.0);
+        assert!(
+            matrix*matrix.inverse().unwrap() == FMat2::identity(), "The inverse of a matrix was implemented incorrectly"
+        );
+        let matrix = FMat3::new(1.0, 3.0, 5.0, 4.0, 7.0, 8.0, 1.0, 1.0, 1.0);
+        assert!(
+            matrix*matrix.inverse().unwrap() == FMat3::identity(), "The inverse of a matrix was implemented incorrectly"
+        );
+        let matrix = FMat4::new(
+            1.0, 1.0, 1.0, 1.0,
+            2.0, 4.0, 6.0, 4.0,
+            6.0, 4.0, 7.0, 1.0,
+            1.0, 1.0, 1.0, 2.0
+        );
+        assert!(
+            (matrix*matrix.inverse().unwrap()).epsilon_eq(&FMat4::identity(), 0.00001), "The inverse of a matrix was implemented incorrectly"
+        );
+    }
+    #[test]
+    fn matrix_mul() {
+        // fn cofactor(&self, column: usize, row: usize);
+        // fn cofactor_matrix(&self); 
+        // fn adjoint(&self);
+        // fn inverse(&self);
+        // fn diagonal(diagonal: Self::Column) -> Self;
+        // fn from_transform(diagonal: Self::Column) -> Self;
     }
 }

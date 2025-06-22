@@ -314,6 +314,7 @@ pub trait Number
     Copy + 
     One + 
     Zero + 
+    PartialEq + 
     PartialOrd + 
     Bounds + 
     FromPrimitive +
@@ -335,6 +336,7 @@ impl<T> Number for T
     Copy + 
     One + 
     Zero + 
+    PartialEq + 
     PartialOrd + 
     Bounds +
     FromPrimitive +
