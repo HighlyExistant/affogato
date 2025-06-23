@@ -1,7 +1,11 @@
-use std::fmt::{Debug, Display};
+#![cfg(feature="alloc")]
+extern crate alloc;
+
+use alloc::fmt::{Debug, Display};
 
 use affogato_math::{geometry::Dimension, matrix::{Matrix4, SquareMatrix}, vector::{OuterProduct, Vector, Vector3, Vector4}, Real, Transformation, Zero};
-use std::ops::{Add, Mul};
+use core::ops::{Add, Mul};
+use alloc::vec::Vec;
 use super::{Collision, CollisionInfo, HitCollisionInfo};
 #[derive(Debug)]
 pub(crate) struct Simplex<V: Vector + Dimension, const DIMENSION: usize> {
@@ -286,7 +290,7 @@ fn epa<T: Real>(simplex: Simplex<Vector3<T>, 4>, vertices1: &Vec<Vector3<T>>, ve
     for i in 0..simplex.size {
         polytope.push(simplex.points[i]);
     }
-    let mut faces = vec![
+    let mut faces = alloc::vec![
         0u32, 1, 2,
         0, 3, 1,
         0, 2, 3,

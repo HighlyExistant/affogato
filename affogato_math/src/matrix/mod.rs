@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::{Index, IndexMut}};
+use core::{fmt::Display, ops::{Index, IndexMut}};
 
 use bytemuck::{Pod, Zeroable};
 use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
@@ -31,13 +31,13 @@ pub trait SquareMatrix: Sized {
     // Doesn't check whether the determinant is zero
     unsafe fn inverse_unchecked(&self) -> Self 
         where <Self::Column as Vector>::Scalar: Real, 
-            Self: std::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
+            Self: core::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
         self.cofactor_matrix().transpose()*(<Self::Column as Vector>::Scalar::ONE/self.determinant())
     }
     // Returns None if the determinant is zero
     fn inverse(&self) -> Option<Self> 
         where <Self::Column as Vector>::Scalar: Real, 
-            Self: std::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
+            Self: core::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
         let det = self.determinant();
         if det == <Self::Column as Vector>::Scalar::ZERO {
             None
@@ -59,13 +59,13 @@ pub struct Matrix2<T: Number> {
 impl<T: Number> Index<usize> for Matrix2<T> {
     type Output = Vector2<T>;
     fn index(&self, index: usize) -> &Self::Output {
-        let val = unsafe { std::mem::transmute::<&Self, &[Vector2<T>; 2]>(self) };
+        let val = unsafe { core::mem::transmute::<&Self, &[Vector2<T>; 2]>(self) };
         &val[index]
     }
 }
 impl<T: Number> IndexMut<usize> for Matrix2<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let val = unsafe { std::mem::transmute::<&mut Self, &mut [Vector2<T>; 2]>(self) };
+        let val = unsafe { core::mem::transmute::<&mut Self, &mut [Vector2<T>; 2]>(self) };
         &mut val[index]
     }
 }
@@ -165,19 +165,19 @@ impl<T: Real> Matrix2<T> {
     }
 }
 
-impl<T: Number> std::ops::Add for Matrix2<T>  {
+impl<T: Number> core::ops::Add for Matrix2<T>  {
     fn add(self, rhs: Self) -> Self::Output {
         Self { x: (self.x + rhs.x()), y: (self.y + rhs.y()) }
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Sub for Matrix2<T>  {
+impl<T: Number> core::ops::Sub for Matrix2<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
         Self { x: (self.x - rhs.x()), y: (self.y - rhs.y()) }
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Mul for Matrix2<T>  {
+impl<T: Number> core::ops::Mul for Matrix2<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self::from_vec(
             Vector2::new(
@@ -192,7 +192,7 @@ impl<T: Number> std::ops::Mul for Matrix2<T>  {
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Mul<Vector2<T>> for Matrix2<T>  {
+impl<T: Number> core::ops::Mul<Vector2<T>> for Matrix2<T>  {
     /// # Multiplying Matrix2 with Vector2
     /// 
     /// when you multiply a Matrix2 with a Vector2 we treat the vector
@@ -206,7 +206,7 @@ impl<T: Number> std::ops::Mul<Vector2<T>> for Matrix2<T>  {
     }
     type Output = Vector2<T>;
 }
-impl<T: Number> std::ops::Mul<T> for Matrix2<T>  {
+impl<T: Number> core::ops::Mul<T> for Matrix2<T>  {
     /// # Multiplying Matrix2 with Vector2
     /// 
     /// when you multiply a Matrix2 with a Vector2 we treat the vector
@@ -263,13 +263,13 @@ impl<T: Number> Zero for Matrix3<T> {
 impl<T: Number> Index<usize> for Matrix3<T> {
     type Output = Vector3<T>;
     fn index(&self, index: usize) -> &Self::Output {
-        let val = unsafe { std::mem::transmute::<&Self, &[Vector3<T>; 3]>(self) };
+        let val = unsafe { core::mem::transmute::<&Self, &[Vector3<T>; 3]>(self) };
         &val[index]
     }
 }
 impl<T: Number> IndexMut<usize> for Matrix3<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let val = unsafe { std::mem::transmute::<&mut Self, &mut [Vector3<T>; 3]>(self) };
+        let val = unsafe { core::mem::transmute::<&mut Self, &mut [Vector3<T>; 3]>(self) };
         &mut val[index]
     }
 }
@@ -341,19 +341,19 @@ impl<T: Real> Matrix3<T>  {
         )
     }
 }
-impl<T: Number> std::ops::Add for Matrix3<T>  {
+impl<T: Number> core::ops::Add for Matrix3<T>  {
     fn add(self, rhs: Self) -> Self::Output {
         Self::from_vec(self.x + rhs.x(), self.y + rhs.y(), self.z + rhs.z())
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Sub for Matrix3<T>  {
+impl<T: Number> core::ops::Sub for Matrix3<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
         Self::from_vec(self.x - rhs.x(), self.y - rhs.y(), self.z - rhs.z())
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Mul for Matrix3<T>  {
+impl<T: Number> core::ops::Mul for Matrix3<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self::from_vec(
             Vector3::new( 
@@ -375,7 +375,7 @@ impl<T: Number> std::ops::Mul for Matrix3<T>  {
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Mul<Vector3<T>> for Matrix3<T>  {
+impl<T: Number> core::ops::Mul<Vector3<T>> for Matrix3<T>  {
     /// # Multiplying Matrix3 with Vector3
     /// 
     /// when you multiply a Matrix3 with a Vector3 we treat the vector
@@ -502,7 +502,7 @@ impl<T: Number> SquareMatrix for Matrix3<T> {
         Self::new(diagonal.x(), T::ZERO, T::ZERO, T::ZERO, diagonal.y(), T::ZERO, T::ZERO, T::ZERO, diagonal.z())
     }
 }
-impl<T: Number> std::ops::Mul<T> for Matrix3<T>  {
+impl<T: Number> core::ops::Mul<T> for Matrix3<T>  {
     type Output = Self;
     fn mul(self, rhs: T) -> Self::Output {
         Matrix3::from_vec(self.x*rhs, self.y*rhs, self.z*rhs)
@@ -533,13 +533,13 @@ impl<T: Number> Zero for Matrix4<T> {
 impl<T: Number> Index<usize> for Matrix4<T> {
     type Output = Vector4<T>;
     fn index(&self, index: usize) -> &Self::Output {
-        let val = unsafe { std::mem::transmute::<&Self, &[Vector4<T>; 4]>(self) };
+        let val = unsafe { core::mem::transmute::<&Self, &[Vector4<T>; 4]>(self) };
         &val[index]
     }
 }
 impl<T: Number> IndexMut<usize> for Matrix4<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let val = unsafe { std::mem::transmute::<&mut Self, &mut [Vector4<T>; 4]>(self) };
+        let val = unsafe { core::mem::transmute::<&mut Self, &mut [Vector4<T>; 4]>(self) };
         &mut val[index]
     }
 }
@@ -616,7 +616,6 @@ impl<T: Number> Matrix4<T>  {
         mat.w.set_x(pos.x());
         mat.w.set_y(pos.y());
         mat.w.set_z(pos.z());
-        println!("{}", mat);
         mat
     }
     
@@ -771,19 +770,19 @@ impl<T: Number> From<T> for Matrix4<T> {
         Self { x: Vector4::new(value, T::ZERO, T::ZERO, T::ZERO), y: Vector4::new(T::ZERO, value, T::ZERO, T::ZERO), z: Vector4::new(T::ZERO, T::ZERO, value, T::ZERO), w: Vector4::new(T::ZERO, T::ZERO, T::ZERO, value) }
     }
 }
-impl<T: Number> std::ops::Add for Matrix4<T>  {
+impl<T: Number> core::ops::Add for Matrix4<T>  {
     fn add(self, rhs: Self) -> Self::Output {
         Self { x: (self.x + rhs.x()), y: (self.y + rhs.y()), z: (self.z + rhs.z()), w: (self.w + rhs.w()) }
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Sub for Matrix4<T>  {
+impl<T: Number> core::ops::Sub for Matrix4<T>  {
     fn sub(self, rhs: Self) -> Self::Output {
         Self { x: (self.x - rhs.x()), y: (self.y - rhs.y()), z: (self.z - rhs.z()), w: (self.w - rhs.w()) }
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Mul for Matrix4<T>  {
+impl<T: Number> core::ops::Mul for Matrix4<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self { 
             x: Vector4::new(
@@ -814,14 +813,14 @@ impl<T: Number> std::ops::Mul for Matrix4<T>  {
     }
     type Output = Self;
 }
-impl<T: Number> std::ops::Mul<T> for Matrix4<T>  {
+impl<T: Number> core::ops::Mul<T> for Matrix4<T>  {
     type Output = Self;
     fn mul(self, rhs: T) -> Self::Output {
         Matrix4::from_vec(self.x*rhs, self.y*rhs, self.z*rhs, self.w*rhs)
     }
 }
 
-impl<T: Number> std::ops::Mul<Vector4<T>> for Matrix4<T>  {
+impl<T: Number> core::ops::Mul<Vector4<T>> for Matrix4<T>  {
     /// # Multiplying Matrix4 with Vector4
     /// 
     /// when you multiply a Matrix4 with a Vector4 we treat the vector
@@ -865,43 +864,61 @@ unsafe impl<T: Number> Zeroable for Matrix4<T> {
 }
 unsafe impl<T: Number + Pod> Pod for Matrix4<T> {}
 
-impl<T: Number + Display> Display for Matrix2<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut row1 = String::from('┌');
-        let mut row2 = String::from('└');
-        {
-            let mut str_row1 = format!("{}, ", self.x.x());
-            let mut str_row2 = format!("{}, ", self.x.y());
+#[cfg(feature="alloc")]
+mod alloc_feature {
+    extern crate alloc;
+    use core::fmt::Display;
+    use alloc::{string::String};
+
+    use crate::{matrix::{Matrix2, Matrix3, Matrix4}, Number};
+    impl<T: Number + Display> Display for Matrix2<T> {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            let mut row1 = alloc::string::String::from('┌');
+            let mut row2 = String::from('└');
+            {
+                let mut str_row1 = alloc::format!("{}, ", self.x.x());
+                let mut str_row2 = alloc::format!("{}, ", self.x.y());
+                let max = str_row1.len().max(str_row2.len());
+                str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
+                str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
+                row1.push_str(str_row1.as_str());
+                row2.push_str(str_row2.as_str());
+            }
+            let mut str_row1 = alloc::format!("{}", self.y.x());
+            let mut str_row2 = alloc::format!("{}", self.y.y());
             let max = str_row1.len().max(str_row2.len());
             str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
             str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
             row1.push_str(str_row1.as_str());
             row2.push_str(str_row2.as_str());
+            row1.push_str("┐\n");
+            row2.push_str("┘\n");
+            f.write_str(row1.as_str())?;
+            f.write_str(row2.as_str())
         }
-        let mut str_row1 = format!("{}", self.y.x());
-        let mut str_row2 = format!("{}", self.y.y());
-        let max = str_row1.len().max(str_row2.len());
-        str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
-        str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
-        row1.push_str(str_row1.as_str());
-        row2.push_str(str_row2.as_str());
-        row1.push_str("┐\n");
-        row2.push_str("┘\n");
-        f.write_str(row1.as_str())?;
-        f.write_str(row2.as_str())
     }
-}
 
-impl<T: Number + Display> Display for Matrix3<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut row1 = String::from('┌');
-        let mut row2 = String::from('│');
-        let mut row3 = String::from('└');
+    impl<T: Number + Display> Display for Matrix3<T> {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            let mut row1 = String::from('┌');
+            let mut row2 = String::from('│');
+            let mut row3 = String::from('└');
 
-        for i in 0..2 {
-            let mut str_row1 = format!("{}, ", self[i].x());
-            let mut str_row2 = format!("{}, ", self[i].y());
-            let mut str_row3 = format!("{}, ", self[i].z());
+            for i in 0..2 {
+                let mut str_row1 = alloc::format!("{}, ", self[i].x());
+                let mut str_row2 = alloc::format!("{}, ", self[i].y());
+                let mut str_row3 = alloc::format!("{}, ", self[i].z());
+                let max = str_row1.len().max(str_row2.len().max(str_row3.len()));
+                str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
+                str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
+                str_row3.push_str((0..(max-str_row3.len())).map(|_|{' '}).collect::<String>().as_str());
+                row1.push_str(str_row1.as_str());
+                row2.push_str(str_row2.as_str());
+                row3.push_str(str_row3.as_str());
+            }
+            let mut str_row1 = alloc::format!("{}", self.z.x());
+            let mut str_row2 = alloc::format!("{}", self.z.y());
+            let mut str_row3 = alloc::format!("{}", self.z.z());
             let max = str_row1.len().max(str_row2.len().max(str_row3.len()));
             str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
             str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
@@ -909,38 +926,41 @@ impl<T: Number + Display> Display for Matrix3<T> {
             row1.push_str(str_row1.as_str());
             row2.push_str(str_row2.as_str());
             row3.push_str(str_row3.as_str());
+            
+            row1.push_str("┐\n");
+            row2.push_str("│\n");
+            row3.push_str("┘\n");
+            f.write_str(row1.as_str())?;
+            f.write_str(row2.as_str())?;
+            f.write_str(row3.as_str())
         }
-        let mut str_row1 = format!("{}", self.z.x());
-        let mut str_row2 = format!("{}", self.z.y());
-        let mut str_row3 = format!("{}", self.z.z());
-        let max = str_row1.len().max(str_row2.len().max(str_row3.len()));
-        str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
-        str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
-        str_row3.push_str((0..(max-str_row3.len())).map(|_|{' '}).collect::<String>().as_str());
-        row1.push_str(str_row1.as_str());
-        row2.push_str(str_row2.as_str());
-        row3.push_str(str_row3.as_str());
-        
-        row1.push_str("┐\n");
-        row2.push_str("│\n");
-        row3.push_str("┘\n");
-        f.write_str(row1.as_str())?;
-        f.write_str(row2.as_str())?;
-        f.write_str(row3.as_str())
     }
-}
 
-impl<T: Number + Display> Display for Matrix4<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut row1 = String::from('┌');
-        let mut row2 = String::from('│');
-        let mut row3 = String::from('│');
-        let mut row4 = String::from('└');
-        for i in 0..3 {
-            let mut str_row1 = format!("{}, ", self[i].x());
-            let mut str_row2 = format!("{}, ", self[i].y());
-            let mut str_row3 = format!("{}, ", self[i].z());
-            let mut str_row4 = format!("{}, ", self[i].w());
+    impl<T: Number + Display> Display for Matrix4<T> {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            let mut row1 = String::from('┌');
+            let mut row2 = String::from('│');
+            let mut row3 = String::from('│');
+            let mut row4 = String::from('└');
+            for i in 0..3 {
+                let mut str_row1 = alloc::format!("{}, ", self[i].x());
+                let mut str_row2 = alloc::format!("{}, ", self[i].y());
+                let mut str_row3 = alloc::format!("{}, ", self[i].z());
+                let mut str_row4 = alloc::format!("{}, ", self[i].w());
+                let max = str_row1.len().max(str_row2.len().max(str_row3.len().max(str_row4.len())));
+                str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
+                str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
+                str_row3.push_str((0..(max-str_row3.len())).map(|_|{' '}).collect::<String>().as_str());
+                str_row4.push_str((0..(max-str_row4.len())).map(|_|{' '}).collect::<String>().as_str());
+                row1.push_str(str_row1.as_str());
+                row2.push_str(str_row2.as_str());
+                row3.push_str(str_row3.as_str());
+                row4.push_str(str_row4.as_str());
+            }
+            let mut str_row1 = alloc::format!("{}", self.w.x());
+            let mut str_row2 = alloc::format!("{}", self.w.y());
+            let mut str_row3 = alloc::format!("{}", self.w.z());
+            let mut str_row4 = alloc::format!("{}", self.w.w());
             let max = str_row1.len().max(str_row2.len().max(str_row3.len().max(str_row4.len())));
             str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
             str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
@@ -950,59 +970,47 @@ impl<T: Number + Display> Display for Matrix4<T> {
             row2.push_str(str_row2.as_str());
             row3.push_str(str_row3.as_str());
             row4.push_str(str_row4.as_str());
+            
+            row1.push_str("┐\n");
+            row2.push_str("│\n");
+            row3.push_str("│\n");
+            row4.push_str("┘\n");
+            f.write_str(row1.as_str())?;
+            f.write_str(row2.as_str())?;
+            f.write_str(row3.as_str())?;
+            f.write_str(row4.as_str())
         }
-        let mut str_row1 = format!("{}", self.w.x());
-        let mut str_row2 = format!("{}", self.w.y());
-        let mut str_row3 = format!("{}", self.w.z());
-        let mut str_row4 = format!("{}", self.w.w());
-        let max = str_row1.len().max(str_row2.len().max(str_row3.len().max(str_row4.len())));
-        str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
-        str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
-        str_row3.push_str((0..(max-str_row3.len())).map(|_|{' '}).collect::<String>().as_str());
-        str_row4.push_str((0..(max-str_row4.len())).map(|_|{' '}).collect::<String>().as_str());
-        row1.push_str(str_row1.as_str());
-        row2.push_str(str_row2.as_str());
-        row3.push_str(str_row3.as_str());
-        row4.push_str(str_row4.as_str());
-        
-        row1.push_str("┐\n");
-        row2.push_str("│\n");
-        row3.push_str("│\n");
-        row4.push_str("┘\n");
-        f.write_str(row1.as_str())?;
-        f.write_str(row2.as_str())?;
-        f.write_str(row3.as_str())?;
-        f.write_str(row4.as_str())
+    }
+
+    impl<T: Number> From<Matrix4<T>> for alloc::vec::Vec<T> {
+        fn from(value: Matrix4<T>) -> Self {
+            alloc::vec![
+                value.x().x(), value.x().y(), value.x().z(), value.x().w(), 
+                value.y().x(), value.y().y(), value.y().z(), value.y().w(), 
+                value.z().x(), value.z().y(), value.z().z(), value.z().w(),
+                value.w().x(), value.w().y(), value.w().z(), value.w().w(),
+            ]
+        }
+    }
+    impl<T: Number> From<Matrix3<T>> for alloc::vec::Vec<T> {
+        fn from(value: Matrix3<T>) -> Self {
+            alloc::vec![
+                value.x().x(), value.x().y(), value.x().z(), 
+                value.y().x(), value.y().y(), value.y().z(), 
+                value.z().x(), value.z().y(), value.z().z(),
+            ]
+        }
+    }
+    impl<T: Number> From<Matrix2<T>> for alloc::vec::Vec<T> {
+        fn from(value: Matrix2<T>) -> Self {
+            alloc::vec![
+                value.x().x(), value.x().y(), 
+                value.y().x(), value.y().y(), 
+            ]
+        }
     }
 }
 
-impl<T: Number> From<Matrix4<T>> for Vec<T> {
-    fn from(value: Matrix4<T>) -> Self {
-        vec![
-            value.x().x(), value.x().y(), value.x().z(), value.x().w(), 
-            value.y().x(), value.y().y(), value.y().z(), value.y().w(), 
-            value.z().x(), value.z().y(), value.z().z(), value.z().w(),
-            value.w().x(), value.w().y(), value.w().z(), value.w().w(),
-        ]
-    }
-}
-impl<T: Number> From<Matrix3<T>> for Vec<T> {
-    fn from(value: Matrix3<T>) -> Self {
-        vec![
-            value.x().x(), value.x().y(), value.x().z(), 
-            value.y().x(), value.y().y(), value.y().z(), 
-            value.z().x(), value.z().y(), value.z().z(),
-        ]
-    }
-}
-impl<T: Number> From<Matrix2<T>> for Vec<T> {
-    fn from(value: Matrix2<T>) -> Self {
-        vec![
-            value.x().x(), value.x().y(), 
-            value.y().x(), value.y().y(), 
-        ]
-    }
-}
 impl<T: Number> From<Matrix4<T>> for [T; 4*4] {
     fn from(value: Matrix4<T>) -> Self {
         [
@@ -1057,10 +1065,12 @@ impl<T: Number> From<Matrix2<T>> for [Vector2<T>; 2] {
         ]
     }
 }
+#[cfg(feature = "alloc")]
+pub use alloc_feature::*;
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Mul;
+    use core::ops::Mul;
 
     use crate::{matrix::SquareMatrix, vector::{FMat2, FMat3, FMat4, FVec2, FVec3, FVec4, Vector}, One};
     #[test]

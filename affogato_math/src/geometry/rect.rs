@@ -1,5 +1,5 @@
 #![allow(unused)]
-use std::{fmt::Debug, ops::{Deref, Div}};
+use core::{fmt::Debug, ops::{Deref, Div}};
 
 use bytemuck::{Pod, Zeroable};
 
@@ -9,43 +9,43 @@ use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
 macro_rules! impl_ops_rect {
     ($structure:tt, $vector:tt) => {
-        impl<T: Number> std::ops::Add<$vector<T>> for $structure<T> {
+        impl<T: Number> core::ops::Add<$vector<T>> for $structure<T> {
             type Output = Self;
             fn add(self, rhs: $vector<T>) -> Self::Output {
                 Self { min: self.min+rhs, max: self.max+rhs }
             }
         }
-        impl<T: Number> std::ops::Sub<$vector<T>> for $structure<T> {
+        impl<T: Number> core::ops::Sub<$vector<T>> for $structure<T> {
             type Output = Self;
             fn sub(self, rhs: $vector<T>) -> Self::Output {
                 Self { min: self.min-rhs, max: self.max-rhs }
             }
         }
-        impl<T: Number> std::ops::Mul<$vector<T>> for $structure<T> {
+        impl<T: Number> core::ops::Mul<$vector<T>> for $structure<T> {
             type Output = Self;
             fn mul(self, rhs: $vector<T>) -> Self::Output {
                 Self { min: self.min*rhs, max: self.max*rhs }
             }
         }
-        impl<T: Number> std::ops::Div<$vector<T>> for $structure<T> {
+        impl<T: Number> core::ops::Div<$vector<T>> for $structure<T> {
             type Output = Self;
             fn div(self, rhs: $vector<T>) -> Self::Output {
                 Self { min: self.min/rhs, max: self.max/rhs }
             }
         }
-        impl<T: Number> std::ops::Mul<T> for $structure<T> {
+        impl<T: Number> core::ops::Mul<T> for $structure<T> {
             type Output = Self;
             fn mul(self, rhs: T) -> Self::Output {
                 Self { min: self.min*rhs, max: self.max*rhs }
             }
         }
-        impl<T: Number> std::ops::Div<T> for $structure<T> {
+        impl<T: Number> core::ops::Div<T> for $structure<T> {
             type Output = Self;
             fn div(self, rhs: T) -> Self::Output {
                 Self { min: self.min/rhs, max: self.max/rhs }
             }
         }
-        impl<T: Number> std::cmp::PartialEq for $structure<T> {
+        impl<T: Number> core::cmp::PartialEq for $structure<T> {
             fn eq(&self, other: &Self) -> bool {
                 self.min == other.min && self.max == other.max
             }
@@ -73,7 +73,7 @@ pub struct ConstRect3D<T: Number> {
 impl<T: Number> Deref for Rect3D<T> {
     type Target = ConstRect3D<T>;
     fn deref(&self) -> &Self::Target {
-        unsafe { std::mem::transmute(self) }
+        unsafe { core::mem::transmute(self) }
     }
 }
 impl<T: Number> HyperCube<T> for Rect3D<T> {
@@ -195,64 +195,6 @@ impl<T: Number> Rect3D<T> {
     pub fn max(&self, other: &Self) -> Self {
         Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
     }
-    /// gets the vertices of the cube in the following order
-    /// ```no_run,ignore
-    ///         7───────────────────5
-    ///        ╱                   ╱│
-    ///       ╱                   ╱ │
-    ///      ╱                   ╱  │
-    ///     3───────────────────1   │
-    ///     │                   │   │
-    ///     │   4               │   6
-    ///     │                   │  ╱
-    ///     │                   │ ╱
-    ///     │                   │╱
-    ///     0───────────────────2
-    /// ```
-    pub fn get_vertices(&self) -> Vec<Vector3<T>> {
-        vec![
-            Vector3::new(self.min.x(), self.min.y(), self.min.z()),
-            Vector3::new(self.max.x(), self.max.y(), self.min.z()),
-            Vector3::new(self.max.x(), self.min.y(), self.min.z()),
-            Vector3::new(self.min.x(), self.max.y(), self.min.z()),
-            Vector3::new(self.min.x(), self.min.y(), self.max.z()),
-            Vector3::new(self.max.x(), self.max.y(), self.max.z()),
-            Vector3::new(self.max.x(), self.min.y(), self.max.z()),
-            Vector3::new(self.min.x(), self.max.y(), self.max.z())
-        ]
-    }
-    pub fn get_edge_indices(&self) -> Vec<u32> {
-        vec![
-            0, 2,
-            2, 1,
-            1, 3,
-            3, 0,
-            0, 4,
-            4, 7,
-            7, 3,
-            7, 5,
-            5, 6,
-            6, 4,
-            5, 1,
-            6, 2,
-        ]
-    }
-    pub fn get_tri_indices(&self) -> Vec<u32> {
-        vec![
-            0, 2, 1,
-            1, 3, 0,
-            2, 6, 5,
-            5, 1, 2,
-            6, 4, 7,
-            7, 5, 6,
-            4, 0, 3,
-            3, 7, 4,
-            0, 2, 6,
-            6, 4, 0,
-            3, 1, 5,
-            5, 7, 3
-        ]
-    }
     pub fn intersect_point(&self, point: &Vector3<T>) -> bool {
         point.x() >= self.min.x()  &&
         point.x() <= self.max.x() &&
@@ -275,7 +217,7 @@ impl<T: Number> Rect3D<T> {
         Self { min: -origin, max: origin }
     }
     #[cfg(feature="rand")]
-    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+    pub fn random(generator: &mut impl rand::Rng, range: core::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
             Self::new(Vector3::random(generator, range.clone()), Vector3::random(generator, range)).fix_bounds()
     }
@@ -321,7 +263,7 @@ pub struct ConstRect<T: Number> {
 impl<T: Number> Deref for Rect<T> {
     type Target = ConstRect<T>;
     fn deref(&self) -> &Self::Target {
-        unsafe { std::mem::transmute(self) }
+        unsafe { core::mem::transmute(self) }
     }
 }
 impl<T: Number> HyperCube<T> for Rect<T> {
@@ -422,36 +364,6 @@ impl<T: Number> Rect<T> {
     pub fn max(&self, other: &Self) -> Self {
         Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
     }
-    /// gets the vertices of the rectangle in the following order
-    /// ```no_run,ignore
-    /// 3─────────2
-    /// │         │
-    /// │         │
-    /// │         │
-    /// 0─────────1
-    /// ```
-    pub fn get_vertices(&self) -> Vec<Vector2<T>> {
-        vec![
-            Vector2::new(self.min.x(), self.min.y()),
-            Vector2::new(self.max.x(), self.min.y()),
-            Vector2::new(self.max.x(), self.max.y()),
-            Vector2::new(self.min.x(), self.max.y()),
-        ]
-    }
-    pub fn get_edge_indices(&self) -> Vec<u32> {
-        vec![
-            0, 1,
-            1, 2,
-            2, 3,
-            3, 0
-        ]
-    }
-    pub fn get_tri_indices(&self) -> Vec<u32> {
-        vec![
-            0, 1, 2,
-            2, 3, 0
-        ]
-    }
     pub fn intersect_point(&self, point: &Vector2<T>) -> bool {
         point.x() >= self.min.x()  &&
         point.x() <= self.max.x() &&
@@ -470,7 +382,7 @@ impl<T: Number> Rect<T> {
         Self { min: -origin, max: origin }
     }
     #[cfg(feature="rand")]
-    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+    pub fn random(generator: &mut impl rand::Rng, range: core::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
             Self::new(Vector2::random(generator, range.clone()), Vector2::random(generator, range)).fix_bounds()
     }
@@ -601,7 +513,6 @@ pub fn pack_rects_rows_payload<T: Number + Ord, K: Clone>(rects: &mut [(Rect<T>,
             }
 
             if y_pos + rect.height() > height {
-                println!("{} {}", width.to_f64()*GROWTH_FACTOR, height.to_f64()*GROWTH_FACTOR);
                 let info = PackingInfo {
                     width_hint: T::from_f64(width.to_f64()*GROWTH_FACTOR),
                     height_hint: T::from_f64(height.to_f64()*GROWTH_FACTOR),
@@ -631,6 +542,105 @@ pub fn pack_rects_rows_payload<T: Number + Ord, K: Clone>(rects: &mut [(Rect<T>,
 /// it is the [`Rect`] returned by the function.
 /// * This function will order in place
 pub fn pack_rects_rows<T: Number + Ord>(rects: &mut [Rect<T>], info: PackingInfo<T>) -> Rect<T> {
-    let rects: &mut [(Rect<T>, ())] = unsafe { std::slice::from_raw_parts_mut(rects.as_mut() as *mut _ as _, rects.len()) };
+    let rects: &mut [(Rect<T>, ())] = unsafe { core::slice::from_raw_parts_mut(rects.as_mut() as *mut _ as _, rects.len()) };
     pack_rects_rows_payload(rects, info)
+}
+
+#[cfg(feature="alloc")]
+mod alloc_feature {
+    use crate::{geometry::{Rect, Rect3D}, vector::{Vector2, Vector3}, Number};
+
+    extern crate alloc;
+    impl<T: Number> Rect3D<T> {
+        /// gets the vertices of the cube in the following order
+        /// ```no_run,ignore
+        ///         7───────────────────5
+        ///        ╱                   ╱│
+        ///       ╱                   ╱ │
+        ///      ╱                   ╱  │
+        ///     3───────────────────1   │
+        ///     │                   │   │
+        ///     │   4               │   6
+        ///     │                   │  ╱
+        ///     │                   │ ╱
+        ///     │                   │╱
+        ///     0───────────────────2
+        /// ```
+        pub fn get_vertices(&self) -> alloc::vec::Vec<Vector3<T>> {
+            alloc::vec![
+                Vector3::new(self.min.x(), self.min.y(), self.min.z()),
+                Vector3::new(self.max.x(), self.max.y(), self.min.z()),
+                Vector3::new(self.max.x(), self.min.y(), self.min.z()),
+                Vector3::new(self.min.x(), self.max.y(), self.min.z()),
+                Vector3::new(self.min.x(), self.min.y(), self.max.z()),
+                Vector3::new(self.max.x(), self.max.y(), self.max.z()),
+                Vector3::new(self.max.x(), self.min.y(), self.max.z()),
+                Vector3::new(self.min.x(), self.max.y(), self.max.z())
+            ]
+        }
+        pub fn get_edge_indices(&self) -> alloc::vec::Vec<u32> {
+            alloc::vec![
+                0, 2,
+                2, 1,
+                1, 3,
+                3, 0,
+                0, 4,
+                4, 7,
+                7, 3,
+                7, 5,
+                5, 6,
+                6, 4,
+                5, 1,
+                6, 2,
+            ]
+        }
+        pub fn get_tri_indices(&self) -> alloc::vec::Vec<u32> {
+            alloc::vec![
+                0, 2, 1,
+                1, 3, 0,
+                2, 6, 5,
+                5, 1, 2,
+                6, 4, 7,
+                7, 5, 6,
+                4, 0, 3,
+                3, 7, 4,
+                0, 2, 6,
+                6, 4, 0,
+                3, 1, 5,
+                5, 7, 3
+            ]
+        }
+    }
+    impl<T: Number> Rect<T> {
+        /// gets the vertices of the rectangle in the following order
+        /// ```no_run,ignore
+        /// 3─────────2
+        /// │         │
+        /// │         │
+        /// │         │
+        /// 0─────────1
+        /// ```
+        pub fn get_vertices(&self) -> alloc::vec::Vec<Vector2<T>> {
+            alloc::vec![
+                Vector2::new(self.min.x(), self.min.y()),
+                Vector2::new(self.max.x(), self.min.y()),
+                Vector2::new(self.max.x(), self.max.y()),
+                Vector2::new(self.min.x(), self.max.y()),
+            ]
+        }
+        pub fn get_edge_indices(&self) -> alloc::vec::Vec<u32> {
+            alloc::vec![
+                0, 1,
+                1, 2,
+                2, 3,
+                3, 0
+            ]
+        }
+        pub fn get_tri_indices(&self) -> alloc::vec::Vec<u32> {
+            alloc::vec![
+                0, 1, 2,
+                2, 3, 0
+            ]
+        }
+    }
 }

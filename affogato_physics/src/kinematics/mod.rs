@@ -1,4 +1,8 @@
+#![cfg(feature="alloc")]
 use affogato_math::{vector::Vector, FromPrimitive, Real, Zero};
+
+extern crate alloc;
+
 #[derive(Clone, Debug)]
 struct KinematicSegment<V: Vector> 
     where V::Scalar: Real {
@@ -17,12 +21,12 @@ impl<V: Vector> KinematicSegment<V>
 }
 pub struct KinematicSegmentList<V: Vector> 
     where V::Scalar: Real {
-    segments: Vec<KinematicSegment<V>>,
+    segments: alloc::vec::Vec<KinematicSegment<V>>,
     length: V::Scalar,
 }
-impl<V: Vector + std::fmt::Debug> std::fmt::Debug for KinematicSegmentList<V>
-    where V::Scalar: Real + std::fmt::Debug {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<V: Vector + alloc::fmt::Debug> alloc::fmt::Debug for KinematicSegmentList<V>
+    where V::Scalar: Real + alloc::fmt::Debug {
+    fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
         f.debug_struct("KinematicSegmentList")
             .field("segments", &self.segments)
             .finish()
@@ -36,7 +40,7 @@ impl<V: Vector> KinematicSegmentList<V>
         let root = KinematicSegment::as_root(root);
         Self { 
             length: root.length, 
-            segments: vec![root] 
+            segments: alloc::vec![root] 
         }
     }
     fn fabrik_front(&mut self, to: V, edge_index: usize) {

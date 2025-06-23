@@ -12,6 +12,8 @@ affogato_math = { path = "affogato_math" }
 affogato_physics = { path = "affogato_physics" }
 graphics_feature = { path = "graphics_feature" }
 [features]
+default = ["alloc"]
+alloc = ["affogato_math/alloc", "affogato_physics/alloc", "graphics_feature/alloc"]
 rand = ["dep:rand", "affogato_math/rand"]
 physics = []
 godot = ["affogato_math/godot"]

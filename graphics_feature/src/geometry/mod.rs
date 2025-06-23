@@ -1,3 +1,6 @@
+#![cfg(feature="alloc")]
+extern crate alloc;
+use alloc::vec::Vec;
 use affogato_math::{geometry::{Rect3D, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector, Vector2, Vector3}, Number, Real};
 use affogato_physics::kinematics::KinematicSegmentList;
 pub enum VertexTopology {
@@ -19,7 +22,7 @@ impl<T: Number> Geometry<Vector3<T>> for Rect3D<T> {
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>> {
         match topology {
             VertexTopology::Line => Some(self.get_edge_indices()),
-            VertexTopology::Point => Some(vec![0, 1, 2, 3, 4, 5, 6, 7]),
+            VertexTopology::Point => Some(alloc::vec![0, 1, 2, 3, 4, 5, 6, 7]),
             VertexTopology::Triangle => Some(self.get_tri_indices()),
             _ => None,
         }
@@ -33,7 +36,7 @@ impl<T: Number> Geometry<Vector2<T>> for Rect<T> {
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>> {
         match topology {
             VertexTopology::Line => Some(self.get_edge_indices()),
-            VertexTopology::Point => Some(vec![0, 1, 2, 3]),
+            VertexTopology::Point => Some(alloc::vec![0, 1, 2, 3]),
             VertexTopology::Triangle => Some(self.get_tri_indices()),
             _ => None,
         }
@@ -42,13 +45,13 @@ impl<T: Number> Geometry<Vector2<T>> for Rect<T> {
 
 impl<T: Number> Geometry<Vector2<T>> for Triangle2D<T> {
     fn vertices(&self) -> Vec<Vector2<T>> {
-        vec![self[0], self[1], self[2]]
+        alloc::vec![self[0], self[1], self[2]]
     }
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>> {
         match topology {
-            VertexTopology::Line => Some(vec![0, 1, 1, 2, 2, 3]),
-            VertexTopology::Point => Some(vec![0, 1, 2]),
-            VertexTopology::Triangle => Some(vec![0, 1, 2]),
+            VertexTopology::Line => Some(alloc::vec![0, 1, 1, 2, 2, 3]),
+            VertexTopology::Point => Some(alloc::vec![0, 1, 2]),
+            VertexTopology::Triangle => Some(alloc::vec![0, 1, 2]),
             _ => None,
         }
     }
@@ -56,25 +59,25 @@ impl<T: Number> Geometry<Vector2<T>> for Triangle2D<T> {
 
 impl<T: Number> Geometry<Vector3<T>> for Triangle3D<T> {
     fn vertices(&self) -> Vec<Vector3<T>> {
-        vec![self[0], self[1], self[2]]
+        alloc::vec![self[0], self[1], self[2]]
     }
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>> {
         match topology {
-            VertexTopology::Line => Some(vec![0, 1, 1, 2, 2, 3]),
-            VertexTopology::Point => Some(vec![0, 1, 2]),
-            VertexTopology::Triangle => Some(vec![0, 1, 2]),
+            VertexTopology::Line => Some(alloc::vec![0, 1, 1, 2, 2, 3]),
+            VertexTopology::Point => Some(alloc::vec![0, 1, 2]),
+            VertexTopology::Triangle => Some(alloc::vec![0, 1, 2]),
             _ => None,
         }
     }
 }
 impl<T: Number> Geometry<Vector2<T>> for LinearSegment2D<T> {
     fn vertices(&self) -> Vec<Vector2<T>> {
-        vec![self.start, self.end]
+        alloc::vec![self.start, self.end]
     }
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>> {
         match topology {
-            VertexTopology::Line => Some(vec![0, 1]),
-            VertexTopology::Point => Some(vec![0, 1]),
+            VertexTopology::Line => Some(alloc::vec![0, 1]),
+            VertexTopology::Point => Some(alloc::vec![0, 1]),
             _ => None,
         }
     }
@@ -82,12 +85,12 @@ impl<T: Number> Geometry<Vector2<T>> for LinearSegment2D<T> {
 
 impl<T: Number> Geometry<Vector2<T>> for QuadraticSegment2D<T> {
     fn vertices(&self) -> Vec<Vector2<T>> {
-        vec![self.start, self.control, self.end]
+        alloc::vec![self.start, self.control, self.end]
     }
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>> {
         match topology {
-            VertexTopology::Line => Some(vec![0, 1, 1, 2]),
-            VertexTopology::Point => Some(vec![0, 1, 2]),
+            VertexTopology::Line => Some(alloc::vec![0, 1, 1, 2]),
+            VertexTopology::Point => Some(alloc::vec![0, 1, 2]),
             _ => None,
         }
     }
@@ -95,12 +98,12 @@ impl<T: Number> Geometry<Vector2<T>> for QuadraticSegment2D<T> {
 
 impl<T: Number> Geometry<Vector2<T>> for CubicSegment2D<T> {
     fn vertices(&self) -> Vec<Vector2<T>> {
-        vec![self.start, self.control1, self.control2, self.end]
+        alloc::vec![self.start, self.control1, self.control2, self.end]
     }
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>> {
         match topology {
-            VertexTopology::Line => Some(vec![0, 1, 1, 2, 2, 3]),
-            VertexTopology::Point => Some(vec![0, 1, 2, 3]),
+            VertexTopology::Line => Some(alloc::vec![0, 1, 1, 2, 2, 3]),
+            VertexTopology::Point => Some(alloc::vec![0, 1, 2, 3]),
             _ => None,
         }
     }

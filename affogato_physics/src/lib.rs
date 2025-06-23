@@ -1,3 +1,4 @@
+#![no_std]
 use affogato_math::{geometry::Rect3D, matrix::{Matrix3, SquareMatrix}, vector::{Vector, Vector3}, Real};
 
 pub mod kinematics;
@@ -9,7 +10,6 @@ pub trait Inertia {
     fn inertia(&self, density: <<Self::Tensor as SquareMatrix>::Column as Vector>::Scalar) -> Self::Tensor;
     fn inertia_with_mass(&self, mass: <<Self::Tensor as SquareMatrix>::Column as Vector>::Scalar) -> Self::Tensor;
 }
-
 impl<T: Real> Inertia for Rect3D<T> {
     type Tensor = Matrix3<T>;
     fn inertia(&self, density: <<Self::Tensor as SquareMatrix>::Column as Vector>::Scalar) -> Self::Tensor {

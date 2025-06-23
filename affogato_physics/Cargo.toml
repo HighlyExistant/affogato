@@ -5,3 +5,7 @@ edition = "2024"
 
 [dependencies]
 affogato_math = { path = "../affogato_math" }
+
+[features]
+default = ["alloc"]
+alloc = []

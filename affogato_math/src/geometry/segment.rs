@@ -1,9 +1,11 @@
 #![allow(unused)]
-use std::{fmt::{Debug, Display}, ops::{Deref, Sub}};
+use core::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
 use crate::{lerp, vector::{OuterProduct, Vector, Vector2}, Number, Real, Zero};
 
 use super::Dimension;
+#[cfg(feature="alloc")]
+extern crate alloc;
 
 pub trait Segment {
     type VectorType: Vector;
@@ -36,7 +38,8 @@ pub trait Segment {
     fn adjust_end_point(&mut self, to: Self::VectorType);
     fn adjust_start_point(&mut self, to: Self::VectorType);
     /// Splits the [`Segment`] into 3 segments.
-    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+    #[cfg(feature="alloc")]
+    fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
         where <Self::VectorType as Vector>::Scalar: Real,
         Self: 'static;
 }
@@ -47,7 +50,7 @@ pub struct LinearSegment2D<T: Number> {
     pub end: Vector2<T>,
 }
 impl<T: Debug + Number> Debug for LinearSegment2D<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("LinearSegment2D")
             .field("start", &self.start)
             .field("end", &self.end)
@@ -81,7 +84,6 @@ impl<T: Number> LinearSegment2D<T> {
     }
     pub fn recalculate_endpoint(&self, length: T, angle: T) -> Self
         where T: Real + Debug {
-        println!("{:?}", angle);
         let dx = angle.cos()*length;
         let dy = angle.sin()*length;
         Self { start: self.start, end: Vector2::new(self.start.x()+dx, self.start.y()+dy) }
@@ -145,15 +147,16 @@ impl<T: Number> Segment for LinearSegment2D<T> {
     fn adjust_start_point(&mut self, to: Vector2<T>) {
         self.start = to;
     }
-    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+    #[cfg(feature="alloc")]
+    fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
         where <Self::VectorType as Vector>::Scalar: Real,
         Self: 'static {
         let a = self.get(1.0/3.0);
         let b = self.get(1.0/2.0);
         [
-            Box::new(Self::new(self[0], a)),
-            Box::new(Self::new(a, b)),
-            Box::new(Self::new(b, self[1]))
+            alloc::boxed::Box::new(Self::new(self[0], a)),
+            alloc::boxed::Box::new(Self::new(a, b)),
+            alloc::boxed::Box::new(Self::new(b, self[1]))
         ]
     }
 
@@ -161,7 +164,7 @@ impl<T: Number> Segment for LinearSegment2D<T> {
 impl<T: Number> Deref for LinearSegment2D<T> {
     type Target = [Vector2<T>; 2];
     fn deref(&self) -> &Self::Target {
-        unsafe { std::mem::transmute::<&Self, &[Vector2<T>; 2]>(self) }
+        unsafe { core::mem::transmute::<&Self, &[Vector2<T>; 2]>(self) }
     }
 }
 
@@ -172,7 +175,7 @@ pub struct QuadraticSegment2D<T: Number> {
     pub end: Vector2<T>,
 }
 impl<T: Debug + Number> Debug for QuadraticSegment2D<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("QuadraticSegment2D")
             .field("start", &self.start)
             .field("control", &self.control)
@@ -244,7 +247,8 @@ impl<T: Number> Segment for QuadraticSegment2D<T> {
             self.control = orig_p1;
         }
     }
-    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+    #[cfg(feature="alloc")]
+    fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
             where <Self::VectorType as Vector>::Scalar: Real,
             Self: 'static {
         let p0p01_13 = lerp(self[0], self[1], T::from_f64(1.0/3.0));
@@ -254,16 +258,16 @@ impl<T: Number> Segment for QuadraticSegment2D<T> {
         let part2 = QuadraticSegment2D::new(p_13, lerp(lerp(self[0], self[1], T::from_f64(5.0/9.0)), lerp(self[1], self[2], T::from_f64(4.0/9.0)), T::from_f64(0.5)), p_23);
         let part3 = QuadraticSegment2D::new(p_23, lerp(self[1], self[2], T::from_f64(2.0/3.0)), self[2]);
         [
-            Box::new(part1),
-            Box::new(part2),
-            Box::new(part3),
+            alloc::boxed::Box::new(part1),
+            alloc::boxed::Box::new(part2),
+            alloc::boxed::Box::new(part3),
         ]
     }
 }
 impl<T: Number> Deref for QuadraticSegment2D<T> {
     type Target = [Vector2<T>; 3];
     fn deref(&self) -> &Self::Target {
-        unsafe { std::mem::transmute::<&Self, &[Vector2<T>; 3]>(self) }
+        unsafe { core::mem::transmute::<&Self, &[Vector2<T>; 3]>(self) }
     }
 }
 
@@ -275,7 +279,7 @@ pub struct CubicSegment2D<T: Number> {
     pub end: Vector2<T>,
 }
 impl<T: Debug + Number> Debug for CubicSegment2D<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("CubicSegment2D")
             .field("start", &self.start)
             .field("control1", &self.control1)
@@ -361,7 +365,8 @@ impl<T: Number> Segment for CubicSegment2D<T> {
         self.control2 += to-self.end;
         self.end = to;
     }
-    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+    #[cfg(feature="alloc")]
+    fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
             where <Self::VectorType as Vector>::Scalar: Real,
             Self: 'static {
         let t_1_3 = T::from_f64(1.0/3.0);
@@ -387,9 +392,9 @@ impl<T: Number> Segment for CubicSegment2D<T> {
         let part3 = CubicSegment2D::new(part_2_3, part_3_1, part_3_2, self[3]);
 
         [
-            Box::new(part1),
-            Box::new(part2),
-            Box::new(part3),
+            alloc::boxed::Box::new(part1),
+            alloc::boxed::Box::new(part2),
+            alloc::boxed::Box::new(part3),
         ]
     }
 }
@@ -397,7 +402,7 @@ impl<T: Number> Segment for CubicSegment2D<T> {
 impl<T: Number> Deref for CubicSegment2D<T> {
     type Target = [Vector2<T>; 4];
     fn deref(&self) -> &Self::Target {
-        unsafe { std::mem::transmute::<&Self, &[Vector2<T>; 4]>(self) }
+        unsafe { core::mem::transmute::<&Self, &[Vector2<T>; 4]>(self) }
     }
 }
 #[derive(Clone, Debug)]
@@ -407,7 +412,7 @@ pub enum Segment2D<T: Number> {
     Cubic(CubicSegment2D<T>),
 }
 impl<T: Debug + Number> Display for Segment2D<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Segment2D::Linear(linear) => f.write_fmt(format_args!("{:?}", linear)),
             Segment2D::Quadratic(quadratic) => f.write_fmt(format_args!("{:?}", quadratic)),
@@ -497,7 +502,8 @@ impl<T: Number> Segment for Segment2D<T> {
     fn adjust_end_point(&mut self, to: Self::VectorType) {
         self.get_mut().adjust_end_point(to)
     }
-    fn split_in_thirds(&self) -> [Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
+    #[cfg(feature="alloc")]
+    fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
             where <Self::VectorType as Vector>::Scalar: Real,
             Self: 'static {
         match self {

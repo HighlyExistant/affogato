@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use crate::{Number, Real};
 /// Contains all real solutions to a polynomial. Any imaginary solutions are discarded.
@@ -8,11 +8,8 @@ pub struct PolynomialSolutions<T: Number, const N: usize> {
 }
 
 impl<T: Debug + Number, const N: usize> Debug for PolynomialSolutions<T, N> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut solutions = Vec::with_capacity(self.total);
-        for i in 0..self.total {
-            solutions.push(self.solutions[i]);
-        }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let solutions = unsafe { core::slice::from_raw_parts(self.solutions.as_ptr(), self.total) };
         f.debug_struct("Polynomial Solutions")
             .field("solutions", &solutions)
             .finish()
@@ -60,7 +57,7 @@ pub fn solve_quadratic<T: Real>(a: T, b: T, c: T) -> Option<PolynomialSolutions<
         let mut solution1 = (-b+discriminant)/(T::from_f64(2.0)*a);
         let mut solution2 = (-b-discriminant)/(T::from_f64(2.0)*a);
         if solution1 > solution2 {
-            std::mem::swap(&mut solution1, &mut solution2);
+            core::mem::swap(&mut solution1, &mut solution2);
         }
         return Some(PolynomialSolutions::new([solution1 , solution2], 2));
     } else if discriminant == T::ZERO {

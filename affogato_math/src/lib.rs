@@ -1,3 +1,4 @@
+#![no_std]
 #![allow(unused)]
 mod sets;
 mod animation;

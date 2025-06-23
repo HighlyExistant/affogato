@@ -1,4 +1,4 @@
-use affogato_math::{matrix::SquareMatrix, vector::{FMat3, FMat4, FVec3, OuterProduct, Vector}, Zero};
+use affogato_math::{matrix::SquareMatrix, vector::{FMat3, FMat4, FVec3, OuterProduct, Vector}, FloatingPoint, Zero};
 pub struct Camera {
     projection: FMat4,
     view: FMat4,

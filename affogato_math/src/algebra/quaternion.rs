@@ -1,5 +1,5 @@
 #![allow(unused)]
-use std::fmt::{Debug, Display};
+use core::fmt::{Debug, Display};
 
 use crate::{matrix::{Matrix3, Matrix4}, vector::{Vector, Vector3, Vector4}, Number, Real, Zero};
 /// Represents a number with 1 real scalar component `w` and 1 vector component 
@@ -17,27 +17,6 @@ pub struct Quaternion<T: Real> {
 impl<T: Real> Default for Quaternion<T> {
     fn default() -> Self {
         Self::from_scalar_vector(Vector3::ZERO, T::ONE)
-    }
-}
-impl<T: Real + Display> Display for Quaternion<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let w = format!("{}", self.w);
-        let i = if self.i.is_negative() {
-            format!("- {}i", self.i.abs())
-        } else {
-            format!("+ {}i", self.i.abs())
-        };
-        let j = if self.j.is_negative() {
-            format!("- {}j", self.j.abs())
-        } else {
-            format!("+ {}j", self.j.abs())
-        };
-        let k = if self.k.is_negative() {
-            format!("- {}k", self.k.abs())
-        } else {
-            format!("+ {}k", self.k.abs())
-        };
-        f.write_str(format!("{w} {i} {j} {k}").as_str())
     }
 }
 pub fn normalize_radians<T: Real>(a: T) -> T {
@@ -213,7 +192,7 @@ impl<T: Real> From<Quaternion<T>> for Matrix3<T> {
 }
 // traits for bitwise operations
 
-impl<T: Real> std::ops::Mul<Vector3<T>> for Quaternion<T> {
+impl<T: Real> core::ops::Mul<Vector3<T>> for Quaternion<T> {
     fn mul(self, rhs: Vector3<T>) -> Self::Output {
         let x2 = self.i + self.i;
         let y2 = self.j + self.j;
@@ -239,7 +218,7 @@ impl<T: Real> std::ops::Mul<Vector3<T>> for Quaternion<T> {
     }
     type Output = Vector3<T>;
 }
-impl<T: Real> std::ops::Neg for Quaternion<T>  {
+impl<T: Real> core::ops::Neg for Quaternion<T>  {
     fn neg(self) -> Self::Output {
         Self::new(
             -self.w,
@@ -250,7 +229,7 @@ impl<T: Real> std::ops::Neg for Quaternion<T>  {
     }
     type Output = Self;
 }
-impl<T: Real> std::ops::Mul<T> for Quaternion<T>  {
+impl<T: Real> core::ops::Mul<T> for Quaternion<T>  {
     fn mul(self, rhs: T) -> Self::Output {
         Self::new(
             self.w*rhs, 
@@ -261,7 +240,7 @@ impl<T: Real> std::ops::Mul<T> for Quaternion<T>  {
     }
     type Output = Self;
 }
-impl<T: Real> std::ops::Add for Quaternion<T>  {
+impl<T: Real> core::ops::Add for Quaternion<T>  {
     fn add(self, rhs: Self) -> Self::Output {
         Self::new(
             self.w*rhs.w, 
@@ -272,7 +251,7 @@ impl<T: Real> std::ops::Add for Quaternion<T>  {
     }
     type Output = Self;
 }
-impl<T: Real> std::ops::Mul for Quaternion<T>  {
+impl<T: Real> core::ops::Mul for Quaternion<T>  {
     fn mul(self, rhs: Self) -> Self::Output {
         Self { 
             w: self.w * rhs.w - self.i * rhs.i - self.j * rhs.j - self.k * rhs.k,
@@ -295,14 +274,40 @@ impl<T: Real> From<Quaternion<T>> for Matrix4<T> {
     }
 }
 
-impl<T: Real> std::ops::Mul<Vector4<T>> for Quaternion<T> {
+impl<T: Real> core::ops::Mul<Vector4<T>> for Quaternion<T> {
     type Output = Vector4<T>;
     fn mul(self, rhs: Vector4<T>) -> Self::Output {
         Matrix4::from(self)*rhs
     }
 }
 
+#[cfg(feature="alloc")]
+mod alloc_feature {
+    use core::fmt::Display;
 
-mod test {
+    use crate::{algebra::Quaternion, Real};
 
+    extern crate alloc;
+
+    impl<T: Real + Display> Display for Quaternion<T> {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            let w = alloc::format!("{}", self.w);
+            let i = if self.i.is_negative() {
+                alloc::format!("- {}i", self.i.abs())
+            } else {
+                alloc::format!("+ {}i", self.i.abs())
+            };
+            let j = if self.j.is_negative() {
+                alloc::format!("- {}j", self.j.abs())
+            } else {
+                alloc::format!("+ {}j", self.j.abs())
+            };
+            let k = if self.k.is_negative() {
+                alloc::format!("- {}k", self.k.abs())
+            } else {
+                alloc::format!("+ {}k", self.k.abs())
+            };
+            f.write_str(alloc::format!("{w} {i} {j} {k}").as_str())
+        }
+    }
 }

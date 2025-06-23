@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use crate::{vector::{OuterProduct, Vector, Vector3}, Real, Zero};
 
@@ -103,14 +103,14 @@ impl<T: Real> Ray3D<T>  {
     //     let mut tmax = (rect.max.x - self.origin.x) / self.direction.x; 
 
     //     if tmin > tmax {
-    //         std::mem::swap(&mut tmin, &mut tmax);
+    //         core::mem::swap(&mut tmin, &mut tmax);
     //     } 
 
     //     let mut tymin = (rect.min.y - self.origin.y) / self.direction.y; 
     //     let mut tymax = (rect.max.y - self.origin.y) / self.direction.y; 
 
     //     if tymin > tymax {
-    //         std::mem::swap(&mut tymin, &mut tymax);
+    //         core::mem::swap(&mut tymin, &mut tymax);
     //     } 
 
     //     if tmin > tymax || tymin > tmax {
@@ -128,7 +128,7 @@ impl<T: Real> Ray3D<T>  {
     //     let mut tzmax = (rect.max.z - self.origin.z) / self.direction.z; 
 
     //     if tzmin > tzmax {
-    //         std::mem::swap(&mut tzmin, &mut tzmax);
+    //         core::mem::swap(&mut tzmin, &mut tzmax);
     //     } 
 
     //     if tmin > tzmax || tzmin > tmax {

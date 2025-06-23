@@ -1,4 +1,4 @@
-use std::{fmt::Binary, hash::Hash, ops::Deref};
+use core::{fmt::Binary, hash::Hash, ops::Deref};
 
 use crate::vector::{UI16Vec2, UI8Vec2, UIVec2};
 
@@ -6,7 +6,7 @@ use crate::vector::{UI16Vec2, UI8Vec2, UIVec2};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MortonU16(u16);
 impl Hash for MortonU16 {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         state.write_u16(self.0);
     }
 }
@@ -19,7 +19,7 @@ impl Deref for MortonU16 {
 }
 
 impl Binary for MortonU16 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.0.fmt(f)
     }
 }
@@ -52,7 +52,7 @@ impl MortonU16 {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MortonU32(u32);
 impl Hash for MortonU32 {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         state.write_u32(self.0);
     }
 }
@@ -63,7 +63,7 @@ impl Deref for MortonU32 {
     }
 }
 impl Binary for MortonU32 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.0.fmt(f)
     }
 }
@@ -97,7 +97,7 @@ impl From<UI16Vec2> for MortonU32 {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MortonU64(u64);
 impl Hash for MortonU64 {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         state.write_u64(self.0);
     }
 }
@@ -108,7 +108,7 @@ impl Deref for MortonU64 {
     }
 }
 impl Binary for MortonU64 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.0.fmt(f)
     }
 }
@@ -116,12 +116,12 @@ impl Binary for MortonU64 {
 #[cfg(target_arch="x86_64")]
 impl MortonU64 {
     pub fn encode_xy(x: u32, y: u32) -> Self {
-        use std::arch::x86_64::_pdep_u64;
+        use core::arch::x86_64::_pdep_u64;
         let val = unsafe { _pdep_u64(x as u64, 0x55555555) | _pdep_u64(y as u64,0xaaaaaaaa) };
         Self(val)
     }
     pub fn decode_xy(&self) -> UIVec2 {
-        use std::arch::x86_64::_pext_u64;
+        use core::arch::x86_64::_pext_u64;
 
         let (x, y) = unsafe { (_pext_u64(self.0, 0x5555555555555555) as u32, _pext_u64(self.0, 0xaaaaaaaaaaaaaaaa) as u32) };
         UIVec2::new(x, y)

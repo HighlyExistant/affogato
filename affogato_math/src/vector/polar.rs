@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use crate::Real;
 
@@ -33,7 +33,7 @@ impl<T: Real> PolarCoordinate<T> {
 }
 
 impl<T: Debug> Debug for PolarCoordinate<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("PolarCoordinate")
             .field("length", &self.length)
             .field("angle", &self.angle)
@@ -88,7 +88,7 @@ impl<T: Real> RadialCoordinate for SphericalCoordinate<T> {
     }
 }
 impl<T: Debug> Debug for SphericalCoordinate<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("SphericalCoordinate")
             .field("length", &self.length)
             .field("polar", &self.polar)
@@ -153,7 +153,7 @@ impl<T: Real> HyperSphereD4Coordinate<T> {
 }
 
 impl<T: Real + Debug> Debug for HyperSphereD4Coordinate<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("HyperSphereD4Coordinate")
             .field("length", &self.length)
             .field("polar", &self.polar)

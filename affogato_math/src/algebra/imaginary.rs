@@ -3,7 +3,7 @@ use crate::Real;
 macro_rules! impl_ops_float {
     ($trait:tt, $func:tt, $($primitive:tt),*) => {
         $(
-            impl std::ops::$trait<Imaginary<$primitive>> for $primitive {
+            impl core::ops::$trait<Imaginary<$primitive>> for $primitive {
                 type Output = Imaginary<$primitive>;
                 fn $func(self, rhs: Imaginary<$primitive>) -> Self::Output {
                     Imaginary::from(rhs.0.$func(self))
@@ -21,21 +21,21 @@ impl<T: Real> From<T> for Imaginary<T> {
     }
 }
 // i * i
-impl<T: Real> std::ops::Mul<Self> for Imaginary<T> {
+impl<T: Real> core::ops::Mul<Self> for Imaginary<T> {
     type Output = T;
     fn mul(self, rhs: Self) -> Self::Output {
         -(self.0*rhs.0)
     }
 }
 // i * r
-impl<T: Real> std::ops::Mul<T> for Imaginary<T> {
+impl<T: Real> core::ops::Mul<T> for Imaginary<T> {
     type Output = Imaginary<T>;
     fn mul(self, rhs: T) -> Self::Output {
         Imaginary::from(self.0*rhs)
     }
 }
 // i / r
-impl<T: Real> std::ops::Div<T> for Imaginary<T> {
+impl<T: Real> core::ops::Div<T> for Imaginary<T> {
     type Output = Imaginary<T>;
     fn div(self, rhs: T) -> Self::Output {
         Imaginary::from(self.0/rhs)

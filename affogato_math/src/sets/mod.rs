@@ -1,5 +1,5 @@
 mod natural;
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 pub use natural::*;
 mod properties;
@@ -222,10 +222,10 @@ pub trait Real: HasNegatives + UsesArithmetic + FloatingPoint + Number + Debug {
     const EPSILON: Self;
 }
 /// A helper trait to distinguish all numbers that are not Real numbers. A Real number
-pub trait HasRealProduct<T: Real, Out>: std::ops::Mul<T, Output = Out> + std::ops::Div<T, Output = Out>
+pub trait HasRealProduct<T: Real, Out>: core::ops::Mul<T, Output = Out> + core::ops::Div<T, Output = Out>
     where Self: Sized {}
 impl<T: Real, Out, V> HasRealProduct<T, Out> for V
-    where V: std::ops::Mul<T, Output = Out> + std::ops::Div<T, Output = Out> {
+    where V: core::ops::Mul<T, Output = Out> + core::ops::Div<T, Output = Out> {
 
 }
 mod sealed {

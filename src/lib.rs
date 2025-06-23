@@ -1,3 +1,4 @@
+#![no_std]
 pub use affogato_math::*;
 #[cfg(feature="physics")]
 pub use affogato_physics as physics;

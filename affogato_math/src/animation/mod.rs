@@ -8,14 +8,14 @@ use crate::{FromPrimitive, HasRealProduct, One, Real, UsesArithmetic, Zero};
 /// assert!(lerp(a, b, 0.75) == 17.5);
 /// ```
 /// this also works with vectors, and every type which implements
-/// [`std::ops::Sub`] and can be multiplied by [t].
+/// [`core::ops::Sub`] and can be multiplied by [t].
 /// ``` no_run,ignore
 /// let a = FVec2::new(10.0, 20.0);
 /// let b = FVec2::new(30.0, 7.0);
 /// assert!(lerp(a, b, 0.5) == FVec2::new(20.0, 13.5))
 /// ```
 pub fn lerp<V, T>(a: V, b: V, t: T) -> V 
-    where V: UsesArithmetic + Copy + std::ops::Mul<T, Output = V> {
+    where V: UsesArithmetic + Copy + core::ops::Mul<T, Output = V> {
     a + (b-a)*t
 }
 /// mixes two values using smooth Hermite interpolation and returns a t value between 0.0-1.0. Retrieved from [the book of shaders](https://thebookofshaders.com/glossary/?search=smoothstep)
@@ -34,7 +34,7 @@ pub fn lerp<V, T>(a: V, b: V, t: T) -> V
 /// # Panics
 /// * Results of smoothstep are undefined if edge0 >= edge1
 pub fn smoothstep<V>(edge0: V, edge1: V, x: V) -> V 
-    where V: UsesArithmetic + std::ops::Mul<V, Output = V> + Copy + Zero + One + PartialOrd + FromPrimitive {
+    where V: UsesArithmetic + core::ops::Mul<V, Output = V> + Copy + Zero + One + PartialOrd + FromPrimitive {
     assert!(!(edge0 >= edge1), "results of smoothstep are undefined if `edge0 >= edge1`");
     let mut t = ((x - edge0) / (edge1 - edge0));
     if t < V::ZERO {
@@ -46,12 +46,12 @@ pub fn smoothstep<V>(edge0: V, edge1: V, x: V) -> V
 }
 /// returns a t value using a range `from` and `to` and a value
 pub fn inverse_lerp<V: HasRealProduct<T, V> + UsesArithmetic + Copy, T: Real>(from: V, to: V, value: T) -> V 
-    where T: std::ops::Sub<V, Output = V> {
+    where T: core::ops::Sub<V, Output = V> {
     (value - from) / (to - from)
 }
 /// Maps one value into another using interpolation. internally this is an [`inverse_lerp`] and [`lerp`] combined.
 pub fn remap<V: HasRealProduct<T, V> + UsesArithmetic + Copy + Real, T: Real>(imin: V, imax: V, omin: V, omax: V, t: T) -> V 
-    where T: std::ops::Sub<V, Output = V> {
+    where T: core::ops::Sub<V, Output = V> {
     let t2 = inverse_lerp(imin, imax, t);
     lerp::<V, V>(omin, omax, t2)
 }

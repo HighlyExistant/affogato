@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut, Sub};
+use core::ops::{Index, IndexMut, Sub};
 
 use bytemuck::{Pod, Zeroable};
 
@@ -8,7 +8,7 @@ use super::CalculateCentroid;
 
 macro_rules! impl_triangle_ops {
     ($structure:tt, $vector:tt, $trait:tt, $func:tt) => {
-        impl<T: Number> std::ops::$trait<$vector<T>> for $structure<T>  {
+        impl<T: Number> core::ops::$trait<$vector<T>> for $structure<T>  {
             type Output = Self;
             fn $func(self, rhs: $vector<T>) -> Self::Output {
                 Self {
@@ -24,7 +24,7 @@ macro_rules! impl_triangle_ops {
 }
 macro_rules! impl_tetrahedron_ops {
     ($structure:tt, $vector:tt, $trait:tt, $func:tt) => {
-        impl<T: Number> std::ops::$trait<$vector<T>> for $structure<T>  {
+        impl<T: Number> core::ops::$trait<$vector<T>> for $structure<T>  {
             type Output = Self;
             fn $func(self, rhs: $vector<T>) -> Self::Output {
                 Self {

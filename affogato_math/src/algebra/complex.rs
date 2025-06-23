@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::{Add, Div, Mul}};
+use core::{fmt::Display, ops::{Add, Div, Mul}};
 
 use crate::{matrix::Matrix2, vector::Vector2, Real};
 /// Represents a number with 1 real component and 1 imaginary component `i`, where `i^*i == -1.0`.
@@ -6,17 +6,6 @@ use crate::{matrix::Matrix2, vector::Vector2, Real};
 pub struct ComplexNumber<T: Real> {
     real: T,
     imaginary: T,
-}
-impl<T: Real> Display for ComplexNumber<T> 
-    where T: Display {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let sign = self.imaginary.is_negative();
-        if sign {
-            f.write_str(&format!("{} - {}i", self.real, self.imaginary.abs()))
-        } else {
-            f.write_str(&format!("{} + {}i", self.real, self.imaginary))
-        }
-    }
 }
 impl<T: Real> ComplexNumber<T> {
     pub fn new(real: T, imaginary: T) -> Self {
@@ -46,13 +35,33 @@ impl<T: Real> Mul for ComplexNumber<T> {
     }
 }
 impl<T: Real> Div for ComplexNumber<T> 
-    where Matrix2<T>: std::ops::Mul<T, Output = Matrix2<T>> +
-        std::ops::Mul<Output = Matrix2<T>> {
+    where Matrix2<T>: core::ops::Mul<T, Output = Matrix2<T>> +
+        core::ops::Mul<Output = Matrix2<T>> {
     type Output = Self;
     fn div(self, rhs: Self) -> Self::Output {
         let denom = rhs.imaginary*rhs.imaginary + rhs.real*rhs.real;
         let real = (self.real * rhs.real + self.imaginary * rhs.imaginary) /denom;
         let imaginary = (rhs.real * self.imaginary - self.real * rhs.imaginary) /denom;
         Self::new(real, imaginary)
+    }
+}
+
+#[cfg(feature="alloc")]
+mod alloc_feature {
+    use core::fmt::Display;
+
+    use crate::{algebra::ComplexNumber, Real};
+
+    extern crate alloc;
+    impl<T: Real> Display for ComplexNumber<T> 
+        where T: Display {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            let sign = self.imaginary.is_negative();
+            if sign {
+                f.write_str(&alloc::format!("{} - {}i", self.real, self.imaginary.abs()))
+            } else {
+                f.write_str(&alloc::format!("{} + {}i", self.real, self.imaginary))
+            }
+        }
     }
 }

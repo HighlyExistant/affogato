@@ -1,47 +1,48 @@
-use std::{fmt::Display, ops::{Div, Index, IndexMut, Neg, Sub}};
 mod types;
 mod polar;
+use core::ops::{Div, Index, IndexMut, Neg, Sub};
+
 use bytemuck::{Pod, Zeroable};
 pub use types::*;
 pub use polar::*;
 use crate::{epsilon_eq, Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
-        impl<T: Number> std::ops::Add for $vector <T>  {
+        impl<T: Number> core::ops::Add for $vector <T>  {
             fn add(self, rhs: Self) -> Self::Output {
                 Self::new($(self.$element + rhs.$element),+)
             }
             type Output = Self;
         } 
-        impl<T: Number> std::ops::Rem for $vector<T>  {
+        impl<T: Number> core::ops::Rem for $vector<T>  {
             fn rem(self, rhs: Self) -> Self::Output {
                 Self::new($(self.$element % rhs.$element),+)
             }
             type Output = Self;
         }
         
-        impl<T: Number + std::ops::Neg<Output = T>> std::ops::Neg for $vector<T> {
+        impl<T: Number + core::ops::Neg<Output = T>> core::ops::Neg for $vector<T> {
             fn neg(self) -> Self::Output {
                 Self::new($(-self.$element),+)
             }
             type Output = Self;
         }
         
-        impl<T: Number> std::ops::Sub for $vector<T>  {
+        impl<T: Number> core::ops::Sub for $vector<T>  {
             fn sub(self, rhs: Self) -> Self::Output {
                 Self::new($(self.$element - rhs.$element),+)
             }
             type Output = Self;
         }
         
-        impl<T: Number> std::ops::Mul for $vector<T>  {
+        impl<T: Number> core::ops::Mul for $vector<T>  {
             fn mul(self, rhs: Self) -> Self::Output {
                 Self::new($(self.$element * rhs.$element),+)
             }
             type Output = Self;
         }
         
-        impl<T: Number> std::ops::Div for $vector<T>  {
+        impl<T: Number> core::ops::Div for $vector<T>  {
             fn div(self, rhs: Self) -> Self::Output {
                 Self::new($(self.$element / rhs.$element),+)
             }
@@ -49,87 +50,87 @@ macro_rules! impl_ops {
         }
 
         // Operations on scalar values
-        impl<T: Number> std::ops::Add<T> for $vector<T>  {
+        impl<T: Number> core::ops::Add<T> for $vector<T>  {
             fn add(self, rhs: T) -> Self::Output {
                 Self::new($(self.$element + rhs),+)
             }
             type Output = Self;
         }
-        impl<T: Number> std::ops::Sub<T> for $vector<T>  {
+        impl<T: Number> core::ops::Sub<T> for $vector<T>  {
             fn sub(self, rhs: T) -> Self::Output {
                 Self::new($(self.$element - rhs),+)
             }
             type Output = Self;
         }
-        impl<T: Number> std::ops::Mul<T> for $vector<T>  {
+        impl<T: Number> core::ops::Mul<T> for $vector<T>  {
             fn mul(self, rhs: T) -> Self::Output {
                 Self::new($(self.$element * rhs),+)
             }
             type Output = Self;
         }
-        impl<T: Number> std::ops::Div<T> for $vector<T>  {
+        impl<T: Number> core::ops::Div<T> for $vector<T>  {
             fn div(self, rhs: T) -> Self::Output {
                 Self::new($(self.$element / rhs),+)
             }
             type Output = Self;
         }
-        impl<T: Number> std::ops::Rem<T> for $vector<T>  {
+        impl<T: Number> core::ops::Rem<T> for $vector<T>  {
             fn rem(self, rhs: T) -> Self::Output {
                 Self::new($(self.$element % rhs),+)
             }
             type Output = Self;
         }
-        impl<T: Number> std::ops::AddAssign for $vector<T>  {
+        impl<T: Number> core::ops::AddAssign for $vector<T>  {
             fn add_assign(&mut self, rhs: Self) {
                 $(self.$element += rhs.$element);+
             }
         }
-        impl<T: Number> std::ops::SubAssign for $vector<T>  {
+        impl<T: Number> core::ops::SubAssign for $vector<T>  {
             fn sub_assign(&mut self, rhs: Self) {
                 $(self.$element -= rhs.$element);+
             }
         }
-        impl<T: Number> std::ops::MulAssign for $vector<T>  {
+        impl<T: Number> core::ops::MulAssign for $vector<T>  {
             fn mul_assign(&mut self, rhs: Self) {
                 $(self.$element *= rhs.$element);+
             }
         }
-        impl<T: Number> std::ops::DivAssign for $vector<T>  {
+        impl<T: Number> core::ops::DivAssign for $vector<T>  {
             fn div_assign(&mut self, rhs: Self) {
                 $(self.$element /= rhs.$element);+
             }
         }
-        impl<T: Number> std::ops::RemAssign for $vector<T>  {
+        impl<T: Number> core::ops::RemAssign for $vector<T>  {
             fn rem_assign(&mut self, rhs: Self) {
                 $(self.$element %= rhs.$element);+
             }
         }
-        impl<T: Number> std::ops::AddAssign<T> for $vector<T>  {
+        impl<T: Number> core::ops::AddAssign<T> for $vector<T>  {
             fn add_assign(&mut self, rhs: T) {
                 $(self.$element += rhs);+
             }
         }
-        impl<T: Number> std::ops::SubAssign<T> for $vector<T>  {
+        impl<T: Number> core::ops::SubAssign<T> for $vector<T>  {
             fn sub_assign(&mut self, rhs: T) {
                 $(self.$element -= rhs);+
             }
         }
-        impl<T: Number> std::ops::MulAssign<T> for $vector<T>  {
+        impl<T: Number> core::ops::MulAssign<T> for $vector<T>  {
             fn mul_assign(&mut self, rhs: T) {
                 $(self.$element *= rhs);+
             }
         }
-        impl<T: Number> std::ops::DivAssign<T> for $vector<T>  {
+        impl<T: Number> core::ops::DivAssign<T> for $vector<T>  {
             fn div_assign(&mut self, rhs: T) {
                 $(self.$element /= rhs);+
             }
         }
-        impl<T: Number> std::ops::RemAssign<T> for $vector<T>  {
+        impl<T: Number> core::ops::RemAssign<T> for $vector<T>  {
             fn rem_assign(&mut self, rhs: T) {
                 $(self.$element %= rhs);+
             }
         }
-        impl<T: Number> std::cmp::PartialEq<T>  for $vector<T>  {
+        impl<T: Number> core::cmp::PartialEq<T>  for $vector<T>  {
             fn eq(&self, other: &T) -> bool {
                 true $(&& self.$element == *other)+
             }
@@ -137,7 +138,7 @@ macro_rules! impl_ops {
                 true $(&& self.$element == *other)+
             }
         }
-        impl<T: Number> std::cmp::PartialEq<Self>  for $vector<T>  {
+        impl<T: Number> core::cmp::PartialEq<Self>  for $vector<T>  {
             fn eq(&self, other: &Self) -> bool {
                 true $(&& self.$element == other.$element)+
             }
@@ -145,7 +146,7 @@ macro_rules! impl_ops {
                 true $(&& self.$element == other.$element)+
             }
         }
-        impl<T: Number> std::cmp::Eq for $vector <T> {}
+        impl<T: Number> core::cmp::Eq for $vector <T> {}
         
         unsafe impl<T: Number> Zeroable for $vector <T> {
             fn zeroed() -> Self {
@@ -154,7 +155,7 @@ macro_rules! impl_ops {
         }
         unsafe impl<T: Number + Pod> Pod for $vector <T> {}
         // impl<T: Number + Display> Display for $vector<T> {
-        //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        //     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         //         f.write_str(stringify!(<$($element),*>))
         //     }
         // }
@@ -163,26 +164,26 @@ macro_rules! impl_ops {
 
 macro_rules! impl_scalar_ops {
     ($structure: ident, $typea: ident, $($element:tt),+) => {
-        impl std::ops::Add<$structure<$typea>> for $typea {
+        impl core::ops::Add<$structure<$typea>> for $typea {
             type Output = $structure<$typea>;
             fn add(self, rhs: $structure<$typea>) -> Self::Output {
                 $structure::<$typea>::new($(rhs.$element + self),+)
 
             }
         }
-        impl std::ops::Sub<$structure<$typea>> for $typea {
+        impl core::ops::Sub<$structure<$typea>> for $typea {
             type Output = $structure<$typea>;
             fn sub(self, rhs: $structure<$typea>) -> Self::Output {
                 $structure::<$typea>::new($(rhs.$element - self),+)
             }
         }
-        impl std::ops::Mul<$structure<$typea>> for $typea {
+        impl core::ops::Mul<$structure<$typea>> for $typea {
             type Output = $structure<$typea>;
             fn mul(self, rhs: $structure<$typea>) -> Self::Output {
                 $structure::<$typea>::new($(rhs.$element * self),+)
             }
         }
-        impl std::ops::Div<$structure<$typea>> for $typea {
+        impl core::ops::Div<$structure<$typea>> for $typea {
             type Output = $structure<$typea>;
             fn div(self, rhs: $structure<$typea>) -> Self::Output {
                 $structure::<$typea>::new($(rhs.$element / self),+)
@@ -352,12 +353,12 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     /// Direction gives a normalized vector that points to the given point.
     fn direction_to(&self, point: &Self) -> Self 
         where Self::Scalar: FloatingPoint,
-        Self: std::ops::Sub<Output = Self> + Sized { 
+        Self: core::ops::Sub<Output = Self> + Sized { 
             point.clone().sub(self.clone()).normalize()
     }
     fn point_at(&self, point: &Self, distance: Self::Scalar) -> Self 
     where Self::Scalar: FloatingPoint,
-    Self: std::ops::Sub<Output = Self> + Sized {
+    Self: core::ops::Sub<Output = Self> + Sized {
         self.direction_to(point).mul(distance)+self.clone()
     }
     /// The dot product is a common linear algebra function which is defined as
@@ -392,13 +393,13 @@ pub struct Vector2<T: Number> {
 impl<T: Number> Index<usize> for Vector2<T> {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
-        let val = unsafe { std::mem::transmute::<&Self, &[T; 2]>(self) };
+        let val = unsafe { core::mem::transmute::<&Self, &[T; 2]>(self) };
         &val[index]
     }
 }
 impl<T: Number> IndexMut<usize> for Vector2<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let val = unsafe { std::mem::transmute::<&mut Self, &mut [T; 2]>(self) };
+        let val = unsafe { core::mem::transmute::<&mut Self, &mut [T; 2]>(self) };
         &mut val[index]
     }
 }
@@ -424,7 +425,7 @@ impl<T: Number> Vector2<T> {
     }
     /// Returns a vector pointing to the left of the graph <-1, 0>
     pub fn left() -> Self 
-        where T: std::ops::Neg<Output = T> {
+        where T: core::ops::Neg<Output = T> {
         Self::new(-T::ONE, T::ZERO)
     }
     /// Returns a vector pointing to the left of the graph <0, 1>
@@ -433,7 +434,7 @@ impl<T: Number> Vector2<T> {
     }
     /// Returns a vector pointing to the left of the graph <0, -1>
     pub fn bottom() -> Self 
-        where T: std::ops::Neg<Output = T> {
+        where T: core::ops::Neg<Output = T> {
         Self::new(T::ZERO, -T::ONE)
     }
     pub fn abs(&self) -> Self 
@@ -446,7 +447,7 @@ impl<T: Number> Vector2<T> {
     }
     pub fn sin(&self)-> T 
         where T: Real {
-        T::from_f64(std::f64::consts::PI.div(2.0)) - self.cos()
+        T::from_f64(core::f64::consts::PI.div(2.0)) - self.cos()
     }
     pub fn tan(&self)-> T 
         where T: Real {
@@ -485,7 +486,7 @@ impl<T: Number> Vector2<T> {
     vector_permutations!(Vector2, x, y);
     vector_permutations!(Vector2, y, x);
     #[cfg(feature="rand")]
-    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+    pub fn random(generator: &mut impl rand::Rng, range: core::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
         Vector2::new(generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
@@ -543,13 +544,13 @@ pub struct Vector3<T: Number> {
 impl<T: Number> Index<usize> for Vector3<T> {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
-        let val = unsafe { std::mem::transmute::<&Self, &[T; 3]>(self) };
+        let val = unsafe { core::mem::transmute::<&Self, &[T; 3]>(self) };
         &val[index]
     }
 }
 impl<T: Number> IndexMut<usize> for Vector3<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let val = unsafe { std::mem::transmute::<&mut Self, &mut [T; 3]>(self) };
+        let val = unsafe { core::mem::transmute::<&mut Self, &mut [T; 3]>(self) };
         &mut val[index]
     }
 }
@@ -568,7 +569,7 @@ impl<T: Number> Vector3<T> {
     }
     /// Returns a vector pointing to the left of the graph <-1, 0, 0>
     pub fn left() -> Self 
-        where T: std::ops::Neg<Output = T> {
+        where T: core::ops::Neg<Output = T> {
         Self::new(-T::ONE, T::ZERO, T::ZERO)
     }
     /// Returns a vector pointing to the top of the graph <0, 1, 0>
@@ -577,7 +578,7 @@ impl<T: Number> Vector3<T> {
     }
     /// Returns a vector pointing to the top of the graph <0, -1, 0>
     pub fn bottom() -> Self 
-        where T: std::ops::Neg<Output = T> {
+        where T: core::ops::Neg<Output = T> {
         Self::new(T::ZERO, -T::ONE, T::ZERO)
     }
     /// Returns a vector pointing forward to the graph <0, 0, 1>
@@ -586,7 +587,7 @@ impl<T: Number> Vector3<T> {
     }
     /// Returns a vector pointing backward to the graph <0, 0, -1>
     pub fn backward() -> Self
-        where T: std::ops::Neg<Output = T> {
+        where T: core::ops::Neg<Output = T> {
         Self::new(T::ZERO, T::ZERO, -T::ONE)
     }
 
@@ -647,7 +648,7 @@ impl<T: Number> Vector3<T> {
         p.z <= epsilon 
     }
     #[cfg(feature="rand")]
-    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+    pub fn random(generator: &mut impl rand::Rng, range: core::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
         Vector3::new(generator.random_range(range.clone()), generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
@@ -696,13 +697,13 @@ pub struct Vector4<T: Number> {
 impl<T: Number> Index<usize> for Vector4<T> {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
-        let val = unsafe { std::mem::transmute::<&Self, &[T; 4]>(self) };
+        let val = unsafe { core::mem::transmute::<&Self, &[T; 4]>(self) };
         &val[index]
     }
 }
 impl<T: Number> IndexMut<usize> for Vector4<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let val = unsafe { std::mem::transmute::<&mut Self, &mut [T; 4]>(self) };
+        let val = unsafe { core::mem::transmute::<&mut Self, &mut [T; 4]>(self) };
         &mut val[index]
     }
 }
@@ -764,7 +765,7 @@ impl<T: Number> Vector4<T> {
     }
 
     #[cfg(feature="rand")]
-    pub fn random(generator: &mut impl rand::Rng, range: std::ops::Range<T>) -> Self 
+    pub fn random(generator: &mut impl rand::Rng, range: core::ops::Range<T>) -> Self 
         where T: rand::distr::uniform::SampleUniform {
         Vector4::new(generator.random_range(range.clone()), generator.random_range(range.clone()), generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
@@ -801,21 +802,6 @@ impl<T: Number> Vector for Vector3<T> {
 impl<T: Number> Vector for Vector4<T> { 
     type Scalar = T;
     impl_vec!(4,x, y, z, w); 
-}
-impl<T: Number + Display> Display for Vector2<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("<{}, {}>", self.x, self.y).as_str())
-    }
-}
-impl<T: Number + Display> Display for Vector3<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("<{}, {}, {}>", self.x, self.y, self.z).as_str())
-    }
-}
-impl<T: Number + Display> Display for Vector4<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("<{}, {}, {}, {}>", self.x, self.y, self.z, self.w).as_str())
-    }
 }
 impl<T: Zero + Number> Zero for Vector2<T> { impl_zero!(x, y); }
 impl<T: Zero + Number> Zero for Vector3<T> { impl_zero!(x, y, z); }
@@ -924,29 +910,6 @@ impl<T: Number> From<Vector4<T>> for [T; 4]  {
     }
 }
 
-impl<T: Number> From<Vector2<T>> for Vec<T> {
-    fn from(value: Vector2<T>) -> Self {
-        vec![
-            value.x, value.y, 
-        ]
-    }
-}
-
-impl<T: Number> From<Vector3<T>> for Vec<T> {
-    fn from(value: Vector3<T>) -> Self {
-        vec![
-            value.x, value.y, value.z, 
-        ]
-    }
-}
-impl<T: Number> From<Vector4<T>> for Vec<T> {
-    fn from(value: Vector4<T>) -> Self {
-        vec![
-            value.x, value.y, value.z, value.w,
-        ]
-    }
-}
-
 /// calculates the direction of reflection of an incident vector, where `incident` is the incident vector and
 /// `normal` is the normal of the surface it is reflecting on. Important to note that
 /// both the incident and normal should be normalized vectors. The following snippet was
@@ -983,3 +946,52 @@ impl_all_scalar_ops!(Vector4,x ,y, z, w);
 impl_all_from_vec!(impl_fromvec2);
 impl_all_from_vec!(impl_fromvec3);
 impl_all_from_vec!(impl_fromvec4);
+
+// Features
+
+#[cfg(feature = "alloc")]
+mod alloc_feature {
+    use core::fmt::Display;
+    use crate::vector::Vector3;
+    use crate::{vector::{Vector2, Vector4}, Number};
+
+    extern crate alloc;
+    impl<T: Number> From<Vector2<T>> for alloc::vec::Vec<T> {
+        fn from(value: Vector2<T>) -> Self {
+            alloc::vec![
+                value.x, value.y, 
+            ]
+        }
+    }
+    impl<T: Number> From<Vector3<T>> for alloc::vec::Vec<T> {
+        fn from(value: Vector3<T>) -> Self {
+            alloc::vec![
+                value.x, value.y, value.z, 
+            ]
+        }
+    }
+    impl<T: Number> From<Vector4<T>> for alloc::vec::Vec<T> {
+        fn from(value: Vector4<T>) -> Self {
+            alloc::vec![
+                value.x, value.y, value.z, value.w,
+            ]
+        }
+    }
+    impl<T: Number + Display> Display for Vector2<T> {
+        fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
+            f.write_str(alloc::format!("<{}, {}>", self.x, self.y).as_str())
+        }
+    }
+    impl<T: Number + Display> Display for Vector3<T> {
+        fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
+            f.write_str(alloc::format!("<{}, {}, {}>", self.x, self.y, self.z).as_str())
+        }
+    }
+    impl<T: Number + Display> Display for Vector4<T> {
+        fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
+            f.write_str(alloc::format!("<{}, {}, {}, {}>", self.x, self.y, self.z, self.w).as_str())
+        }
+    }
+}
+#[cfg(feature = "alloc")]
+pub use alloc_feature::*;

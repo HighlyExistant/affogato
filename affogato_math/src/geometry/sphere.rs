@@ -2,31 +2,31 @@ use crate::{sdf::SignedDistance, vector::{Vector, Vector2, Vector3}, Number, Rea
 
 macro_rules! impl_ops_hsphere {
     ($structure:tt, $vector:tt) => {
-        impl<T: Number> std::ops::Add<$vector<T>> for $structure<T> {
+        impl<T: Number> core::ops::Add<$vector<T>> for $structure<T> {
             type Output = Self;
             fn add(self, rhs: $vector<T>) -> Self::Output {
                 Self { center: self.center+rhs, radius: self.radius }
             }
         }
-        impl<T: Number> std::ops::Sub<$vector<T>> for $structure<T> {
+        impl<T: Number> core::ops::Sub<$vector<T>> for $structure<T> {
             type Output = Self;
             fn sub(self, rhs: $vector<T>) -> Self::Output {
                 Self { center: self.center-rhs, radius: self.radius }
             }
         }
-        impl<T: Number> std::ops::Mul<T> for $structure<T> {
+        impl<T: Number> core::ops::Mul<T> for $structure<T> {
             type Output = Self;
             fn mul(self, rhs: T) -> Self::Output {
                 Self { center: self.center, radius: self.radius*rhs }
             }
         }
-        impl<T: Number> std::ops::Div<T> for $structure<T> {
+        impl<T: Number> core::ops::Div<T> for $structure<T> {
             type Output = Self;
             fn div(self, rhs: T) -> Self::Output {
                 Self { center: self.center, radius: self.radius/rhs }
             }
         }
-        impl<T: Number> std::cmp::PartialEq for $structure<T> {
+        impl<T: Number> core::cmp::PartialEq for $structure<T> {
             fn eq(&self, other: &Self) -> bool {
                 self.center == other.center && self.radius == other.radius
             }

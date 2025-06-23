@@ -18,7 +18,7 @@ impl<T: Real> Collision<Vector3<T>> for Sphere<T> {
         }
     }
 }
-fn hsphere_collision<V: Vector + Zero + std::cmp::PartialEq, S: HyperSphere<V>>(s0: &S, s1: &S) -> Option<HitCollisionInfo<V>> 
+fn hsphere_collision<V: Vector + Zero + core::cmp::PartialEq, S: HyperSphere<V>>(s0: &S, s1: &S) -> Option<HitCollisionInfo<V>> 
     where V::Scalar: Real {
     // Case 1: Both spheres have the same center
     if s0.center() == s1.center() {

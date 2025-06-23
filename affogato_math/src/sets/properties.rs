@@ -162,8 +162,8 @@ macro_rules! impl_bounds {
                 fn max(self, other: Self) -> Self {
                     $structure::max(self, other)
                 }
-                const MIN: Self = std::$structure::MIN;
-                const MAX: Self = std::$structure::MAX;
+                const MIN: Self = core::$structure::MIN;
+                const MAX: Self = core::$structure::MAX;
             }
         )*
     };
@@ -179,8 +179,8 @@ macro_rules! impl_bounds_ord {
                 fn max(self, other: Self) -> Self {
                     <$structure as Ord>::max(self, other)
                 }
-                const MIN: Self = std::$structure::MIN;
-                const MAX: Self = std::$structure::MAX;
+                const MIN: Self = core::$structure::MIN;
+                const MAX: Self = core::$structure::MAX;
             }
         )*
     };
@@ -267,49 +267,49 @@ pub trait FloatingPoint {
     fn is_normal(self) -> bool;
     fn is_subnormal(self) -> bool;
 }
-pub trait UsesArithmetic: std::ops::Add<Output = Self> + std::ops::Sub<Output = Self> + std::ops::Mul<Output = Self> + std::ops::Div<Output = Self> 
+pub trait UsesArithmetic: core::ops::Add<Output = Self> + core::ops::Sub<Output = Self> + core::ops::Mul<Output = Self> + core::ops::Div<Output = Self> 
     where Self: Sized {}
 pub trait UniversalOperationsOn<T>
     where Self: Sized + 
-    std::ops::Add<T, Output = Self> + 
-    std::ops::Sub<T, Output = Self> + 
-    std::ops::Mul<T, Output = Self> + 
-    std::ops::Div<T, Output = Self> +
-    std::ops::Rem<T, Output = Self> +
-    std::ops::AddAssign<T> +
-    std::ops::SubAssign<T> +
-    std::ops::MulAssign<T> +
-    std::ops::DivAssign<T> +
-    std::ops::RemAssign<T> +
+    core::ops::Add<T, Output = Self> + 
+    core::ops::Sub<T, Output = Self> + 
+    core::ops::Mul<T, Output = Self> + 
+    core::ops::Div<T, Output = Self> +
+    core::ops::Rem<T, Output = Self> +
+    core::ops::AddAssign<T> +
+    core::ops::SubAssign<T> +
+    core::ops::MulAssign<T> +
+    core::ops::DivAssign<T> +
+    core::ops::RemAssign<T> +
     {}
 impl<T, A> UniversalOperationsOn<T> for A 
     where A: Sized + 
-    std::ops::Add<T, Output = Self> + 
-    std::ops::Sub<T, Output = Self> + 
-    std::ops::Mul<T, Output = Self> + 
-    std::ops::Div<T, Output = Self> +
-    std::ops::Rem<T, Output = Self> +
-    std::ops::AddAssign<T> +
-    std::ops::SubAssign<T> +
-    std::ops::MulAssign<T> +
-    std::ops::DivAssign<T> +
-    std::ops::RemAssign<T> {
+    core::ops::Add<T, Output = Self> + 
+    core::ops::Sub<T, Output = Self> + 
+    core::ops::Mul<T, Output = Self> + 
+    core::ops::Div<T, Output = Self> +
+    core::ops::Rem<T, Output = Self> +
+    core::ops::AddAssign<T> +
+    core::ops::SubAssign<T> +
+    core::ops::MulAssign<T> +
+    core::ops::DivAssign<T> +
+    core::ops::RemAssign<T> {
 
 }
-impl<T: std::ops::Add<Output = Self> + std::ops::Sub<Output = Self> + std::ops::Mul<Output = Self> + std::ops::Div<Output = Self>> UsesArithmetic for T {}
+impl<T: core::ops::Add<Output = Self> + core::ops::Sub<Output = Self> + core::ops::Mul<Output = Self> + core::ops::Div<Output = Self>> UsesArithmetic for T {}
 
 pub trait Number 
     where Self: Sized + 
-    std::ops::Add<Output = Self> +
-    std::ops::Sub<Output = Self> +
-    std::ops::Mul<Output = Self> +
-    std::ops::Div<Output = Self> +
-    std::ops::Rem<Output = Self> +
-    std::ops::AddAssign +
-    std::ops::SubAssign +
-    std::ops::MulAssign +
-    std::ops::DivAssign + 
-    std::ops::RemAssign + 
+    core::ops::Add<Output = Self> +
+    core::ops::Sub<Output = Self> +
+    core::ops::Mul<Output = Self> +
+    core::ops::Div<Output = Self> +
+    core::ops::Rem<Output = Self> +
+    core::ops::AddAssign +
+    core::ops::SubAssign +
+    core::ops::MulAssign +
+    core::ops::DivAssign + 
+    core::ops::RemAssign + 
     Clone + 
     Copy + 
     One + 
@@ -322,16 +322,16 @@ pub trait Number
     {}
 impl<T> Number for T 
     where T: Sized + 
-    std::ops::Add<Output = Self> +
-    std::ops::Sub<Output = Self> +
-    std::ops::Mul<Output = Self> +
-    std::ops::Div<Output = Self> +
-    std::ops::Rem<Output = Self> +
-    std::ops::AddAssign +
-    std::ops::SubAssign +
-    std::ops::MulAssign +
-    std::ops::DivAssign + 
-    std::ops::RemAssign + 
+    core::ops::Add<Output = Self> +
+    core::ops::Sub<Output = Self> +
+    core::ops::Mul<Output = Self> +
+    core::ops::Div<Output = Self> +
+    core::ops::Rem<Output = Self> +
+    core::ops::AddAssign +
+    core::ops::SubAssign +
+    core::ops::MulAssign +
+    core::ops::DivAssign + 
+    core::ops::RemAssign + 
     Clone + 
     Copy + 
     One + 
@@ -343,7 +343,7 @@ impl<T> Number for T
     IntoPrimitive {
     
 }
-pub trait HasNegatives: std::ops::Neg<Output = Self> {
+pub trait HasNegatives: core::ops::Neg<Output = Self> {
     fn is_negative(self) -> bool;
     fn is_positive(self) -> bool;
     fn abs(self) -> Self;
