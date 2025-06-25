@@ -1,8 +1,12 @@
 #![cfg(feature="alloc")]
-use affogato_math::{vector::Vector, FromPrimitive, Real, Zero};
+use affogato_math::{vector::{RadialCoordinate, Vector}, FromPrimitive, Real, Zero};
+
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
 
 extern crate alloc;
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
 struct KinematicSegment<V: Vector> 
     where V::Scalar: Real {
@@ -11,18 +15,26 @@ struct KinematicSegment<V: Vector>
 }
 impl<V: Vector> KinematicSegment<V> 
     where V::Scalar: Real {
-    pub fn new(pos: V, prev: &V) -> Self {
+    fn new(pos: V, prev: &V) -> Self {
         let length = pos.distance(prev);
         Self { pos: pos, length }
     }
-    pub fn as_root(root: V) -> Self {
+    fn as_root(root: V) -> Self {
         Self { pos: root, length: <V::Scalar as Zero>::ZERO }
     }
 }
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone)]
 pub struct KinematicSegmentList<V: Vector> 
     where V::Scalar: Real {
     segments: alloc::vec::Vec<KinematicSegment<V>>,
     length: V::Scalar,
+}
+impl<V: Vector> Default for KinematicSegmentList<V> 
+    where V::Scalar: Real {
+    fn default() -> Self {
+        Self::new(V::ZERO)
+    }
 }
 impl<V: Vector + alloc::fmt::Debug> alloc::fmt::Debug for KinematicSegmentList<V>
     where V::Scalar: Real + alloc::fmt::Debug {
@@ -39,7 +51,7 @@ impl<V: Vector> KinematicSegmentList<V>
     pub fn new(root: V) -> Self {
         let root = KinematicSegment::as_root(root);
         Self { 
-            length: root.length, 
+            length: root.length, // starts at 0 
             segments: alloc::vec![root] 
         }
     }
@@ -98,7 +110,14 @@ impl<V: Vector> KinematicSegmentList<V>
     pub fn move_to(&mut self, to: &V, edge: usize) {
         self.fabrik_front(to.clone(), edge);
     }
-    pub fn add_segment(&mut self, pos: V) {
+    pub fn push_point(&mut self, pos: V) {
+        let segment = KinematicSegment::new(pos, &self.segments.last().unwrap().pos);
+        self.length += segment.length;
+        self.segments.push(segment);
+    }
+    pub fn push<R: RadialCoordinate>(&mut self, pos: R) 
+        where V: From<R> {
+        let pos = V::from(pos) + self.segments.last().unwrap().pos;
         let segment = KinematicSegment::new(pos, &self.segments.last().unwrap().pos);
         self.length += segment.length;
         self.segments.push(segment);
@@ -122,7 +141,7 @@ impl<V: Vector, I: Iterator<Item = V>> From<I> for KinematicSegmentList<V>
         let mut iter = value.into_iter();
         let mut ret = KinematicSegmentList::new(iter.next().unwrap());
         for i in iter {
-            ret.add_segment(i);
+            ret.push_point(i);
         }
         ret
     }

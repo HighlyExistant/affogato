@@ -1,5 +1,8 @@
 use crate::{sdf::SignedDistance, vector::{Vector, Vector2, Vector3}, Number, Real};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 macro_rules! impl_ops_hsphere {
     ($structure:tt, $vector:tt) => {
         impl<T: Number> core::ops::Add<$vector<T>> for $structure<T> {
@@ -39,6 +42,7 @@ pub trait HyperSphere<V: Vector> {
 }
 
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct Circle<T: Number> {
     pub center: Vector2<T>,
@@ -60,6 +64,7 @@ impl<T: Number> HyperSphere<Vector2<T>> for Circle<T> {
 }
 impl_ops_hsphere!(Circle, Vector2);
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere<T: Number> {
     pub center: Vector3<T>,

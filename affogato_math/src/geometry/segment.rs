@@ -1,6 +1,9 @@
 #![allow(unused)]
 use core::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::{lerp, vector::{OuterProduct, Vector, Vector2}, Number, Real, Zero};
 
 use super::Dimension;
@@ -44,6 +47,7 @@ pub trait Segment {
         Self: 'static;
 }
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct LinearSegment2D<T: Number> {
     pub start: Vector2<T>,
@@ -168,6 +172,7 @@ impl<T: Number> Deref for LinearSegment2D<T> {
     }
 }
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct QuadraticSegment2D<T: Number> {
     pub start: Vector2<T>,
@@ -271,6 +276,7 @@ impl<T: Number> Deref for QuadraticSegment2D<T> {
     }
 }
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct CubicSegment2D<T: Number> {
     pub start: Vector2<T>,
@@ -405,6 +411,7 @@ impl<T: Number> Deref for CubicSegment2D<T> {
         unsafe { core::mem::transmute::<&Self, &[Vector2<T>; 4]>(self) }
     }
 }
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
 pub enum Segment2D<T: Number> {
     Linear(LinearSegment2D<T>),

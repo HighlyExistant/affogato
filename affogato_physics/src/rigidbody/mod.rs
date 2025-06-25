@@ -1,6 +1,9 @@
 
 use affogato_math::{algebra::Quaternion, matrix::{Matrix3, SquareMatrix}, vector::{OuterProduct, Vector, Vector3}, Real, Rotation, Translation, Zero};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 pub trait RigidBody {
     type Vector: Vector;
     type Rotor;
@@ -12,6 +15,7 @@ pub trait RigidBody {
     fn step(&mut self, deltatime: <Self::Vector as Vector>::Scalar, gravity: Self::Vector, transform: &mut (impl Rotation<Self::Rotor> + Translation<Self::Vector>));
 }
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone)]
 pub struct RigidBody3D<T: Real> {
     pub velocity: Vector3<T>,

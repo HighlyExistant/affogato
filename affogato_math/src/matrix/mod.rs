@@ -1,5 +1,8 @@
 use core::{fmt::Display, ops::{Index, IndexMut}};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use bytemuck::{Pod, Zeroable};
 use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
 pub trait SquareMatrix: Sized {
@@ -51,6 +54,7 @@ pub trait SquareMatrix: Sized {
 
 /// column major 2x2 matrix
 #[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix2<T: Number> {
     pub x: Vector2<T>,
@@ -238,16 +242,18 @@ unsafe impl<T: Number + Pod> Pod for Matrix2<T> {}
 /// column major matrix
 #[cfg(feature="glsl")]
 #[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3<T: Number> {
     pub x: Vector3<T>,
     pub y: Vector3<T>,
     pub z: Vector3<T>,
-    // padding: Vector3<T>,
+    padding: Vector3<T>,
 }
 /// column major matrix
 #[cfg(not(feature="glsl"))]
 #[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3<T: Number> {
     pub x: Vector3<T>,
@@ -300,7 +306,7 @@ impl<T: Number> Matrix3<T>  {
 
     #[cfg(feature="glsl")]
     pub const fn from_vec(x: Vector3<T>, y: Vector3<T>, z: Vector3<T>) -> Self {
-        Self { x, y, z }
+        Self { x, y, z, padding: Vector3::ZERO }
     }
     pub fn translate(mut self, translate: Vector3<T>) -> Self {
         self.x.set_z(translate.x());
@@ -517,6 +523,7 @@ unsafe impl<T: Number> Zeroable for Matrix3<T> {
 unsafe impl<T: Number + Pod> Pod for Matrix3<T> {}
 /// column major matrix
 #[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix4<T: Number> {
     pub x: Vector4<T>,

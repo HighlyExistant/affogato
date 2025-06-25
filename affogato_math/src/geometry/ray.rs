@@ -1,9 +1,13 @@
 use core::fmt::Debug;
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::{vector::{OuterProduct, Vector, Vector3}, Real, Zero};
 
 use super::{Sphere, Triangle3D};
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Default, Clone, Copy, Debug)]
 pub struct RayHitInfo<V: Vector> {
     pub distance: V::Scalar,
@@ -19,7 +23,8 @@ pub trait Ray {
     fn origin(&self) -> &Self::Vector;
     fn direction(&self) -> &Self::Vector;
 }
-#[derive(Clone)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy)]
 pub struct Ray3D<T: Real> {
     origin: Vector3<T>,
     direction: Vector3<T>,

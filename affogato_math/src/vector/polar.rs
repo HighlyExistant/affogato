@@ -1,5 +1,8 @@
 use core::fmt::Debug;
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::Real;
 
 use super::{Vector, Vector2, Vector3, Vector4};
@@ -21,6 +24,7 @@ pub trait RadialCoordinate {
     }
 }
 /// Implements [`RadialCoordinate`], is supposed to represent a 2d Vector, using a length and an angle.
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct PolarCoordinate<T> {
     pub length: T,
@@ -71,6 +75,7 @@ impl<T: Real> From<&Vector2<T>> for PolarCoordinate<T> {
         value.into()
     }
 }
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct SphericalCoordinate<T> {
     pub length: T,
@@ -128,6 +133,7 @@ impl<T: Real> From<&Vector3<T>> for SphericalCoordinate<T> {
     }
 }
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct HyperSphereD4Coordinate<T: Real> {
     pub length: T,

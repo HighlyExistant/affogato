@@ -6,14 +6,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = { version = "0.8.5", optional = true }
-rand_pcg = { version = "0.3.1", optional = true }
+rand = { version = "0.8.5", optional = true, default-features = false }
 affogato_math = { path = "affogato_math" }
 affogato_physics = { path = "affogato_physics" }
 graphics_feature = { path = "graphics_feature" }
 [features]
 default = ["alloc"]
 alloc = ["affogato_math/alloc", "affogato_physics/alloc", "graphics_feature/alloc"]
+serde = ["affogato_math/serde", "affogato_physics/serde", "graphics_feature/serde"]
 rand = ["dep:rand", "affogato_math/rand"]
 physics = []
 godot = ["affogato_math/godot"]

@@ -5,7 +5,9 @@ edition = "2024"
 
 [dependencies]
 affogato_math = { path = "../affogato_math" }
+serde = { version = "1.0.219", optional = true, default-features = false, features = ["derive"] }
 
 [features]
 default = ["alloc"]
 alloc = []
+serde = ["dep:serde"]

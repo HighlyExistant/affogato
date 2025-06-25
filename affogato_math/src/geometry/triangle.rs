@@ -1,5 +1,8 @@
 use core::ops::{Index, IndexMut, Sub};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use bytemuck::{Pod, Zeroable};
 
 use crate::{sdf::SignedDistance, vector::{OuterProduct, Vector, Vector2, Vector3}, Number, Real, Zero};
@@ -41,6 +44,7 @@ macro_rules! impl_tetrahedron_ops {
 }
 
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Triangle3D<T: Number> {
     v: [Vector3<T>; 3],
@@ -115,6 +119,7 @@ impl_triangle_ops!(Triangle3D, Vector3, Mul, mul);
 impl_triangle_ops!(Triangle3D, Vector3, Div, div);
 
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct Triangle2D<T: Number> {
     v: [Vector2<T>; 3],
@@ -152,6 +157,7 @@ impl_triangle_ops!(Triangle2D, Vector2, Mul, mul);
 impl_triangle_ops!(Triangle2D, Vector2, Div, div);
 
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct Tetrahedron<T: Number> {
     v: [Vector3<T>; 4],

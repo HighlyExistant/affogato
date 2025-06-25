@@ -1,12 +1,16 @@
 #![allow(unused)]
 use core::fmt::{Debug, Display};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::{matrix::{Matrix3, Matrix4}, vector::{Vector, Vector3, Vector4}, Number, Real, Zero};
 /// Represents a number with 1 real scalar component `w` and 1 vector component 
 /// that contains 3 imaginary values `i`, `j` and `k`. This quaternion assures that
 /// the equation `i*i` = `j*j` = `k*k` = `i*j*k` = `-1`. It's commonly used to 
 /// represent rotations in 3d space.
 #[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct Quaternion<T: Real> {
     pub w: T,

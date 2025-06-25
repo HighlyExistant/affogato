@@ -1,4 +1,11 @@
-use affogato_math::{matrix::SquareMatrix, vector::{FMat3, FMat4, FVec3, OuterProduct, Vector}, FloatingPoint, Zero};
+use affogato_math::{matrix::SquareMatrix, vector::{FMat3, FMat4, FVec3, OuterProduct, Vector}, Zero};
+
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
+#[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug)]
 pub struct Camera {
     projection: FMat4,
     view: FMat4,
@@ -102,6 +109,8 @@ impl Camera {
         self.projection.clone()
     }
 }
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug)]
 pub struct PerspectiveCameraProjection {
     near: f32, 
     far: f32, 
@@ -126,6 +135,8 @@ impl CameraProjection for PerspectiveCameraProjection {
         projection
     }
 }
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug)]
 pub struct OrthographicCameraProjection {
     left: f32, 
     right: f32, 
@@ -154,6 +165,8 @@ impl CameraProjection for OrthographicCameraProjection {
     }
 }
 
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug)]
 pub struct IsometricCameraProjection {
     rotate_x_axis: u8,
     rotate_y_axis: u8,

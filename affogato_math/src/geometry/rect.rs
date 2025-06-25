@@ -1,6 +1,9 @@
 #![allow(unused)]
 use core::{fmt::Debug, ops::{Deref, Div}};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use bytemuck::{Pod, Zeroable};
 
 use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}, HasNegatives, Number, Real, Zero};
@@ -58,6 +61,7 @@ pub trait HyperCube<T: Number> {
     const DIMENSION: usize;
 }
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct Rect3D<T: Number> {
     min: Vector3<T>,
@@ -65,6 +69,7 @@ pub struct Rect3D<T: Number> {
 }
 
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct ConstRect3D<T: Number> {
     pub min: Vector3<T>,
@@ -249,12 +254,14 @@ unsafe impl<T: Number> Zeroable for Rect3D <T> {
 }
 unsafe impl<T: Number + Pod> Pod for Rect3D <T> {}
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct Rect<T: Number> {
     min: Vector2<T>,
     max: Vector2<T>,
 }
 #[repr(C, align(16))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug)]
 pub struct ConstRect<T: Number> {
     pub min: Vector2<T>,

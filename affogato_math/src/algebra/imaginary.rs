@@ -1,4 +1,8 @@
 #![allow(unused)]
+
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::Real;
 macro_rules! impl_ops_float {
     ($trait:tt, $func:tt, $($primitive:tt),*) => {
@@ -13,6 +17,8 @@ macro_rules! impl_ops_float {
     };
 }
 /// A lonely imaginary number. It has the property that `i*i == -1`.
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Imaginary<T: Real>(T);
 
 impl<T: Real> From<T> for Imaginary<T> {

@@ -1,5 +1,11 @@
 use crate::{vector::{Vector, Vector3}, IsNormalized, Number, Real};
+
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 /// Represents a 3 dimensional hyperplane
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct Plane<T: Number> {
     normal: Vector3<T>, 
     /// it's possible for this distance to be signed

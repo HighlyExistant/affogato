@@ -297,7 +297,6 @@ impl<T, A> UniversalOperationsOn<T> for A
 
 }
 impl<T: core::ops::Add<Output = Self> + core::ops::Sub<Output = Self> + core::ops::Mul<Output = Self> + core::ops::Div<Output = Self>> UsesArithmetic for T {}
-
 pub trait Number 
     where Self: Sized + 
     core::ops::Add<Output = Self> +

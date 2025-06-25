@@ -2,7 +2,11 @@ mod types;
 mod polar;
 use core::ops::{Div, Index, IndexMut, Neg, Sub};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use bytemuck::{Pod, Zeroable};
+
 pub use types::*;
 pub use polar::*;
 use crate::{epsilon_eq, Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
@@ -385,6 +389,7 @@ pub trait OuterProduct: Vector {
     type Product;
 }
 #[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector2<T: Number> {
     x: T,
@@ -524,6 +529,7 @@ impl<T: HasNegatives + Number> HasNegatives for Vector2<T> {
 }
 #[repr(C)]
 #[cfg(feature="glsl")]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
     x: T,
@@ -534,6 +540,7 @@ pub struct Vector3<T: Number> {
 
 #[repr(C)]
 #[cfg(not(feature="glsl"))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector3<T: Number> {
     x: T,
@@ -687,6 +694,7 @@ impl<T: Number> OuterProduct for Vector3<T> {
     }
 }
 #[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Default, Clone, Copy, Debug, Hash)]
 pub struct Vector4<T: Number> {
     x: T,
@@ -993,5 +1001,23 @@ mod alloc_feature {
         }
     }
 }
-#[cfg(feature = "alloc")]
-pub use alloc_feature::*;
+// #[cfg(feature = "alloc")]
+// pub use alloc_feature::*;
+
+// mod serde_feature {
+//     use serde::{ser::SerializeStruct, Serialize};
+
+//     use crate::{vector::Vector2, Number};
+
+    
+//     impl<T: Number + Serialize> serde::Serialize for Vector2<T> {
+//         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//             where
+//                 S: serde::Serializer {
+//             let mut serialize = serializer.serialize_struct("Vector2", 2)?;
+//             serialize.serialize_field("x", &self.x)?;
+//             serialize.serialize_field("y", &self.y)?;
+//             serialize.end()
+//         }
+//     }
+// }
