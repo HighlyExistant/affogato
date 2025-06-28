@@ -16,5 +16,6 @@ alloc = ["affogato_math/alloc", "affogato_physics/alloc", "graphics_feature/allo
 serde = ["affogato_math/serde", "affogato_physics/serde", "graphics_feature/serde"]
 rand = ["dep:rand", "affogato_math/rand"]
 physics = []
+graphics = []
 godot = ["affogato_math/godot"]
 glsl = ["affogato_math/glsl"]

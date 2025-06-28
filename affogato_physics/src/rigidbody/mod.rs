@@ -3,7 +3,8 @@ use affogato_math::{algebra::Quaternion, matrix::{Matrix3, SquareMatrix}, vector
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
-
+/// A rigidbody is a physics object that moves according to Newton-Euler laws of rigid
+/// body motion.  
 pub trait RigidBody {
     type Vector: Vector;
     type Rotor;
@@ -22,7 +23,7 @@ pub struct RigidBody3D<T: Real> {
     pub angular_velocity: Vector3<T>,
     pub mass: T,
     net_force: Vector3<T>,
-    pub net_torque: Vector3<T>,
+    net_torque: Vector3<T>,
     pub inertia: Matrix3<T>,
 }
 

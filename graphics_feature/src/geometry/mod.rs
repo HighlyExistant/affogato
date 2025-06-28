@@ -7,8 +7,6 @@ pub enum VertexTopology {
     Point,
     Line,
     Triangle,
-    Square,
-    Polygon,
 }
 pub trait Geometry<V: Vector> {
     fn vertices(&self) -> Vec<V>;

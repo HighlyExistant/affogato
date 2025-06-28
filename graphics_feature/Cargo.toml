@@ -7,6 +7,7 @@ edition = "2024"
 affogato_math = { path = "../affogato_math" }
 affogato_physics = { path = "../affogato_physics" }
 serde = { version = "1.0.219", optional = true, default-features = false, features = ["derive"] }
+bytemuck = { version = "1.23.0", features = ["derive"] }
 
 [features]
 default = ["alloc"]
