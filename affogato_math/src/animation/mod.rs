@@ -1,4 +1,5 @@
-use crate::{FromPrimitive, HasRealProduct, One, Real, UsesArithmetic, Zero};
+use affogato_core::{num::{FromPrimitive, One, UniversalOperationsOn, Zero}, sets::Real};
+
 /// mixes two values together linearly using a t value between 0.0-1.0
 /// # Example
 /// ``` no_run,ignore
@@ -15,7 +16,7 @@ use crate::{FromPrimitive, HasRealProduct, One, Real, UsesArithmetic, Zero};
 /// assert!(lerp(a, b, 0.5) == FVec2::new(20.0, 13.5))
 /// ```
 pub fn lerp<V, T>(a: V, b: V, t: T) -> V 
-    where V: UsesArithmetic + Copy + core::ops::Mul<T, Output = V> {
+    where V: UniversalOperationsOn<V> + Copy + core::ops::Mul<T, Output = V> {
     a + (b-a)*t
 }
 /// mixes two values using smooth Hermite interpolation and returns a t value between 0.0-1.0. Retrieved from [the book of shaders](https://thebookofshaders.com/glossary/?search=smoothstep)
@@ -34,7 +35,7 @@ pub fn lerp<V, T>(a: V, b: V, t: T) -> V
 /// # Panics
 /// * Results of smoothstep are undefined if edge0 >= edge1
 pub fn smoothstep<V>(edge0: V, edge1: V, x: V) -> V 
-    where V: UsesArithmetic + core::ops::Mul<V, Output = V> + Copy + Zero + One + PartialOrd + FromPrimitive {
+    where V: UniversalOperationsOn<V> + core::ops::Mul<V, Output = V> + Copy + Zero + One + PartialOrd + FromPrimitive {
     assert!(!(edge0 >= edge1), "results of smoothstep are undefined if `edge0 >= edge1`");
     let mut t = ((x - edge0) / (edge1 - edge0));
     if t < V::ZERO {
@@ -45,12 +46,12 @@ pub fn smoothstep<V>(edge0: V, edge1: V, x: V) -> V
     return t * t * (V::from_f64(3.0) - t*V::from_f64(2.0));
 }
 /// returns a t value using a range `from` and `to` and a value
-pub fn inverse_lerp<V: HasRealProduct<T, V> + UsesArithmetic + Copy, T: Real>(from: V, to: V, value: T) -> V 
+pub fn inverse_lerp<V: UniversalOperationsOn<V> + core::ops::Mul<T> + Copy, T: Real>(from: V, to: V, value: T) -> V 
     where T: core::ops::Sub<V, Output = V> {
     (value - from) / (to - from)
 }
 /// Maps one value into another using interpolation. internally this is an [`inverse_lerp`] and [`lerp`] combined.
-pub fn remap<V: HasRealProduct<T, V> + UsesArithmetic + Copy + Real, T: Real>(imin: V, imax: V, omin: V, omax: V, t: T) -> V 
+pub fn remap<V: core::ops::Mul<T> + UniversalOperationsOn<V> + Copy + Real, T: Real>(imin: V, imax: V, omin: V, omax: V, t: T) -> V 
     where T: core::ops::Sub<V, Output = V> {
     let t2 = inverse_lerp(imin, imax, t);
     lerp::<V, V>(omin, omax, t2)

@@ -1,9 +1,8 @@
 mod normal;
 pub mod sdf;
 
+use affogato_core::sets::Real;
 pub use normal::*;
-
-use crate::Real;
 
 pub fn smin_exp<T: Real>(a: T, b: T, k: T) -> T {
     let r = T::exp2(-a/k) + T::exp2(-b/k);

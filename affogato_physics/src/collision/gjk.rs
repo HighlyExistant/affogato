@@ -1,9 +1,10 @@
 #![cfg(feature="alloc")]
 extern crate alloc;
 
+use affogato_core::{num::Zero, sets::Real};
 use alloc::fmt::{Debug, Display};
 
-use affogato_math::{geometry::Dimension, matrix::{Matrix4, SquareMatrix}, vector::{OuterProduct, Vector, Vector3, Vector4}, Real, Transformation, Zero};
+use affogato_math::{geometry::Dimension, matrix::{Matrix4, SquareMatrix}, vector::{OuterProduct, Vector, Vector3, Vector4}, Transformation};
 use core::ops::{Add, Mul};
 use alloc::vec::Vec;
 use super::{Collision, CollisionInfo, HitCollisionInfo};
@@ -12,7 +13,7 @@ pub(crate) struct Simplex<V: Vector + Dimension, const DIMENSION: usize> {
     pub points: [V; DIMENSION],
     pub size: usize,
 }
-impl<V: Vector + Dimension + Debug, const DIMENSION: usize> Simplex<V, DIMENSION> {
+impl<V: Vector + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION> {
     pub fn new() -> Self {
         Self { points: [V::ZERO; DIMENSION], size: 0 }
     }

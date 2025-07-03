@@ -1,5 +1,6 @@
 
-use affogato_math::{algebra::Quaternion, matrix::{Matrix3, SquareMatrix}, vector::{OuterProduct, Vector, Vector3}, Real, Rotation, Translation, Zero};
+use affogato_core::{num::Zero, sets::Real};
+use affogato_math::{algebra::Quaternion, matrix::{Matrix3, SquareMatrix}, vector::{OuterProduct, Vector, Vector3}, Rotation, Translation};
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};

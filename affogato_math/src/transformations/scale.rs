@@ -1,4 +1,6 @@
-use crate::{matrix::{Matrix3, Matrix4}, vector::{Vector2, Vector3, Vector4}, Real};
+use affogato_core::sets::Real;
+
+use crate::{matrix::{Matrix3, Matrix4}, vector::{Vector2, Vector3, Vector4}};
 
 pub trait Scaling<Scale> {
     fn scale(&mut self, scale: Scale);

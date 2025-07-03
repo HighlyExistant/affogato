@@ -1,10 +1,11 @@
 use core::{fmt::Display, ops::{Index, IndexMut}};
 
+use affogato_core::{num::{Number, Signed, Zero, One}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
-use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, Signed, Number, One, Real, Zero};
+use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}};
 pub trait SquareMatrix: Sized {
     type Column: Vector;
     type LowerDimension;
@@ -875,9 +876,10 @@ unsafe impl<T: Number + Pod> Pod for Matrix4<T> {}
 mod alloc_feature {
     extern crate alloc;
     use core::fmt::Display;
+    use affogato_core::num::Number;
     use alloc::{string::String};
 
-    use crate::{matrix::{Matrix2, Matrix3, Matrix4}, Number};
+    use crate::{matrix::{Matrix2, Matrix3, Matrix4}};
     impl<T: Number + Display> Display for Matrix2<T> {
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
             let mut row1 = alloc::string::String::from('┌');

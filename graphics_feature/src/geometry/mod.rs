@@ -1,7 +1,8 @@
 #![cfg(feature="alloc")]
 extern crate alloc;
+use affogato_core::{num::Number, sets::Real};
 use alloc::vec::Vec;
-use affogato_math::{geometry::{Rect3D, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector, Vector2, Vector3}, Number, Real};
+use affogato_math::{geometry::{Rect3D, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector, Vector2, Vector3}};
 use affogato_physics::kinematics::KinematicSegmentList;
 pub enum VertexTopology {
     Point,

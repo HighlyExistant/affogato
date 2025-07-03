@@ -1,9 +1,9 @@
 #![allow(unused)]
 
+use affogato_core::sets::Real;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::Real;
 macro_rules! impl_ops_float {
     ($trait:tt, $func:tt, $($primitive:tt),*) => {
         $(

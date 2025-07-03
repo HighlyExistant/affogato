@@ -5,6 +5,7 @@ mod segment;
 mod ray;
 mod hyperplane;
 
+use affogato_core::{num::Number, sets::Real};
 pub use rect::*;
 pub use triangle::*;
 pub use sphere::*;
@@ -12,7 +13,7 @@ pub use segment::*;
 pub use ray::*;
 pub use hyperplane::*;
 
-use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector, Vector2, Vector3, Vector4}, Number, Real};
+use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector, Vector2, Vector3, Vector4}};
 
 pub trait CalculateCentroid {
     type VectorType: Vector;
@@ -35,7 +36,7 @@ pub trait Dimension {
 impl<T: Number> Dimension for Vector2<T> {
     const DIMENSION: usize = 2;
 }
-impl<T: Real> Dimension for Matrix2<T> {
+impl<T: Number> Dimension for Matrix2<T> {
     const DIMENSION: usize = 2;
 }
 impl<T: Number> Dimension for Circle<T> {
@@ -50,7 +51,7 @@ impl<T: Number> Dimension for Triangle2D<T> {
 impl<T: Number> Dimension for Vector3<T> {
     const DIMENSION: usize = 3;
 }
-impl<T: Real> Dimension for Matrix3<T> {
+impl<T: Number> Dimension for Matrix3<T> {
     const DIMENSION: usize = 3;
 }
 impl<T: Number> Dimension for Sphere<T> {
@@ -65,9 +66,9 @@ impl<T: Number> Dimension for Triangle3D<T> {
 impl<T: Number> Dimension for Vector4<T> {
     const DIMENSION: usize = 4;
 }
-impl<T: Real> Dimension for Quaternion<T> {
+impl<T: Number> Dimension for Matrix4<T> {
     const DIMENSION: usize = 4;
 }
-impl<T: Real> Dimension for Matrix4<T> {
+impl<T: Real> Dimension for Quaternion<T> {
     const DIMENSION: usize = 4;
 }

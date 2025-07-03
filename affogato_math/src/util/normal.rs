@@ -1,4 +1,5 @@
 use crate::vector::{Vector, Vector2, Vector3, Vector4};
+use affogato_core::num::{Zero, One};
 macro_rules! impl_normalized_no_negatives {
     ($structure:tt, $($types:tt),*) => {
         $(
@@ -84,7 +85,6 @@ macro_rules! impl_normalized_fvec {
 pub trait IsNormalized {
     fn normalized(&self) -> bool;
 }
-use crate::{One, Zero};
 impl_normalized_no_negatives!(u8, u16, u32, u64, usize);
 impl_normalized_vec!(i8, i16, i32, i64, isize);
 impl_normalized_fvec!(f32, f64);

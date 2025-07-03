@@ -1,4 +1,6 @@
-use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector2, Vector3}, Real};
+use affogato_core::sets::Real;
+
+use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector2, Vector3}};
 
 pub trait Rotation<Rot> {
     fn rotate(&mut self, rotate_by: &Rot);

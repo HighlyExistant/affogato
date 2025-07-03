@@ -2,6 +2,7 @@ mod types;
 mod polar;
 use core::ops::{Div, Index, IndexMut, Neg, Sub};
 
+use affogato_core::{num::{Bounds, FloatingPoint, Number, One, Signed, UniversalOperationsOn, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
@@ -9,7 +10,6 @@ use bytemuck::{Pod, Zeroable};
 
 pub use types::*;
 pub use polar::*;
-use crate::{epsilon_eq, Bounds, FloatingPoint, FromPrimitive, Signed, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
         impl<T: Number> core::ops::Add for $vector <T>  {
@@ -220,12 +220,12 @@ macro_rules! impl_vec {
         fn dot(&self, other: &Self) -> Self::Scalar {
             T::ZERO $(+ self.$element*other.$element)+
         }
-        fn project(&self, other: &Self) -> Self where Self::Scalar: FloatingPoint {
+        fn project(&self, other: &Self) -> Self where Self::Scalar: Real {
             let vector = self.normalize();
             let t = vector.dot(other);
             Self::new($(vector.$element * t),+)
         }
-        fn normalize(&self) -> Self where Self::Scalar: FloatingPoint {
+        fn normalize(&self) -> Self where Self::Scalar: Real {
             let magnitude = self.length();
             Self::new($(self.$element / magnitude),+)
         }
@@ -338,6 +338,8 @@ macro_rules! impl_all_from_vec {
     };
 }
 use paste::paste;
+
+use crate::epsilon_eq;
 macro_rules! vector_permutations {
     ($ret:tt, $($x:tt),*) => {
         paste! {
@@ -348,20 +350,24 @@ macro_rules! vector_permutations {
         }
     };
 }
-pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self> + Clone + Copy + Index<usize, Output = Self::Scalar> + IndexMut<usize, Output = Self::Scalar> + Zero + One {
+pub trait Vector 
+    where Self: 
+    UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Self> +
+    Clone + Copy +
+    Zero + One {
     type Scalar: Number;
-    fn length(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.length_squared().sqrt() }
+    fn length(&self) -> Self::Scalar where Self::Scalar: Real { self.length_squared().sqrt() }
     #[inline]
-    fn length_squared(&self) -> Self::Scalar where Self::Scalar: FloatingPoint { self.dot(self) }
-    fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: FloatingPoint { (self.clone()-other.clone()).length() }
+    fn length_squared(&self) -> Self::Scalar where Self::Scalar: Real { self.dot(self) }
+    fn distance(&self, other: &Self) -> Self::Scalar where Self::Scalar: Real { (self.clone()-other.clone()).length() }
     /// Direction gives a normalized vector that points to the given point.
     fn direction_to(&self, point: &Self) -> Self 
-        where Self::Scalar: FloatingPoint,
+        where Self::Scalar: Real,
         Self: core::ops::Sub<Output = Self> + Sized { 
             point.clone().sub(self.clone()).normalize()
     }
     fn point_at(&self, point: &Self, distance: Self::Scalar) -> Self 
-    where Self::Scalar: FloatingPoint,
+    where Self::Scalar: Real,
     Self: core::ops::Sub<Output = Self> + Sized {
         self.direction_to(point).mul(distance)+self.clone()
     }
@@ -373,10 +379,10 @@ pub trait Vector: UniversalOperationsOn<Self::Scalar> + UniversalOperationsOn<Se
     /// * The vectors are perpendicular if the dot product equals 0
     /// * The dot product of two normalized vectors, returns the cosine of the angle between those vectors.
     fn dot(&self, other: &Self) -> Self::Scalar;
-    fn project(&self, other: &Self) -> Self where Self::Scalar: FloatingPoint;
+    fn project(&self, other: &Self) -> Self where Self::Scalar: Real;
     /// the amount of scalar values this vector has.
     fn len(&self) -> usize;
-    fn normalize(&self) -> Self where Self::Scalar: FloatingPoint;
+    fn normalize(&self) -> Self where Self::Scalar: Real;
     // retrieves a point inside the vector, checking whether it is out of bounds
     fn get(&self, idx: usize) -> Option<Self::Scalar>;
     // retrieves a point inside the vector
@@ -924,6 +930,7 @@ impl<T: Number> From<Vector4<T>> for [T; 4]  {
 /// retrieved from https://thebookofshaders.com/glossary/?search=reflect
 pub fn reflect<V: Vector>(incident: &V, normal: &V) -> V 
     where V: Sized + Clone, V::Scalar: Real {
+    use affogato_core::num::FromPrimitive;
     incident.clone() - (normal.clone())*V::Scalar::from_f64(2.0)*incident.dot(normal)
 }
 /// calculates the refraction of an incident vector, where `incident` is the incident vector,
@@ -960,8 +967,10 @@ impl_all_from_vec!(impl_fromvec4);
 #[cfg(feature = "alloc")]
 mod alloc_feature {
     use core::fmt::Display;
+    use affogato_core::num::Number;
+
     use crate::vector::Vector3;
-    use crate::{vector::{Vector2, Vector4}, Number};
+    use crate::{vector::{Vector2, Vector4}};
 
     extern crate alloc;
     impl<T: Number> From<Vector2<T>> for alloc::vec::Vec<T> {

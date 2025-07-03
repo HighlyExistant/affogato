@@ -1,9 +1,10 @@
 use core::{fmt::Display, ops::{Add, Div, Mul}};
 
+use affogato_core::sets::Real;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{matrix::Matrix2, vector::Vector2, Real};
+use crate::{matrix::Matrix2, vector::Vector2};
 /// Represents a number with 1 real component and 1 imaginary component `i`, where `i^*i == -1.0`.
 /// This is useful for when you want to represent rotations in 2 dimensions algebraically.
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
@@ -55,7 +56,9 @@ impl<T: Real> Div for ComplexNumber<T>
 mod alloc_feature {
     use core::fmt::Display;
 
-    use crate::{algebra::ComplexNumber, Real};
+    use affogato_core::sets::Real;
+
+    use crate::{algebra::ComplexNumber};
 
     extern crate alloc;
     impl<T: Real> Display for ComplexNumber<T> 

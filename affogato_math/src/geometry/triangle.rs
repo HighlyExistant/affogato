@@ -1,11 +1,12 @@
 use core::ops::{Index, IndexMut, Sub};
 
+use affogato_core::{num::{Number, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{sdf::SignedDistance, vector::{OuterProduct, Vector, Vector2, Vector3}, Number, Real, Zero};
+use crate::{sdf::SignedDistance, vector::{OuterProduct, Vector, Vector2, Vector3}};
 
 use super::CalculateCentroid;
 
@@ -101,9 +102,9 @@ impl<T: Real> SignedDistance<Vector3<T>> for Triangle3D<T> {
         let dst = if ba.cross(&ba_ac).dot(&pa).signum() + 
             cb.cross(&ba_ac).dot(&pb).signum() + 
             ac.cross(&ba_ac).dot(&pc).signum() < T::from_f64(2.0) {
-            Vector3::<T>::length_squared(&(ba*crate::clamp(Vector3::dot(&ba, &pa)/ba.length_squared(), T::ZERO, T::ONE)-pa)).min(
-                Vector3::<T>::length_squared(&(cb*crate::clamp(Vector3::dot(&cb, &pb)/cb.length_squared(), T::ZERO, T::ONE)-pb)).min(
-                    Vector3::<T>::length_squared(&(ac*crate::clamp(Vector3::dot(&ac, &pc)/ac.length_squared(), T::ZERO, T::ONE)-pc))
+            Vector3::<T>::length_squared(&(ba*affogato_core::clamp(Vector3::dot(&ba, &pa)/ba.length_squared(), T::ZERO, T::ONE)-pa)).min(
+                Vector3::<T>::length_squared(&(cb*affogato_core::clamp(Vector3::dot(&cb, &pb)/cb.length_squared(), T::ZERO, T::ONE)-pb)).min(
+                    Vector3::<T>::length_squared(&(ac*affogato_core::clamp(Vector3::dot(&ac, &pc)/ac.length_squared(), T::ZERO, T::ONE)-pc))
                 )
             )
         } else {

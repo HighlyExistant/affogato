@@ -1,4 +1,5 @@
-use affogato_math::{geometry::{Circle, HyperSphere, Sphere}, vector::{Vector, Vector2, Vector3}, Real, Zero};
+use affogato_core::{num::Zero, sets::Real};
+use affogato_math::{geometry::{Circle, HyperSphere, Sphere}, vector::{Vector, Vector2, Vector3}};
 
 use super::{Collision, HitCollisionInfo};
 
@@ -18,7 +19,7 @@ impl<T: Real> Collision<Vector3<T>> for Sphere<T> {
         }
     }
 }
-fn hsphere_collision<V: Vector + Zero + core::cmp::PartialEq, S: HyperSphere<V>>(s0: &S, s1: &S) -> Option<HitCollisionInfo<V>> 
+fn hsphere_collision<V: Vector + PartialEq, S: HyperSphere<V>>(s0: &S, s1: &S) -> Option<HitCollisionInfo<V>> 
     where V::Scalar: Real {
     // Case 1: Both spheres have the same center
     if s0.center() == s1.center() {

@@ -1,9 +1,10 @@
 use core::fmt::Debug;
 
+use affogato_core::{num::Zero, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{vector::{OuterProduct, Vector, Vector3}, Real, Zero};
+use crate::{vector::{OuterProduct, Vector, Vector3}};
 
 use super::{Sphere, Triangle3D};
 

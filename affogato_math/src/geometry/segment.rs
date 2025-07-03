@@ -1,10 +1,11 @@
 #![allow(unused)]
 use core::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
+use affogato_core::{num::{Number, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{lerp, vector::{OuterProduct, Vector, Vector2}, Number, Real, Zero};
+use crate::{lerp, vector::{OuterProduct, Vector, Vector2}};
 
 use super::Dimension;
 #[cfg(feature="alloc")]

@@ -1,6 +1,7 @@
 use core::fmt::Debug;
 
-use crate::{Number, Real};
+use affogato_core::{num::Number, sets::Real};
+
 /// Contains all real solutions to a polynomial. Any imaginary solutions are discarded.
 pub struct PolynomialSolutions<T: Number, const N: usize> {
     solutions: [T; N],

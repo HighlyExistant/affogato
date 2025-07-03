@@ -1,9 +1,8 @@
 use core::fmt::Debug;
 
+use affogato_core::sets::Real;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
-
-use crate::Real;
 
 use super::{Vector, Vector2, Vector3, Vector4};
 /// This trait is for all vectors that are represented as a list of angles

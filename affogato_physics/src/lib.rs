@@ -1,6 +1,7 @@
 #![allow(unused)]
 #![no_std]
-use affogato_math::{geometry::Rect3D, matrix::{Matrix3, SquareMatrix}, vector::{Vector, Vector3}, Real};
+use affogato_core::sets::Real;
+use affogato_math::{geometry::Rect3D, matrix::{Matrix3, SquareMatrix}, vector::{Vector, Vector3}};
 
 pub mod kinematics;
 pub mod collision;

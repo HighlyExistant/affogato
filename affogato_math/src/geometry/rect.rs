@@ -1,12 +1,13 @@
 #![allow(unused)]
 use core::{fmt::Debug, ops::{Deref, Div}};
 
+use affogato_core::{num::{FloatConsts, Number, Signed, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Signed, Number, Real, Zero};
+use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
@@ -555,7 +556,9 @@ pub fn pack_rects_rows<T: Number + Ord>(rects: &mut [Rect<T>], info: PackingInfo
 
 #[cfg(feature="alloc")]
 mod alloc_feature {
-    use crate::{geometry::{Rect, Rect3D}, vector::{Vector2, Vector3}, Number};
+    use affogato_core::num::Number;
+
+    use crate::{geometry::{Rect, Rect3D}, vector::{Vector2, Vector3}};
 
     extern crate alloc;
     impl<T: Number> Rect3D<T> {

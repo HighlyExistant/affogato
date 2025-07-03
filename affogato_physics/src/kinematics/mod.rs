@@ -1,5 +1,6 @@
 #![cfg(feature="alloc")]
-use affogato_math::{vector::{RadialCoordinate, Vector}, FromPrimitive, Real, Zero};
+use affogato_core::{num::{FromPrimitive, Zero}, sets::Real};
+use affogato_math::{vector::{RadialCoordinate, Vector}};
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};

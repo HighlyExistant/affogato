@@ -1,10 +1,11 @@
 #![allow(unused)]
 use core::fmt::{Debug, Display};
 
+use affogato_core::{num::{Number, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{matrix::{Matrix3, Matrix4}, vector::{Vector, Vector3, Vector4}, Number, Real, Zero};
+use crate::{matrix::{Matrix3, Matrix4}, vector::{Vector, Vector3, Vector4}};
 /// Represents a number with 1 real scalar component `w` and 1 vector component 
 /// that contains 3 imaginary values `i`, `j` and `k`. This quaternion assures that
 /// the equation `i*i` = `j*j` = `k*k` = `i*j*k` = `-1`. It's commonly used to 
@@ -289,7 +290,9 @@ impl<T: Real> core::ops::Mul<Vector4<T>> for Quaternion<T> {
 mod alloc_feature {
     use core::fmt::Display;
 
-    use crate::{algebra::Quaternion, Real};
+    use affogato_core::sets::Real;
+
+    use crate::algebra::Quaternion;
 
     extern crate alloc;
 

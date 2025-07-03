@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 rand = { version = "0.8.5", optional = true, default-features = false }
 affogato_math = { path = "affogato_math" }
+affogato_core = { path = "affogato_core" }
 affogato_physics = { path = "affogato_physics" }
 graphics_feature = { path = "graphics_feature" }
 [features]

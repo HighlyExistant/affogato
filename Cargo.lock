@@ -6,6 +6,7 @@ version = 4
 name = "affogato"
 version = "0.1.0"
 dependencies = [
+ "affogato_core",
  "affogato_math",
  "affogato_physics",
  "graphics_feature",
@@ -35,6 +36,7 @@ dependencies = [
 name = "affogato_physics"
 version = "0.1.0"
 dependencies = [
+ "affogato_core",
  "affogato_math",
  "serde",
 ]
@@ -203,6 +205,7 @@ dependencies = [
 name = "graphics_feature"
 version = "0.1.0"
 dependencies = [
+ "affogato_core",
  "affogato_math",
  "affogato_physics",
  "bytemuck",

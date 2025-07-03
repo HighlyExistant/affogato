@@ -1,5 +1,6 @@
-use crate::{sdf::SignedDistance, vector::{Vector, Vector2, Vector3}, Number, Real};
+use crate::{sdf::SignedDistance, vector::{Vector, Vector2, Vector3}};
 
+use affogato_core::{num::Number, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
