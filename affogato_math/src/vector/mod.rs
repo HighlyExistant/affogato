@@ -9,7 +9,7 @@ use bytemuck::{Pod, Zeroable};
 
 pub use types::*;
 pub use polar::*;
-use crate::{epsilon_eq, Bounds, FloatingPoint, FromPrimitive, HasNegatives, Number, One, Real, UniversalOperationsOn, Zero};
+use crate::{epsilon_eq, Bounds, FloatingPoint, FromPrimitive, Signed, Number, One, Real, UniversalOperationsOn, Zero};
 macro_rules! impl_ops {
     ($vector:ident, $($element:tt),+) => {
         impl<T: Number> core::ops::Add for $vector <T>  {
@@ -443,7 +443,7 @@ impl<T: Number> Vector2<T> {
         Self::new(T::ZERO, -T::ONE)
     }
     pub fn abs(&self) -> Self 
-        where T: HasNegatives {
+        where T: Signed {
         Self::new(self.x.abs(), self.y.abs())
     }
     pub fn cos(&self)-> T 
@@ -468,22 +468,22 @@ impl<T: Number> Vector2<T> {
         Self::new(angle.cos(), angle.sin())
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn x(&self) -> T {
         self.x
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn y(&self) -> T {
         self.y
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn set_x(&mut self, x: T) {
         self.x = x;
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_y(&mut self, y: T) {
         self.y = y;
     }
@@ -511,7 +511,7 @@ impl<T: Number> OuterProduct for Vector2<T> {
     type Product = T;
 }
 
-impl<T: HasNegatives + Number> HasNegatives for Vector2<T> {
+impl<T: Signed + Number> Signed for Vector2<T> {
     fn abs(self) -> Self {
         Self::new(self.x.abs(), self.y.abs())
     }
@@ -598,32 +598,32 @@ impl<T: Number> Vector3<T> {
         Self::new(T::ZERO, T::ZERO, -T::ONE)
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn x(&self) -> T {
         self.x
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn y(&self) -> T {
         self.y
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn z(&self) -> T {
         self.z
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_x(&mut self, x: T) {
         self.x = x;
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_y(&mut self, y: T) {
         self.y = y;
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_z(&mut self, z: T) {
         self.z = z;
     }
@@ -660,7 +660,7 @@ impl<T: Number> Vector3<T> {
         Vector3::new(generator.random_range(range.clone()), generator.random_range(range.clone()), generator.random_range(range.clone()))
     }
 }
-impl<T: HasNegatives + Number> HasNegatives for Vector3<T> {
+impl<T: Signed + Number> Signed for Vector3<T> {
     fn abs(self) -> Self {
         Self::new(self.x.abs(), self.y.abs(), self.z.abs())
     }
@@ -724,42 +724,42 @@ impl<T: Number> Vector4<T> {
         Vector3::new(self.x, self.y, self.z)
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn x(&self) -> T {
         self.x
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn y(&self) -> T {
         self.y
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn z(&self) -> T {
         self.z
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn w(&self) -> T {
         self.w
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_x(&mut self, x: T) {
         self.x = x;
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_y(&mut self, y: T) {
         self.y = y;
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_z(&mut self, z: T) {
         self.z = z;
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set_w(&mut self, w: T) {
         self.w = w;
     }
@@ -779,7 +779,7 @@ impl<T: Number> Vector4<T> {
     }
 }
 
-impl<T: HasNegatives + Number> HasNegatives for Vector4<T> {
+impl<T: Signed + Number> Signed for Vector4<T> {
     fn abs(self) -> Self {
         Self::new(self.x.abs(), self.y.abs(), self.z.abs(), self.w.abs())
     }

@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}, HasNegatives, Number, Real, Zero};
+use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}, Signed, Number, Real, Zero};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 

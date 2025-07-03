@@ -121,18 +121,42 @@ impl PerspectiveCameraProjection {
     pub fn new(near: f32, far: f32, fovy: f32, aspect_ratio: f32) -> Self {
         Self { near, far, fovy, aspect_ratio }
     }
+    #[inline]
+    pub fn fovy(&self) -> f32 {
+        self.fovy
+    }
+    #[inline]
+    pub fn near(&self) -> f32 {
+        self.near
+    }
+    #[inline]
+    pub fn far(&self) -> f32 {
+        self.far
+    }
+    #[inline]
+    pub fn aspect_ratio(&self) -> f32 {
+        self.aspect_ratio
+    }
+}
+pub fn perspective_fov(near: f32, far: f32, fovy: f32, aspect_ratio: f32) -> FMat4 {
+    FMat4::from(PerspectiveCameraProjection::new(near, far, fovy, aspect_ratio))
+}
+impl From<PerspectiveCameraProjection> for FMat4 {
+    fn from(value: PerspectiveCameraProjection) -> Self {
+        let tan_half_fovy = f32::tan(value.fovy / 2.0);
+        
+        let mut projection = FMat4::ZERO;
+        projection.x.set_x(1.0 / (value.aspect_ratio * tan_half_fovy));
+        projection.y.set_y(1.0 / (tan_half_fovy));
+        projection.z.set_z(value.far / (value.far - value.near));
+        projection.z.set_w(1.0);
+        projection.w.set_z(-(value.far * value.near) / (value.far - value.near));
+        projection
+    }
 }
 impl CameraProjection for PerspectiveCameraProjection {
     fn projection(&self) -> FMat4 {
-        let tan_half_fovy = f32::tan(self.fovy / 2.0);
-        
-        let mut projection = FMat4::ZERO;
-        projection.x.set_x(1.0 / (self.aspect_ratio * tan_half_fovy));
-        projection.y.set_y(1.0 / (tan_half_fovy));
-        projection.z.set_z(self.far / (self.far - self.near));
-        projection.z.set_w(1.0);
-        projection.w.set_z(-(self.far * self.near) / (self.far - self.near));
-        projection
+        FMat4::from(self.clone())
     }
 }
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]

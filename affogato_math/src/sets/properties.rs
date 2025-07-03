@@ -1,3 +1,5 @@
+use core::num::FpCategory;
+
 use super::{FromPrimitive, IntoPrimitive};
 
 macro_rules! impl_properties {
@@ -13,140 +15,6 @@ macro_rules! impl_properties {
                 const ONE: Self = $one;
                 fn is_one(&self) -> bool {
                     *self == $one
-                }
-            }
-        )*
-    };
-}
-macro_rules! impl_float {
-    ($($structure:tt),*) => {
-        $(
-            impl FloatingPoint for $structure {
-                fn acos(self) -> Self {
-                    $structure::acos(self)
-                }
-                fn acosh(self) -> Self {
-                    $structure::acosh(self)
-                }
-                fn asin(self) -> Self {
-                    $structure::asin(self)
-                }
-                fn asinh(self) -> Self {
-                    $structure::asinh(self)
-                }
-                fn atan(self) -> Self {
-                    $structure::atan(self)
-                }
-                fn atan2(self, other: Self) -> Self {
-                    $structure::atan2(self, other)
-                }
-                fn atanh(self) -> Self {
-                    $structure::atanh(self)
-                }
-                fn cbrt(self) -> Self {
-                    $structure::cbrt(self)
-                }
-                fn ceil(self) -> Self {
-                    $structure::ceil(self)
-                }
-                fn clamp(self, min: Self, max: Self) -> Self {
-                    $structure::clamp(self, min, max)
-                }
-                fn copysign(self, sign: Self) -> Self {
-                    $structure::copysign(self, sign)
-                }
-                fn cos(self) -> Self {
-                    $structure::cos(self)
-                }
-                fn exp(self) -> Self {
-                    $structure::exp(self)
-                }
-                fn exp2(self) -> Self {
-                    $structure::exp2(self)
-                }
-                fn exp_m1(self) -> Self {
-                    $structure::exp_m1(self)
-                }
-                fn floor(self) -> Self {
-                    $structure::floor(self)
-                }
-                fn fract(self) -> Self {
-                    $structure::fract(self)
-                }
-                fn hypot(self, other: Self) -> Self {
-                    $structure::hypot(self, other)
-                }
-                fn ln(self) -> Self {
-                    $structure::ln(self)
-                }
-                fn ln_1p(self) -> Self {
-                    $structure::ln_1p(self)
-                }
-                fn log(self, base: Self) -> Self {
-                    $structure::log(self, base)
-                }
-                fn log10(self) -> Self {
-                    $structure::log10(self)
-                }
-                fn log2(self) -> Self {
-                    $structure::log2(self)
-                }
-                fn powf(self, n: Self) -> Self {
-                    $structure::powf(self, n)
-                }
-                fn powi(self, n: i32) -> Self {
-                    $structure::powi(self, n)
-                }
-                fn recip(self) -> Self {
-                    $structure::recip(self)
-                }
-                fn round(self) -> Self {
-                    $structure::round(self)
-                }
-                fn signum(self) -> Self {
-                    $structure::signum(self)
-                }
-                fn sin(self) -> Self {
-                    $structure::sin(self)
-                }
-                fn sinh(self) -> Self {
-                    $structure::sinh(self)
-                }
-                fn sqrt(self) -> Self {
-                    $structure::sqrt(self)
-                }
-                fn tan(self) -> Self {
-                    $structure::tan(self)
-                }
-                fn tanh(self) -> Self {
-                    $structure::tanh(self)
-                }
-                fn to_degrees(self) -> Self {
-                    $structure::to_degrees(self)
-                }
-                fn to_radians(self) -> Self {
-                    $structure::to_radians(self)
-                }
-                fn trunc(self) -> Self {
-                    $structure::trunc(self)
-                }
-                fn sin_cos(self) -> (Self, Self) {
-                    $structure::sin_cos(self)
-                }
-                fn is_finite(self) -> bool {
-                    $structure::is_finite(self)
-                }
-                fn is_infinite(self) -> bool {
-                    $structure::is_infinite(self)
-                }
-                fn is_nan(self) -> bool {
-                    $structure::is_nan(self)
-                }
-                fn is_normal(self) -> bool {
-                    $structure::is_normal(self)
-                }
-                fn is_subnormal(self) -> bool {
-                    $structure::is_subnormal(self)
                 }
             }
         )*
@@ -184,12 +52,22 @@ macro_rules! impl_bounds_ord {
             }
         )*
     };
-
 }
+pub fn clamp<T: PartialOrd>(input: T, min: T, max: T) -> T {
+    debug_assert!(min <= max, "min must be less than or equal to max");
+    if input < min {
+        min
+    } else if input > max {
+        max
+    } else {
+        input
+    }
+}
+
 macro_rules! impl_has_negatives {
     ($one:tt, $($structure:tt),*) => {
         $(
-            impl HasNegatives for $structure {
+            impl Signed for $structure {
                 fn flip_sign(self) -> Self {
                     self*-$one
                 }
@@ -232,8 +110,6 @@ pub trait FloatingPoint {
     fn atanh(self) -> Self;
     fn cbrt(self) -> Self;
     fn ceil(self) -> Self;
-    fn clamp(self, min: Self, max: Self) -> Self;
-    fn copysign(self, sign: Self) -> Self;
     fn cos(self) -> Self;
     fn exp(self) -> Self;
     fn exp2(self) -> Self;
@@ -342,25 +218,277 @@ impl<T> Number for T
     IntoPrimitive {
     
 }
-pub trait HasNegatives: core::ops::Neg<Output = Self> {
+pub trait Signed: core::ops::Neg<Output = Self> + Sized + Copy {
     fn is_negative(self) -> bool;
     fn is_positive(self) -> bool;
     fn abs(self) -> Self;
     fn flip_sign(self) -> Self;
+    fn copysign(self, sign: Self) -> Self {
+        if self.is_negative() == sign.is_negative() {
+            self
+        } else {
+            self.neg()
+        }
+    }
 }
 pub trait Bounds {
     fn min(self, other: Self) -> Self;
     fn max(self, other: Self) -> Self;
+    
     const MIN: Self;
     const MAX: Self;
 }
-impl_bounds!(f32, f64);
-impl_bounds_ord!(u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize);
-impl_properties!(0, 1, u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize);
-impl_properties!(0.0, 1.0, f32, f64);
-impl_float!(f32, f64);
 impl_has_negatives!(1, i8, i16, i32, i64, i128, isize);
-impl HasNegatives for f32 {
+impl FloatingPoint for f32 {
+    fn acos(self) -> Self {
+        affogato_core::cmath::acosf(self)
+    }
+    fn acosh(self) -> Self {
+        affogato_core::cmath::acoshf(self)
+    }
+    fn asin(self) -> Self {
+        affogato_core::cmath::asinf(self)
+    }
+    fn asinh(self) -> Self {
+        affogato_core::cmath::asinhf(self)
+    }
+    fn atan(self) -> Self {
+        affogato_core::cmath::atanf(self)
+    }
+    fn atan2(self, other: Self) -> Self {
+        affogato_core::cmath::atan2f(self, other)
+    }
+    fn atanh(self) -> Self {
+        affogato_core::cmath::atanhf(self)
+    }
+    fn cbrt(self) -> Self {
+        affogato_core::cmath::cbrtf(self)
+    }
+    fn ceil(self) -> Self {
+        affogato_core::cmath::ceilf(self)
+    }
+    fn cos(self) -> Self {
+        affogato_core::cmath::cosf(self)
+    }
+    fn exp(self) -> Self {
+        affogato_core::cmath::expf(self)
+    }
+    fn exp2(self) -> Self {
+        affogato_core::cmath::exp2f(self)
+    }
+    fn exp_m1(self) -> Self {
+        affogato_core::cmath::expm1f(self)
+    }
+    fn floor(self) -> Self {
+        affogato_core::cmath::floorf(self)
+    }
+    fn fract(self) -> Self {
+        self - self.trunc()
+    }
+    fn hypot(self, other: Self) -> Self {
+        affogato_core::cmath::hypotf(self, other)
+    }
+    fn is_finite(self) -> bool {
+        self.abs() < Self::INFINITY
+    }
+    fn is_infinite(self) -> bool {
+        (self == f32::INFINITY) | (self == f32::NEG_INFINITY)
+    }
+    fn is_nan(self) -> bool {
+        self != self
+    }
+    fn is_normal(self) -> bool {
+        matches!(self.classify(), FpCategory::Normal)
+    }
+    fn is_subnormal(self) -> bool {
+        matches!(self.classify(), FpCategory::Subnormal)
+    }
+    fn ln(self) -> Self {
+        affogato_core::cmath::logf(self)
+    }
+    fn ln_1p(self) -> Self {
+        affogato_core::cmath::log1pf(self)
+    }
+    fn log(self, base: Self) -> Self {
+        self.ln() / base.ln()
+    }
+    fn log10(self) -> Self {
+        affogato_core::cmath::log10f(self)
+    }
+    fn log2(self) -> Self {
+        affogato_core::cmath::log2f(self)
+    }
+    fn powf(self, n: Self) -> Self {
+        affogato_core::cmath::powf(self, n)
+    }
+    fn powi(self, n: i32) -> Self {
+        affogato_core::cmath::powf(self, n as f32)
+    }
+    fn recip(self) -> Self {
+        f32::ONE/self
+    }
+    fn round(self) -> Self {
+        affogato_core::cmath::roundf(self)
+    }
+    fn signum(self) -> Self {
+        if self.is_nan() { Self::NAN } else { 1.0_f32.copysign(self) }
+    }
+    fn sin(self) -> Self {
+        affogato_core::cmath::sinf(self)
+    }
+    fn sin_cos(self) -> (Self, Self)
+            where Self: Sized {
+        (self.sin(), self.cos())
+    }
+    fn sinh(self) -> Self {
+        affogato_core::cmath::sinhf(self)
+    }
+    fn sqrt(self) -> Self {
+        affogato_core::cmath::sqrtf(self)
+    }
+    fn tan(self) -> Self {
+        affogato_core::cmath::tanf(self)
+    }
+    fn tanh(self) -> Self {
+        affogato_core::cmath::tanhf(self)
+    }
+    fn to_degrees(self) -> Self {
+        const PIS_IN_180: f32 = 57.2957795130823208767981548141051703_f32;
+        self * PIS_IN_180
+    }
+    fn to_radians(self) -> Self {
+        const RADS_PER_DEG: f32 = core::f32::consts::PI / 180.0;
+        self * RADS_PER_DEG
+    }
+    fn trunc(self) -> Self {
+        affogato_core::cmath::truncf(self)
+    }
+}
+impl FloatingPoint for f64 {
+    fn acos(self) -> Self {
+        affogato_core::cmath::acos(self)
+    }
+    fn acosh(self) -> Self {
+        affogato_core::cmath::acosh(self)
+    }
+    fn asin(self) -> Self {
+        affogato_core::cmath::asin(self)
+    }
+    fn asinh(self) -> Self {
+        affogato_core::cmath::asinh(self)
+    }
+    fn atan(self) -> Self {
+        affogato_core::cmath::atan(self)
+    }
+    fn atan2(self, other: Self) -> Self {
+        affogato_core::cmath::atan2(self, other)
+    }
+    fn atanh(self) -> Self {
+        affogato_core::cmath::atanh(self)
+    }
+    fn cbrt(self) -> Self {
+        affogato_core::cmath::cbrt(self)
+    }
+    fn ceil(self) -> Self {
+        affogato_core::cmath::ceil(self)
+    }
+    fn cos(self) -> Self {
+        affogato_core::cmath::cos(self)
+    }
+    fn exp(self) -> Self {
+        affogato_core::cmath::exp(self)
+    }
+    fn exp2(self) -> Self {
+        affogato_core::cmath::exp2(self)
+    }
+    fn exp_m1(self) -> Self {
+        affogato_core::cmath::expm1(self)
+    }
+    fn floor(self) -> Self {
+        affogato_core::cmath::floor(self)
+    }
+    fn fract(self) -> Self {
+        self - self.trunc()
+    }
+    fn hypot(self, other: Self) -> Self {
+        affogato_core::cmath::hypot(self, other)
+    }
+    fn is_finite(self) -> bool {
+        self.abs() < Self::INFINITY
+    }
+    fn is_infinite(self) -> bool {
+        (self == Self::INFINITY) | (self == Self::NEG_INFINITY)
+    }
+    fn is_nan(self) -> bool {
+        self != self
+    }
+    fn is_normal(self) -> bool {
+        matches!(self.classify(), FpCategory::Normal)
+    }
+    fn is_subnormal(self) -> bool {
+        matches!(self.classify(), FpCategory::Subnormal)
+    }
+    fn ln(self) -> Self {
+        affogato_core::cmath::log(self)
+    }
+    fn ln_1p(self) -> Self {
+        affogato_core::cmath::log1p(self)
+    }
+    fn log(self, base: Self) -> Self {
+        self.ln() / base.ln()
+    }
+    fn log10(self) -> Self {
+        affogato_core::cmath::log10(self)
+    }
+    fn log2(self) -> Self {
+        affogato_core::cmath::log2(self)
+    }
+    fn powf(self, n: Self) -> Self {
+        affogato_core::cmath::pow(self, n)
+    }
+    fn powi(self, n: i32) -> Self {
+        affogato_core::cmath::pow(self, n as f64)
+    }
+    fn recip(self) -> Self {
+        f64::ONE/self
+    }
+    fn round(self) -> Self {
+        affogato_core::cmath::round(self)
+    }
+    fn signum(self) -> Self {
+        if self.is_nan() { Self::NAN } else { 1.0_f64.copysign(self) }
+    }
+    fn sin(self) -> Self {
+        affogato_core::cmath::sin(self)
+    }
+    fn sin_cos(self) -> (Self, Self)
+            where Self: Sized {
+        (self.sin(), self.cos())
+    }
+    fn sinh(self) -> Self {
+        affogato_core::cmath::sinh(self)
+    }
+    fn sqrt(self) -> Self {
+        affogato_core::cmath::sqrt(self)
+    }
+    fn tan(self) -> Self {
+        affogato_core::cmath::tan(self)
+    }
+    fn tanh(self) -> Self {
+        affogato_core::cmath::tanh(self)
+    }
+    fn to_degrees(self) -> Self {
+        self * (180.0f64 / core::f64::consts::PI)
+    }
+    fn to_radians(self) -> Self {
+        const RADS_PER_DEG: f64 = core::f64::consts::PI / 180.0;
+        self * RADS_PER_DEG
+    }
+    fn trunc(self) -> Self {
+        affogato_core::cmath::trunc(self)
+    }
+}
+impl Signed for f32 {
     fn flip_sign(self) -> Self {
         self*-1.0
     }
@@ -374,7 +502,7 @@ impl HasNegatives for f32 {
         f32::abs(self)
     }
 }
-impl HasNegatives for f64 {
+impl Signed for f64 {
     fn flip_sign(self) -> Self {
         self*-1.0
     }
@@ -388,3 +516,8 @@ impl HasNegatives for f64 {
         f64::abs(self)
     }
 }
+
+impl_bounds!(f32, f64);
+impl_bounds_ord!(u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize);
+impl_properties!(0, 1, u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize);
+impl_properties!(0.0, 1.0, f32, f64);

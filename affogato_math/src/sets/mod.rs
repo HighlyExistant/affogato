@@ -109,7 +109,7 @@ macro_rules! impl_from_primitive {
 }
 
 pub trait Cardinal: UsesArithmetic + Number {}
-pub trait Integer: HasNegatives + UsesArithmetic + Number {}
+pub trait Integer: Signed + UsesArithmetic + Number {}
 pub trait FromPrimitive {
     fn from_u8(val: u8) -> Self;
     fn from_u16(val: u16) -> Self;
@@ -142,7 +142,7 @@ pub trait IntoPrimitive {
     fn to_f32(self) -> f32;
     fn to_f64(self) -> f64;
 }
-pub trait Real: HasNegatives + UsesArithmetic + FloatingPoint + Number + Debug {
+pub trait Real: Signed + UsesArithmetic + FloatingPoint + Number + Debug {
     
     /// Archimedes' constant (π)
     const PI: Self;

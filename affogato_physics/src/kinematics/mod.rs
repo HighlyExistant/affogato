@@ -23,7 +23,6 @@ impl<V: Vector> KinematicSegment<V>
         Self { pos: root, length: <V::Scalar as Zero>::ZERO }
     }
 }
-#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone)]
 pub struct KinematicSegmentList<V: Vector> 
     where V::Scalar: Real {

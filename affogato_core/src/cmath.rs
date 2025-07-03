@@ -1,0 +1,61 @@
+unsafe extern "C" {
+    pub safe fn acos(a: f64) -> f64;
+    pub safe fn acosh(a: f64) -> f64;
+    pub safe fn asin(a: f64) -> f64;
+    pub safe fn asinh(a: f64) -> f64;
+    pub safe fn atan(a: f64) -> f64;
+    pub safe fn atan2(a: f64, b: f64) -> f64;
+    pub safe fn atanh(a: f64) -> f64;
+    pub safe fn cbrt(a: f64) -> f64;
+    pub safe fn ceil(a: f64) -> f64;
+    pub safe fn cos(a: f64) -> f64;
+    pub safe fn erf(a: f64) -> f64;
+    pub safe fn exp(a: f64) -> f64;
+    pub safe fn exp2(a: f64) -> f64;
+    pub safe fn expm1(a: f64) -> f64;
+    pub safe fn floor(a: f64) -> f64;
+    #[cfg_attr(target_env = "msvc", link_name = "_hypot")]
+    pub safe fn hypot(a: f64, b: f64) -> f64;
+    pub safe fn log(a: f64) -> f64;
+    pub safe fn log1p(a: f64) -> f64;
+    pub safe fn log10(a: f64) -> f64;
+    pub safe fn log2(a: f64) -> f64;
+    pub safe fn pow(a: f64, n: f64) -> f64;
+    pub safe fn round(a: f64) -> f64;
+    pub safe fn sin(a: f64) -> f64;
+    pub safe fn sinh(a: f64) -> f64;
+    pub safe fn sqrt(a: f64) -> f64;
+    pub safe fn tan(a: f64) -> f64;
+    pub safe fn tanh(a: f64) -> f64;
+    pub safe fn trunc(a: f64) -> f64;
+    
+    pub safe fn acosf(a: f32) -> f32;
+    pub safe fn acoshf(a: f32) -> f32;
+    pub safe fn asinf(a: f32) -> f32;
+    pub safe fn asinhf(a: f32) -> f32;
+    pub safe fn atanf(a: f32) -> f32;
+    pub safe fn atan2f(a: f32, b: f32) -> f32;
+    pub safe fn atanhf(a: f32) -> f32;
+    pub safe fn cbrtf(a: f32) -> f32;
+    pub safe fn ceilf(a: f32) -> f32;
+    pub safe fn cosf(a: f32) -> f32;
+    pub safe fn erff(a: f32) -> f32;
+    pub safe fn expf(a: f32) -> f32;
+    pub safe fn exp2f(a: f32) -> f32;
+    pub safe fn expm1f(a: f32) -> f32;
+    pub safe fn floorf(a: f32) -> f32;
+    #[cfg_attr(target_env = "msvc", link_name = "_hypotf")]
+    pub safe fn hypotf(a: f32, b: f32) -> f32;
+    pub safe fn logf(a: f32) -> f32;
+    pub safe fn log1pf(a: f32) -> f32;
+    pub safe fn log10f(a: f32) -> f32;
+    pub safe fn log2f(a: f32) -> f32;
+    pub safe fn powf(a: f32, n: f32) -> f32;
+    pub safe fn roundf(a: f32) -> f32;
+    pub safe fn sinf(a: f32) -> f32;
+    pub safe fn sinhf(a: f32) -> f32;
+    pub safe fn sqrtf(a: f32) -> f32;
+    pub safe fn tanf(a: f32) -> f32;
+    pub safe fn tanhf(a: f32) -> f32;
+    pub safe fn truncf(a: f32) -> f32;
+}

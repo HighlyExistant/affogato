@@ -4,7 +4,7 @@ use core::{fmt::Display, ops::{Index, IndexMut}};
 use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
-use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, HasNegatives, Number, One, Real, Zero};
+use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}, Signed, Number, One, Real, Zero};
 pub trait SquareMatrix: Sized {
     type Column: Vector;
     type LowerDimension;
@@ -26,9 +26,9 @@ pub trait SquareMatrix: Sized {
     fn determinant(&self) -> <Self::Column as Vector>::Scalar;
     fn cofactor(&self, column: usize, row: usize) -> Self::LowerDimension;
     fn cofactor_matrix(&self) -> Self 
-        where <Self::Column as Vector>::Scalar: HasNegatives;
+        where <Self::Column as Vector>::Scalar: Signed;
     fn adjoint(&self) -> Self 
-        where <Self::Column as Vector>::Scalar: HasNegatives {
+        where <Self::Column as Vector>::Scalar: Signed {
         self.cofactor_matrix().transpose()
     }
     // Doesn't check whether the determinant is zero
@@ -109,7 +109,7 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
         self[x][y]
     }
     fn cofactor_matrix(&self) -> Self 
-        where <Self::Column as Vector>::Scalar: HasNegatives {
+        where <Self::Column as Vector>::Scalar: Signed {
         Self::new(
             self.y.y(), -self.y.x(), 
             -self.x.y(), self.x.x()
@@ -497,7 +497,7 @@ impl<T: Number> SquareMatrix for Matrix3<T> {
         mat3
     }
     fn cofactor_matrix(&self) -> Self 
-        where T: HasNegatives {
+        where T: Signed {
         Self::new(
             self.cofactor(0, 0).determinant(), -self.cofactor(0, 1).determinant(), self.cofactor(0, 2).determinant(), 
             -self.cofactor(1, 0).determinant(), self.cofactor(1, 1).determinant(), -self.cofactor(1, 2).determinant(), 
@@ -738,7 +738,7 @@ impl<T: Number> SquareMatrix for Matrix4<T> {
         mat3
     }
     fn cofactor_matrix(&self) -> Self 
-        where T: HasNegatives {
+        where T: Signed {
             let xx = self.cofactor(0, 0).determinant();
             let xy = self.cofactor(1, 0).determinant();
             let xz = self.cofactor(2, 0).determinant();
