@@ -1,5 +1,5 @@
-use affogato_core::num::Zero;
-use affogato_math::{matrix::SquareMatrix, vector::{FMat3, FMat4, FVec3, OuterProduct, Vector}};
+use affogato_core::{num::{FloatingPoint, Zero}, groups::vector_spaces::{NormedVectorSpace, VectorSpace}};
+use affogato_math::{matrix::SquareMatrix, vector::{FMat3, FMat4, FVec3}};
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};

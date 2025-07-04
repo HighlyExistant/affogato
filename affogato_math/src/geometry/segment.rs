@@ -1,18 +1,18 @@
 #![allow(unused)]
 use core::{fmt::{Debug, Display}, ops::{Deref, Sub}};
 
-use affogato_core::{num::{Number, Zero}, sets::Real};
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::{Number, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{lerp, vector::{OuterProduct, Vector, Vector2}};
+use crate::{lerp, vector::Vector2};
 
 use super::Dimension;
 #[cfg(feature="alloc")]
 extern crate alloc;
 
 pub trait Segment {
-    type VectorType: Vector;
+    type VectorType: VectorSpace;
     
     /// Represents the order of the curve
     fn order(&self) -> usize;
@@ -24,7 +24,7 @@ pub trait Segment {
     /// t value, between 0.0 and 1.0. If you are using a constant t value of
     /// 0.0 or 1.0, consider using `start` or `end`. 
     fn get(&self, t: f64) -> Self::VectorType
-        where <Self::VectorType as Vector>::Scalar: Real;
+        where <Self::VectorType as VectorSpace>::Scalar: Real;
     /// Retrieves a control point that forms the [`Segment`]. The idx must be between
     /// 0 and the number given by `order`.
     fn control_point(&self, idx: usize) -> Self::VectorType;
@@ -38,13 +38,13 @@ pub trait Segment {
     }
     /// Gets the direction at some t value between 0.0 and 1.0.
     fn direction_at(&self, t: f64) -> Self::VectorType
-    where <Self::VectorType as Vector>::Scalar: Real;
+    where <Self::VectorType as VectorSpace>::Scalar: Real;
     fn adjust_end_point(&mut self, to: Self::VectorType);
     fn adjust_start_point(&mut self, to: Self::VectorType);
     /// Splits the [`Segment`] into 3 segments.
     #[cfg(feature="alloc")]
     fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
-        where <Self::VectorType as Vector>::Scalar: Real,
+        where <Self::VectorType as VectorSpace>::Scalar: Real,
         Self: 'static;
 }
 
@@ -116,7 +116,7 @@ impl<T: Number> LinearSegment2D<T> {
         }
     }
     pub fn split_in_thirds_static(&self) -> [Self; 3] 
-        where <Vector2<T> as Vector>::Scalar: Real,
+        where <Vector2<T> as VectorSpace>::Scalar: Real,
         Self: 'static {
         let a = self.get(1.0/3.0);
         let b = self.get(1.0/2.0);
@@ -136,8 +136,8 @@ impl<T: Number> Segment for LinearSegment2D<T> {
         self.end
     }
     fn get(&self, t: f64) -> Vector2<T>
-        where  <Self::VectorType as Vector>::Scalar: Real {
-        self.start + (self.end-self.start)*<Self::VectorType as Vector>::Scalar::from_f64(t)
+        where  <Self::VectorType as VectorSpace>::Scalar: Real {
+        self.start + (self.end-self.start)*<Self::VectorType as VectorSpace>::Scalar::from_f64(t)
     }
     fn control_point(&self, idx: usize) -> Vector2<T> {
         self[idx]
@@ -154,7 +154,7 @@ impl<T: Number> Segment for LinearSegment2D<T> {
     }
     #[cfg(feature="alloc")]
     fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
-        where <Self::VectorType as Vector>::Scalar: Real,
+        where <Self::VectorType as VectorSpace>::Scalar: Real,
         Self: 'static {
         let a = self.get(1.0/3.0);
         let b = self.get(1.0/2.0);
@@ -194,7 +194,7 @@ impl<T: Number> QuadraticSegment2D<T> {
         Self { start, control, end }
     }
     pub fn split_in_thirds_static(&self) -> [Self; 3] 
-            where <Vector2<T> as Vector>::Scalar: Real,
+            where <Vector2<T> as VectorSpace>::Scalar: Real,
             Self: 'static {
         let p0p01_13 = lerp(self[0], self[1], T::from_f64(1.0/3.0));
         let p_13 = self.get(1.0/3.0);
@@ -218,7 +218,7 @@ impl<T: Number> Segment for QuadraticSegment2D<T> {
         self.end
     }
     fn get(&self, t: f64) -> Self::VectorType
-            where <Self::VectorType as Vector>::Scalar: Real {
+            where <Self::VectorType as VectorSpace>::Scalar: Real {
         let t = T::from_f64(t);
         lerp(lerp(self.start, self.control, t), lerp(self.control, self.end, t), t)
     }
@@ -227,7 +227,7 @@ impl<T: Number> Segment for QuadraticSegment2D<T> {
     }
     fn order(&self) -> usize { 3 }
     fn direction_at(&self, t: f64) -> Self::VectorType
-        where <Self::VectorType as Vector>::Scalar: Real {
+        where <Self::VectorType as VectorSpace>::Scalar: Real {
         let t = T::from_f64(t);
         let tangent = lerp(self.control-self.start, self.end-self.control, t);
         if !tangent.is_zero() {
@@ -255,7 +255,7 @@ impl<T: Number> Segment for QuadraticSegment2D<T> {
     }
     #[cfg(feature="alloc")]
     fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
-            where <Self::VectorType as Vector>::Scalar: Real,
+            where <Self::VectorType as VectorSpace>::Scalar: Real,
             Self: 'static {
         let p0p01_13 = lerp(self[0], self[1], T::from_f64(1.0/3.0));
         let p_13 = self.get(1.0/3.0);
@@ -300,7 +300,7 @@ impl<T: Number> CubicSegment2D<T> {
         Self { start, control1, control2, end }
     }
     fn split_in_thirds_static(&self) -> [Self; 3]  
-        where <Vector2<T> as Vector>::Scalar: Real,
+        where <Vector2<T> as VectorSpace>::Scalar: Real,
         Self: 'static {
         let t_1_3 = T::from_f64(1.0/3.0);
         let t_2_3 = T::from_f64(2.0/3.0);
@@ -341,7 +341,7 @@ impl<T: Number> Segment for CubicSegment2D<T> {
         self.end
     }
     fn get(&self, t: f64) -> Self::VectorType
-            where <Self::VectorType as Vector>::Scalar: Real {
+            where <Self::VectorType as VectorSpace>::Scalar: Real {
         let t = T::from_f64(t);
         let a = lerp(self.start, self.control1, t);
         let b = lerp(self.control1, self.control2, t);
@@ -355,7 +355,7 @@ impl<T: Number> Segment for CubicSegment2D<T> {
     }
     fn order(&self) -> usize { 4 }
     fn direction_at(&self, t: f64) -> Self::VectorType
-        where <Self::VectorType as Vector>::Scalar: Real {
+        where <Self::VectorType as VectorSpace>::Scalar: Real {
         let t = T::from_f64(t);
         let tangent = lerp(lerp(self.control1-self.start, self.control2-self.control1, t), lerp(self.control2-self.control1, self.end-self.control2, t), t);
         if !tangent.is_zero() {
@@ -374,7 +374,7 @@ impl<T: Number> Segment for CubicSegment2D<T> {
     }
     #[cfg(feature="alloc")]
     fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
-            where <Self::VectorType as Vector>::Scalar: Real,
+            where <Self::VectorType as VectorSpace>::Scalar: Real,
             Self: 'static {
         let t_1_3 = T::from_f64(1.0/3.0);
         let t_2_3 = T::from_f64(2.0/3.0);
@@ -453,7 +453,7 @@ impl<T: Number> Segment2D<T> {
         Segment2D::Cubic(CubicSegment2D::new(start, control1, control2, end))
     }
     fn split_in_thirds_static(&self) -> [Self; 3] 
-        where <Vector2<T> as Vector>::Scalar: Real,
+        where <Vector2<T> as VectorSpace>::Scalar: Real,
         Self: 'static {
         match self {
             Segment2D::Linear(linear) => {
@@ -492,7 +492,7 @@ impl<T: Number> Segment for Segment2D<T> {
         self.get().end()
     }
     fn get(&self, t: f64) -> Self::VectorType
-            where <Self::VectorType as Vector>::Scalar: Real {
+            where <Self::VectorType as VectorSpace>::Scalar: Real {
         
         self.get().get(t)
     }
@@ -501,7 +501,7 @@ impl<T: Number> Segment for Segment2D<T> {
     }
     fn order(&self) -> usize { self.get().order() }
     fn direction_at(&self, t: f64) -> Self::VectorType
-        where <Self::VectorType as Vector>::Scalar: Real {
+        where <Self::VectorType as VectorSpace>::Scalar: Real {
         self.get().direction_at(t)
     }
     fn adjust_start_point(&mut self, to: Self::VectorType) {
@@ -512,7 +512,7 @@ impl<T: Number> Segment for Segment2D<T> {
     }
     #[cfg(feature="alloc")]
     fn split_in_thirds(&self) -> [alloc::boxed::Box<dyn Segment<VectorType = Self::VectorType>>; 3] 
-            where <Self::VectorType as Vector>::Scalar: Real,
+            where <Self::VectorType as VectorSpace>::Scalar: Real,
             Self: 'static {
         match self {
             Segment2D::Linear(linear) => linear.split_in_thirds(),

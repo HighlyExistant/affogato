@@ -1,6 +1,6 @@
-use crate::{sdf::SignedDistance, vector::{Vector, Vector2, Vector3}};
+use crate::{sdf::SignedDistance, vector::{Vector2, Vector3}};
 
-use affogato_core::{num::Number, sets::Real};
+use affogato_core::{groups::vector_spaces::{MetricSpace, VectorSpace, NormedVectorSpace}, num::Number, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
@@ -37,7 +37,7 @@ macro_rules! impl_ops_hsphere {
         }
     };
 }
-pub trait HyperSphere<V: Vector> {
+pub trait HyperSphere<V: VectorSpace> {
     fn center(&self) -> V;
     fn radius(&self) -> V::Scalar;
 }

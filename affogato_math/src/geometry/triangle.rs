@@ -1,12 +1,12 @@
 use core::ops::{Index, IndexMut, Sub};
 
-use affogato_core::{num::{Number, Zero}, sets::Real};
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::{Number, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{sdf::SignedDistance, vector::{OuterProduct, Vector, Vector2, Vector3}};
+use crate::{sdf::SignedDistance, vector::{Vector2, Vector3}};
 
 use super::CalculateCentroid;
 
@@ -73,7 +73,7 @@ impl<T: Number> Triangle3D<T> {
     }
 }
 impl<T: Real> CalculateCentroid for Triangle3D<T> {
-    type VectorType = Vector3<T>;
+    type Vector = Vector3<T>;
     fn centroid(&self) -> Vector3<T> {
         Vector3::new(
             (self.v[0].x() + self.v[1].x() + self.v[2].x())*T::from_f64(1.0/3.0),
@@ -143,7 +143,7 @@ impl<T: Number> Triangle2D<T> {
     }
 }
 impl<T: Real> CalculateCentroid for Triangle2D<T> {
-    type VectorType = Vector2<T>;
+    type Vector = Vector2<T>;
     fn centroid(&self) -> Vector2<T> {
         Vector2::new(
             (self.v[0].x() + self.v[1].x() + self.v[2].x())*T::from_f64(1.0/3.0),
@@ -224,7 +224,7 @@ impl<T: Number> Tetrahedron<T> {
     }
 }
 impl<T: Real> CalculateCentroid for Tetrahedron<T> {
-    type VectorType = Vector3<T>;
+    type Vector = Vector3<T>;
     fn centroid(&self) -> Vector3<T> {
         Vector3::new(
             (self.v[0].x() + self.v[1].x() + self.v[2].x() + self.v[3].x())*T::from_f64(1.0/4.0),

@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 cfg-if = "1.0.1"
+unroll = "0.1.5"

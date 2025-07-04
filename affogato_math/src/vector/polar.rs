@@ -1,10 +1,11 @@
 use core::fmt::Debug;
 
-use affogato_core::sets::Real;
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use super::{Vector, Vector2, Vector3, Vector4};
+use crate::vector::{vec2::Vector2, vec3::Vector3, vec4::Vector4};
+
 /// This trait is for all vectors that are represented as a list of angles
 /// and a length. This is useful for when you want to transform a points angle, 
 /// while preserving the length.
@@ -13,9 +14,9 @@ use super::{Vector, Vector2, Vector3, Vector4};
 /// [`SphericalCoordinate`]: Is for 3d vectors.
 /// [`HyperSphereD4Coordinate`]: Is for 3d vectors.
 pub trait RadialCoordinate {
-    type Vector: Vector;
+    type Vector: VectorSpace;
     type Angles;
-    fn length(&self) -> <Self::Vector as Vector>::Scalar;
+    fn length(&self) -> <Self::Vector as VectorSpace>::Scalar;
     fn angles(&self) -> Self::Angles;
     fn to_cartesian(&self) -> Self::Vector
         where for<'a> Self::Vector: From<&'a Self> {
@@ -121,14 +122,14 @@ impl<T: Real> From<&SphericalCoordinate<T>> for Vector3<T> {
 }
 impl<T: Real> From<Vector3<T>> for SphericalCoordinate<T> {
     fn from(value: Vector3<T>) -> Self {
-        let acos = value.z.div(value.length()).acos();
-        Self { length: value.length(), azimuth: Vector2::new(value.x, value.y).angle(), polar: acos }
+        let acos = value.z().div(value.length()).acos();
+        Self { length: value.length(), azimuth: Vector2::new(value.x(), value.y()).angle(), polar: acos }
     }
 }
 impl<T: Real> From<&Vector3<T>> for SphericalCoordinate<T> {
     fn from(value: &Vector3<T>) -> Self {
-        let acos = value.z.div(value.length()).acos();
-        Self { length: value.length(), azimuth: Vector2::new(value.x, value.y).angle(), polar: acos }
+        let acos = value.z().div(value.length()).acos();
+        Self { length: value.length(), azimuth: Vector2::new(value.x(), value.y()).angle(), polar: acos }
     }
 }
 
@@ -180,8 +181,8 @@ impl<T: Real> From<HyperSphereD4Coordinate<T>> for Vector4<T> {
 }
 impl<T: Real> From<Vector4<T>> for HyperSphereD4Coordinate<T> {
     fn from(value: Vector4<T>) -> Self {
-        let acos = value.z.div(Vector3::from(value).length()).acos();
-        let acos2 = value.w.div(value.length()).acos();
-        Self { length: value.length(), azimuth: Vector2::new(value.x, value.y).angle(), polar: acos, phi: acos2 }
+        let acos = value.z().div(Vector3::from(value).length()).acos();
+        let acos2 = value.w().div(value.length()).acos();
+        Self { length: value.length(), azimuth: Vector2::new(value.x(), value.y()).angle(), polar: acos, phi: acos2 }
     }
 }

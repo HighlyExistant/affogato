@@ -1,19 +1,19 @@
 #![cfg(feature="alloc")]
 extern crate alloc;
 
-use affogato_core::{num::Zero, sets::Real};
+use affogato_core::{groups::vector_spaces::{VectorSpace, NormedVectorSpace}, num::Zero, sets::Real};
 use alloc::fmt::{Debug, Display};
 
-use affogato_math::{geometry::Dimension, matrix::{Matrix4, SquareMatrix}, vector::{OuterProduct, Vector, Vector3, Vector4}, Transformation};
+use affogato_math::{geometry::Dimension, matrix::{Matrix4, SquareMatrix}, vector::{Vector3, Vector4}, Transformation};
 use core::ops::{Add, Mul};
 use alloc::vec::Vec;
 use super::{Collision, CollisionInfo, HitCollisionInfo};
 #[derive(Debug)]
-pub(crate) struct Simplex<V: Vector + Dimension, const DIMENSION: usize> {
+pub(crate) struct Simplex<V: VectorSpace + Dimension, const DIMENSION: usize> {
     pub points: [V; DIMENSION],
     pub size: usize,
 }
-impl<V: Vector + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION> {
+impl<V: VectorSpace + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION> {
     pub fn new() -> Self {
         Self { points: [V::ZERO; DIMENSION], size: 0 }
     }
@@ -108,7 +108,7 @@ impl<V: Vector + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION> {
 //         Self { s: Simplex { points: [v1, v2, v3, v4], size: 4 }, claimed, outside }
 //     }
 // }
-impl<V: Vector + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION>  {
+impl<V: VectorSpace + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION>  {
     const CHECK: () = if V::DIMENSION == DIMENSION-1 {
     } else {
         panic!("The dimension must be equal to the vectors dimension + 1");

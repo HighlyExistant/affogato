@@ -1,15 +1,15 @@
 #![cfg(feature="alloc")]
 extern crate alloc;
-use affogato_core::{num::Number, sets::Real};
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::Number, sets::Real};
 use alloc::vec::Vec;
-use affogato_math::{geometry::{Rect3D, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector, Vector2, Vector3}};
+use affogato_math::{geometry::{Rect3D, CubicSegment2D, LinearSegment2D, QuadraticSegment2D, Rect, Segment2D, Triangle2D, Triangle3D}, vector::{Vector2, Vector3}};
 use affogato_physics::kinematics::KinematicSegmentList;
 pub enum VertexTopology {
     Point,
     Line,
     Triangle,
 }
-pub trait Geometry<V: Vector> {
+pub trait Geometry<V: VectorSpace> {
     fn vertices(&self) -> Vec<V>;
     fn indices(&self, topology: VertexTopology) -> Option<Vec<u32>>;
 }
@@ -125,7 +125,7 @@ impl<T: Number> Geometry<Vector2<T>> for Segment2D<T> {
     }
 }
 
-impl<V: Vector> Geometry<V> for KinematicSegmentList<V> 
+impl<V: NormedVectorSpace> Geometry<V> for KinematicSegmentList<V> 
     where V::Scalar: Real {
     fn vertices(&self) -> Vec<V> {
         self.iter().cloned().collect::<Vec<_>>()

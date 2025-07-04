@@ -1,13 +1,13 @@
 #![allow(unused)]
 use core::{fmt::Debug, ops::{Deref, Div}};
 
-use affogato_core::{num::{FloatConsts, Number, Signed, Zero}, sets::Real};
+use affogato_core::{groups::vector_spaces::NormedVectorSpace, num::{Bounds, FloatConsts, Number, Signed, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector, Vector2, Vector3}};
+use crate::{sdf::{RoundSignedDistance, SignedDistance}, vector::{DVec3, FVec3, Vector2, Vector3}};
 
 use super::{CalculateCentroid, Triangle2D, Triangle3D};
 
@@ -150,26 +150,26 @@ impl<T: Number> Rect3D<T> {
     pub fn merge(&self, aabb: &Self) -> Self 
         where T: Debug {
         let mut t = *self;
-        t.min = t.min.min(&aabb.min);
-        t.max = t.max.max(&aabb.max);
+        t.min = t.min.min(aabb.min);
+        t.max = t.max.max(aabb.max);
         t
     }
     /// Using a [`Vector3`], adjust the bounds of the [`Rect3D`] to fit at least the vector.
     pub fn vector_adjust_bounds(&self, v: Vector3<T>) -> Self {
         let mut t = *self;
-        t.min = t.min.min(&v);
-        t.max = t.min.max(&v);
+        t.min = t.min.min(v);
+        t.max = t.min.max(v);
         t
     }
     /// Using a [`Triangle3D`], adjust the bounds of the [`Rect3D`] to fit at least the triangle.
     pub fn triangle_adjust_bounds(&self, triangle: &Triangle3D<T>) -> Self {
         let mut t = *self;
-        t.min = t.min.min(&triangle[0]);
-        t.min = t.min.min(&triangle[1]);
-        t.min = t.min.min(&triangle[2]);
-        t.max = t.max.max(&triangle[0]);
-        t.max = t.max.max(&triangle[1]);
-        t.max = t.max.max(&triangle[2]);
+        t.min = t.min.min(triangle[0]);
+        t.min = t.min.min(triangle[1]);
+        t.min = t.min.min(triangle[2]);
+        t.max = t.max.max(triangle[0]);
+        t.max = t.max.max(triangle[1]);
+        t.max = t.max.max(triangle[2]);
         t
     }
     pub fn normalize(&self) -> Self 
@@ -179,8 +179,8 @@ impl<T: Number> Rect3D<T> {
     }
     fn fix_bounds(&self) -> Self {
         let mut t = *self;
-        t.min = self.min.min(&self.max);
-        t.max = self.max.max(&self.min);
+        t.min = self.min.min(self.max);
+        t.max = self.max.max(self.min);
         t
     }
     pub fn minimum(&self) -> &Vector3<T> {
@@ -196,10 +196,10 @@ impl<T: Number> Rect3D<T> {
         Self { min: Vector3::from(T::MAX), max: Vector3::from(T::MIN) }
     }
     pub fn min(&self, other: &Self) -> Self {
-        Self { min: self.min.min(&other.min), max: self.max.min(&other.max) }
+        Self { min: self.min.min(other.min), max: self.max.min(other.max) }
     }
     pub fn max(&self, other: &Self) -> Self {
-        Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
+        Self { min: self.min.max(other.min), max: self.max.max(other.max) }
     }
     pub fn intersect_point(&self, point: &Vector3<T>) -> bool {
         point.x() >= self.min.x()  &&
@@ -230,7 +230,7 @@ impl<T: Number> Rect3D<T> {
 }
 
 impl<T: Real> CalculateCentroid for Rect3D<T> {
-    type VectorType = Vector3<T>;
+    type Vector = Vector3<T>;
     fn centroid(&self) -> Vector3<T> {
         Vector3::new(
             (self.min.x() + self.max.x())*T::from_f64(0.5), 
@@ -242,8 +242,8 @@ impl<T: Real> CalculateCentroid for Rect3D<T> {
 
 impl<T: Number> From<Vector3<T>> for Rect3D<T> {
     fn from(value: Vector3<T>) -> Self {
-        let min = Vector3::ZERO.min(&value);
-        let max = Vector3::ZERO.max(&value);
+        let min = Vector3::ZERO.min(value);
+        let max = Vector3::ZERO.max(value);
         Self { min, max }
     }
 }
@@ -319,24 +319,24 @@ impl<T: Number> Rect<T> {
     }
     pub fn merge(&self, aabb: &Self) -> Self {
         let mut t = *self;
-        t.min = t.min.min(&aabb.min);
-        t.max = t.min.min(&aabb.max);
+        t.min = t.min.min(aabb.min);
+        t.max = t.min.min(aabb.max);
         t
     }
     pub fn vector_adjust_bounds(&self, v: Vector2<T>) -> Self {
         let mut t = *self;
-        t.min = t.min.min(&v);
-        t.max = t.min.max(&v);
+        t.min = t.min.min(v);
+        t.max = t.min.max(v);
         t
     }
     pub fn triangle_adjust_bounds(&self, triangle: &Triangle2D<T>) -> Self {
         let mut t = *self;
-        t.min = t.min.min(&triangle[0]);
-        t.min = t.min.min(&triangle[1]);
-        t.min = t.min.min(&triangle[2]);
-        t.max = t.max.max(&triangle[0]);
-        t.max = t.max.max(&triangle[1]);
-        t.max = t.max.max(&triangle[2]);
+        t.min = t.min.min(triangle[0]);
+        t.min = t.min.min(triangle[1]);
+        t.min = t.min.min(triangle[2]);
+        t.max = t.max.max(triangle[0]);
+        t.max = t.max.max(triangle[1]);
+        t.max = t.max.max(triangle[2]);
         t
     }
     pub fn normalize(&self) -> Self 
@@ -350,8 +350,8 @@ impl<T: Number> Rect<T> {
     }
     fn fix_bounds(&self) -> Self {
         let mut t = *self;
-        t.min = self.min.min(&self.max);
-        t.max = self.max.max(&self.min);
+        t.min = self.min.min(self.max);
+        t.max = self.max.max(self.min);
         t
     }
     pub fn minimum(&self) -> &Vector2<T> {
@@ -367,10 +367,10 @@ impl<T: Number> Rect<T> {
         Self { min: Vector2::from(T::MAX), max: Vector2::from(T::MIN) }
     }
     pub fn min(&self, other: &Self) -> Self {
-        Self { min: self.min.min(&other.min), max: self.max.min(&other.max) }
+        Self { min: self.min.min(other.min), max: self.max.min(other.max) }
     }
     pub fn max(&self, other: &Self) -> Self {
-        Self { min: self.min.max(&other.min), max: self.max.max(&other.max) }
+        Self { min: self.min.max(other.min), max: self.max.max(other.max) }
     }
     pub fn intersect_point(&self, point: &Vector2<T>) -> bool {
         point.x() >= self.min.x()  &&
@@ -411,7 +411,7 @@ impl<T: Number> From<Triangle2D<T>> for Rect<T> {
 }
 
 impl<T: Real> CalculateCentroid for Rect<T> {
-    type VectorType = Vector2<T>;
+    type Vector = Vector2<T>;
     fn centroid(&self) -> Vector2<T> {
         Vector2::new(
             (self.min.x() + self.max.x())*T::from_f64(0.5), 
@@ -423,7 +423,7 @@ impl<T: Real> CalculateCentroid for Rect<T> {
 impl<T: Real> From<Triangle3D<T>> for Rect3D<T> {
     fn from(value: Triangle3D<T>) -> Self {
         
-        Self { min: value[0].min(&value[1].min(&value[2])), max: value[0].max(&value[1].max(&value[2])) }
+        Self { min: value[0].min(value[1].min(value[2])), max: value[0].max(value[1].max(value[2])) }
     }
 }
 
@@ -440,7 +440,7 @@ impl<T: Real> RoundSignedDistance<Vector3<T>> for Rect3D<T> {
         let translated_object = object.clone()-centroid + r;
         let size = self.size().div(T::from_f64(2.0));
         let q = translated_object.abs() - size;
-        q.max(&Vector3::ZERO).length() + q.x().max(q.y()).min(T::ZERO) - r
+        q.max(Vector3::ZERO).length() + q.x().max(q.y()).min(T::ZERO) - r
     }
 }
 
@@ -458,7 +458,7 @@ impl<T: Real> RoundSignedDistance<Vector2<T>> for Rect<T> {
         let translated_object = object.clone()-centroid + r;
         let size = self.size().div(T::from_f64(2.0));
         let q = translated_object.abs() - size;
-        q.max(&Vector2::ZERO).length() + q.x().max(q.y()).min(T::ZERO) - r
+        q.max(Vector2::ZERO).length() + q.x().max(q.y()).min(T::ZERO) - r
     }
 }
 

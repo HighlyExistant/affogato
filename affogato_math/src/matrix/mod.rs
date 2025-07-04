@@ -1,13 +1,13 @@
 use core::{fmt::Display, ops::{Index, IndexMut}};
 
-use affogato_core::{num::{Number, Signed, Zero, One}, sets::Real};
+use affogato_core::{groups::vector_spaces::VectorSpace, num::{Number, One, Signed, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
 use bytemuck::{Pod, Zeroable};
-use crate::{algebra::Quaternion, vector::{Vector, Vector2, Vector3, Vector4}};
+use crate::{algebra::Quaternion, vector::{Vector2, Vector3, Vector4}};
 pub trait SquareMatrix: Sized {
-    type Column: Vector;
+    type Column: VectorSpace;
     type LowerDimension;
     fn set_identity(&mut self) { *self = Self::identity(); }
     /// The identity of the matrix is one that when multiplied does nothing to a matrix. 
@@ -24,29 +24,29 @@ pub trait SquareMatrix: Sized {
     /// the vectors represented in a matrix. It can help distinguish if the matrix has
     /// been scaled in any way. A matrix whos scale has not changed will have a determinant
     /// of 1.
-    fn determinant(&self) -> <Self::Column as Vector>::Scalar;
+    fn determinant(&self) -> <Self::Column as VectorSpace>::Scalar;
     fn cofactor(&self, column: usize, row: usize) -> Self::LowerDimension;
     fn cofactor_matrix(&self) -> Self 
-        where <Self::Column as Vector>::Scalar: Signed;
+        where <Self::Column as VectorSpace>::Scalar: Signed;
     fn adjoint(&self) -> Self 
-        where <Self::Column as Vector>::Scalar: Signed {
+        where <Self::Column as VectorSpace>::Scalar: Signed {
         self.cofactor_matrix().transpose()
     }
     // Doesn't check whether the determinant is zero
     unsafe fn inverse_unchecked(&self) -> Self 
-        where <Self::Column as Vector>::Scalar: Real, 
-            Self: core::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
-        self.cofactor_matrix().transpose()*(<Self::Column as Vector>::Scalar::ONE/self.determinant())
+        where <Self::Column as VectorSpace>::Scalar: Real, 
+            Self: core::ops::Mul<<Self::Column as VectorSpace>::Scalar, Output = Self> {
+        self.cofactor_matrix().transpose()*(<Self::Column as VectorSpace>::Scalar::ONE/self.determinant())
     }
     // Returns None if the determinant is zero
     fn inverse(&self) -> Option<Self> 
-        where <Self::Column as Vector>::Scalar: Real, 
-            Self: core::ops::Mul<<Self::Column as Vector>::Scalar, Output = Self> {
+        where <Self::Column as VectorSpace>::Scalar: Real, 
+            Self: core::ops::Mul<<Self::Column as VectorSpace>::Scalar, Output = Self> {
         let det = self.determinant();
-        if det == <Self::Column as Vector>::Scalar::ZERO {
+        if det == <Self::Column as VectorSpace>::Scalar::ZERO {
             None
         } else {
-            Some(self.cofactor_matrix().transpose()*(<Self::Column as Vector>::Scalar::ONE/self.determinant()))
+            Some(self.cofactor_matrix().transpose()*(<Self::Column as VectorSpace>::Scalar::ONE/self.determinant()))
         }
     }
     /// Returns a matrix where the diagonal of the matrix is given by a vector.
@@ -101,7 +101,7 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
             )
         )
     }
-    fn determinant(&self) -> <Self::Column as Vector>::Scalar {
+    fn determinant(&self) -> <Self::Column as VectorSpace>::Scalar {
         self.x.x()*self.y.y()-self.x.y()*self.y.x()
     }
     fn cofactor(&self, column: usize, row: usize) -> T {
@@ -110,7 +110,7 @@ impl<T: Number> SquareMatrix for Matrix2<T> {
         self[x][y]
     }
     fn cofactor_matrix(&self) -> Self 
-        where <Self::Column as Vector>::Scalar: Signed {
+        where <Self::Column as VectorSpace>::Scalar: Signed {
         Self::new(
             self.y.y(), -self.y.x(), 
             -self.x.y(), self.x.x()
@@ -460,7 +460,7 @@ impl<T: Number> SquareMatrix for Matrix3<T> {
             ) 
         )
     }
-    fn determinant(&self) -> <Self::Column as Vector>::Scalar {
+    fn determinant(&self) -> <Self::Column as VectorSpace>::Scalar {
         let m1 = Matrix2::from_vec(
             Vector2::new(self.y.y(), self.y.z()), 
             Vector2::new(self.z.y(), self.z.z()));
@@ -697,7 +697,7 @@ impl<T: Number> SquareMatrix for Matrix4<T> {
             )
         }
     }
-    fn determinant(&self) -> <Self::Column as Vector>::Scalar {
+    fn determinant(&self) -> <Self::Column as VectorSpace>::Scalar {
         let m1 = Matrix3::new(
             self.y.y(), self.y.z(), self.y.w(), 
             self.z.y(), self.z.z(), self.z.w(), 
@@ -1081,10 +1081,10 @@ pub use alloc_feature::*;
 mod tests {
     use core::ops::Mul;
 
-    use crate::{matrix::SquareMatrix, vector::{FMat2, FMat3, FMat4, FVec2, FVec3, FVec4, Vector}, One};
+    use crate::{matrix::SquareMatrix, vector::{FMat2, FMat3, FMat4, FVec2, FVec3, FVec4, VectorSpace}, One};
     #[test]
     fn determinant_test() {
-        fn inner_test<M: SquareMatrix>(matrix: M, expected: <M::Column as Vector>::Scalar) {
+        fn inner_test<M: SquareMatrix>(matrix: M, expected: <M::Column as VectorSpace>::Scalar) {
             let determinant = matrix.determinant();
             assert!(determinant == expected, "determinant function is not implemented correctly");
         }

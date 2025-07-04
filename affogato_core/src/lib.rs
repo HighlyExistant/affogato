@@ -2,6 +2,7 @@
 pub mod cmath;
 pub mod num;
 pub mod sets;
+pub mod groups;
 
 pub fn clamp<T: PartialOrd>(input: T, min: T, max: T) -> T {
     debug_assert!(min <= max, "min must be less than or equal to max");

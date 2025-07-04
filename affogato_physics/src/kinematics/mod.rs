@@ -1,6 +1,6 @@
 #![cfg(feature="alloc")]
-use affogato_core::{num::{FromPrimitive, Zero}, sets::Real};
-use affogato_math::{vector::{RadialCoordinate, Vector}};
+use affogato_core::{groups::vector_spaces::{MetricSpace, NormedVectorSpace, VectorSpace}, num::{FromPrimitive, Zero}, sets::Real};
+use affogato_math::{vector::RadialCoordinate};
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
@@ -9,12 +9,12 @@ extern crate alloc;
 
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
-struct KinematicSegment<V: Vector> 
+struct KinematicSegment<V: VectorSpace> 
     where V::Scalar: Real {
     pos: V,
     length: V::Scalar,
 }
-impl<V: Vector> KinematicSegment<V> 
+impl<V: NormedVectorSpace> KinematicSegment<V> 
     where V::Scalar: Real {
     fn new(pos: V, prev: &V) -> Self {
         let length = pos.distance(prev);
@@ -25,18 +25,18 @@ impl<V: Vector> KinematicSegment<V>
     }
 }
 #[derive(Clone)]
-pub struct KinematicSegmentList<V: Vector> 
+pub struct KinematicSegmentList<V: VectorSpace> 
     where V::Scalar: Real {
     segments: alloc::vec::Vec<KinematicSegment<V>>,
     length: V::Scalar,
 }
-impl<V: Vector> Default for KinematicSegmentList<V> 
+impl<V: NormedVectorSpace> Default for KinematicSegmentList<V> 
     where V::Scalar: Real {
     fn default() -> Self {
         Self::new(V::ZERO)
     }
 }
-impl<V: Vector + alloc::fmt::Debug> alloc::fmt::Debug for KinematicSegmentList<V>
+impl<V: VectorSpace + alloc::fmt::Debug> alloc::fmt::Debug for KinematicSegmentList<V>
     where V::Scalar: Real + alloc::fmt::Debug {
     fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
         f.debug_struct("KinematicSegmentList")
@@ -45,7 +45,7 @@ impl<V: Vector + alloc::fmt::Debug> alloc::fmt::Debug for KinematicSegmentList<V
     }
 }
 
-impl<V: Vector> KinematicSegmentList<V> 
+impl<V: NormedVectorSpace> KinematicSegmentList<V> 
     where V::Scalar: Real {
     pub const ITERATIONS: usize = 15;
     pub fn new(root: V) -> Self {
@@ -135,7 +135,7 @@ impl<V: Vector> KinematicSegmentList<V>
     }
 }
 
-impl<V: Vector, I: Iterator<Item = V>> From<I> for KinematicSegmentList<V> 
+impl<V: NormedVectorSpace, I: Iterator<Item = V>> From<I> for KinematicSegmentList<V> 
     where V::Scalar: Real {
     fn from(value: I) -> Self {
         let mut iter = value.into_iter();

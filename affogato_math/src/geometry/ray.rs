@@ -1,26 +1,26 @@
 use core::fmt::Debug;
 
-use affogato_core::{num::Zero, sets::Real};
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::Zero, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{vector::{OuterProduct, Vector, Vector3}};
+use crate::vector::Vector3;
 
 use super::{Sphere, Triangle3D};
 
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Default, Clone, Copy, Debug)]
-pub struct RayHitInfo<V: Vector> {
+pub struct RayHitInfo<V: VectorSpace> {
     pub distance: V::Scalar,
     pub normal: V,
     pub point: V,
 }
 
 pub trait Ray {
-    type Vector: Vector;
+    type Vector: VectorSpace;
     fn set_origin(&mut self, at: Self::Vector);
     fn look(&mut self, at: Self::Vector);
-    fn at(&self, distance: <Self::Vector as Vector>::Scalar) -> Self::Vector;
+    fn at(&self, distance: <Self::Vector as VectorSpace>::Scalar) -> Self::Vector;
     fn origin(&self) -> &Self::Vector;
     fn direction(&self) -> &Self::Vector;
 }
@@ -165,7 +165,7 @@ impl<T: Real> Ray for Ray3D<T>  {
     fn set_origin(&mut self, origin: Self::Vector) {
         self.origin = origin;
     }
-    fn at(&self, distance: <Self::Vector as Vector>::Scalar) -> Self::Vector {
+    fn at(&self, distance: <Self::Vector as VectorSpace>::Scalar) -> Self::Vector {
         return self.origin + self.direction*distance;
     }
 }

@@ -1,20 +1,20 @@
 
-use affogato_core::{num::Zero, sets::Real};
-use affogato_math::{algebra::Quaternion, matrix::{Matrix3, SquareMatrix}, vector::{OuterProduct, Vector, Vector3}, Rotation, Translation};
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::Zero, sets::Real};
+use affogato_math::{algebra::Quaternion, matrix::{Matrix3, SquareMatrix}, vector::Vector3, Rotation, Translation};
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 /// A rigidbody is a physics object that moves according to Newton-Euler laws of rigid
 /// body motion.  
 pub trait RigidBody {
-    type Vector: Vector;
+    type Vector: NormedVectorSpace;
     type Rotor;
     fn velocity(&self) -> Self::Vector;
     fn angular_velocity(&self) -> Self::Vector;
-    fn mass(&self) -> <Self::Vector as Vector>::Scalar;
+    fn mass(&self) -> <Self::Vector as VectorSpace>::Scalar;
     fn apply_force(&mut self, force: Self::Vector, pos: Self::Vector);
     fn apply_torque(&mut self, torque: Self::Vector);
-    fn step(&mut self, deltatime: <Self::Vector as Vector>::Scalar, gravity: Self::Vector, transform: &mut (impl Rotation<Self::Rotor> + Translation<Self::Vector>));
+    fn step(&mut self, deltatime: <Self::Vector as VectorSpace>::Scalar, gravity: Self::Vector, transform: &mut (impl Rotation<Self::Rotor> + Translation<Self::Vector>));
 }
 
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
@@ -48,10 +48,10 @@ impl<T: Real> RigidBody for RigidBody3D<T> {
     fn apply_torque(&mut self, torque: Self::Vector) {
         self.net_torque += torque;
     }
-    fn mass(&self) -> <Self::Vector as Vector>::Scalar {
+    fn mass(&self) -> <Self::Vector as VectorSpace>::Scalar {
         self.mass
     }
-    fn step(&mut self, deltatime: <Self::Vector as Vector>::Scalar, gravity: Self::Vector, transform: &mut (impl Rotation<Self::Rotor> + Translation<Self::Vector>)) {
+    fn step(&mut self, deltatime: <Self::Vector as VectorSpace>::Scalar, gravity: Self::Vector, transform: &mut (impl Rotation<Self::Rotor> + Translation<Self::Vector>)) {
         // apply gravity
         self.net_force += gravity * self.mass;
         self.velocity += self.net_force / self.mass * deltatime;

@@ -1,6 +1,6 @@
-use crate::{vector::{Vector, Vector3}, IsNormalized};
+use crate::{vector::Vector3, IsNormalized};
 
-use affogato_core::{num::Number, sets::Real};
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::Number, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 

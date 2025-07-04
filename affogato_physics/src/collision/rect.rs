@@ -1,5 +1,5 @@
-use affogato_core::sets::Real;
-use affogato_math::{geometry::{CalculateCentroid, Rect, Rect3D}, vector::{Vector, Vector2, Vector3}};
+use affogato_core::{groups::vector_spaces::{VectorSpace, NormedVectorSpace, MetricSpace}, sets::Real};
+use affogato_math::{geometry::{CalculateCentroid, Rect, Rect3D}, vector::{Vector2, Vector3}};
 
 use super::{Collision, HitCollisionInfo};
 

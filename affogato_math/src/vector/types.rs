@@ -1,7 +1,4 @@
-use crate::matrix::{Matrix2, Matrix3, Matrix4};
-
-use super::{Vector2, Vector3, Vector4};
-
+use crate::{matrix::{Matrix2, Matrix3, Matrix4}, vector::{vec2::Vector2, vec3::Vector3, vec4::Vector4}};
 
 // Vector types
 pub type FVec2 = Vector2<f32>;

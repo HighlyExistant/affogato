@@ -5,7 +5,7 @@ mod segment;
 mod ray;
 mod hyperplane;
 
-use affogato_core::{num::Number, sets::Real};
+use affogato_core::{groups::vector_spaces::VectorSpace, num::Number, sets::Real};
 pub use rect::*;
 pub use triangle::*;
 pub use sphere::*;
@@ -13,12 +13,12 @@ pub use segment::*;
 pub use ray::*;
 pub use hyperplane::*;
 
-use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector, Vector2, Vector3, Vector4}};
+use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector2, Vector3, Vector4}};
 
 pub trait CalculateCentroid {
-    type VectorType: Vector;
+    type Vector: VectorSpace;
     /// The centroid is the center of a geometric object.
-    fn centroid(&self) -> Self::VectorType;
+    fn centroid(&self) -> Self::Vector;
 }
 pub type FLinearSegment2D = LinearSegment2D<f32>;
 pub type DLinearSegment2D = LinearSegment2D<f64>;
