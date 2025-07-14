@@ -1,6 +1,6 @@
-use affogato_core::sets::Real;
+use affogato_core::{num::{One, Zero}, sets::Real};
 
-use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{Vector2, Vector3}};
+use crate::{algebra::Quaternion, matrix::{Matrix2, Matrix3, Matrix4}, vector::{FMat3, FVec2, Vector2, Vector3}};
 
 pub trait Rotation<Rot> {
     fn rotate(&mut self, rotate_by: &Rot);
@@ -29,6 +29,11 @@ impl<T: Real> Rotation<T> for Matrix2<T> {
     fn rotate(&mut self, rotate_by: &T) {
         let (sina, cosa) = rotate_by.sin_cos();
         *self = *self*Matrix2::new(cosa, sina, -sina, cosa)
+    }
+}
+impl<T: Real> Rotation<T> for Matrix3<T> {
+    fn rotate(&mut self, rotate_by: &T) {
+        *self = *self *Matrix3::from_transform(Vector2::ZERO, Vector2::ONE, *rotate_by);
     }
 }
 impl<T: Real> Rotation<Quaternion<T>> for Matrix3<T> {

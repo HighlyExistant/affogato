@@ -11,3 +11,4 @@ pub trait Transformation: Translation<Self::Translate> + Rotation<Self::Rotate> 
     type Translate;
     fn transform(position: Self::Translate, rotation: Self::Rotate, scaling: Self::Scale);
 }
+

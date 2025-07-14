@@ -1,15 +1,16 @@
-use crate::{num::{FloatingPoint, Number, One, UniversalOperationsOn, Zero}, sets::Real};
+use crate::{num::{FloatingPoint, Number, UniversalOperationsOn, Zero}, sets::Real};
 
-pub trait CoordinateSpace<const N: usize> 
+pub trait CoordinateSpace
     where Self: UniversalOperationsOn<Self::Element> + UniversalOperationsOn<Self> {
     type Element: Number;
     // retrieves a point inside the vector, checking whether it is out of bounds
-    fn get(&self, idx: usize) -> Option<Self::Element>;
+    fn get(&self, index: usize) -> Option<Self::Element>;
     // retrieves a point inside the vector
-    fn get_unchecked(&self, idx: usize) -> Self::Element;
+    unsafe fn get_unchecked(&self, index: usize) -> Self::Element;
     /// the amount of scalar values this vector has.
     fn len(&self) -> usize;
     fn binary_operation<F: Fn(Self::Element, Self::Element) -> Self::Element>(&self, rhs: Self, f: F) -> Self;
+    fn unary_operation<F: Fn(Self::Element) -> Self::Element>(&self, f: F) -> Self;
 }
 pub trait InnerProduct: VectorSpace {
     fn inner_product(&self, other: &Self) -> Self::Scalar;

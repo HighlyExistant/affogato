@@ -18,5 +18,6 @@ serde = ["affogato_math/serde", "affogato_physics/serde", "graphics_feature/serd
 rand = ["dep:rand", "affogato_math/rand"]
 physics = []
 graphics = []
+web = ["graphics_feature/web"]
 godot = ["affogato_math/godot"]
 glsl = ["affogato_math/glsl"]

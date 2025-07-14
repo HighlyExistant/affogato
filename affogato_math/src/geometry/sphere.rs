@@ -1,4 +1,4 @@
-use crate::{sdf::SignedDistance, vector::{Vector2, Vector3}};
+use crate::{geometry::CalculateCentroid, sdf::SignedDistance, vector::{Vector2, Vector3}};
 
 use affogato_core::{groups::vector_spaces::{MetricSpace, VectorSpace, NormedVectorSpace}, num::Number, sets::Real};
 #[cfg(feature="serde")]
@@ -55,6 +55,7 @@ impl<T: Number> Circle<T> {
         Self { center, radius }
     }
 }
+
 impl<T: Number> HyperSphere<Vector2<T>> for Circle<T> {
     fn center(&self) -> Vector2<T> {
         self.center
@@ -63,6 +64,14 @@ impl<T: Number> HyperSphere<Vector2<T>> for Circle<T> {
         self.radius
     }
 }
+
+impl<T: Number> CalculateCentroid for Circle<T> {
+    type Vector = Vector2<T>;
+    fn centroid(&self) -> Self::Vector {
+        self.center
+    }
+}
+
 impl_ops_hsphere!(Circle, Vector2);
 #[repr(C, align(16))]
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
@@ -84,6 +93,12 @@ impl<T: Number> HyperSphere<Vector3<T>> for Sphere<T> {
     }
     fn radius(&self) -> T {
         self.radius
+    }
+}
+impl<T: Number> CalculateCentroid for Sphere<T> {
+    type Vector = Vector3<T>;
+    fn centroid(&self) -> Self::Vector {
+        self.center
     }
 }
 

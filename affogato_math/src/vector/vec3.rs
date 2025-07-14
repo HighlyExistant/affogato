@@ -4,7 +4,7 @@ use bytemuck::{Pod, Zeroable};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use affogato_core::{groups::vector_spaces::{InnerProduct, MetricSpace, NormedVectorSpace, OuterProduct, VectorSpace}, num::{Bounds, Number, One, Signed, Zero}, sets::Real};
+use affogato_core::{groups::vector_spaces::{CoordinateSpace, InnerProduct, MetricSpace, NormedVectorSpace, OuterProduct, VectorSpace}, num::{Bounds, Number, One, Signed, Zero}, sets::Real};
 
 use crate::vector::{impl_macros::{impl_all_from, impl_all_from_vec, impl_all_scalar_ops, impl_fromvec3, impl_ops, impl_scalar_ops, vector_permutations}, vec2::Vector2, vec4::Vector4};
 
@@ -168,6 +168,14 @@ impl<T: Number> Vector3<T> {
         self.z = z;
     }
 
+    pub fn as_slice(&self) -> &[T] {
+        unsafe { core::slice::from_raw_parts(self as *const _ as _, self.len()) }
+    }
+    
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        unsafe { core::slice::from_raw_parts_mut(self as *mut _ as _, self.len()) }
+    }
+
     vector_permutations!(Vector2, x, y);
     vector_permutations!(Vector2, y, x);
     vector_permutations!(Vector2, x, z);
@@ -272,5 +280,24 @@ impl<T: Number> Bounds for Vector3<T> {
             self.y.max(other.y),
             self.z.max(other.z),
         )
+    }
+}
+
+impl<T: Number> CoordinateSpace for Vector3<T> {
+    type Element = T;
+    fn get(&self, index: usize) -> Option<Self::Element> {
+        self.as_slice().get(index).copied()
+    }
+    unsafe fn get_unchecked(&self, index: usize) -> Self::Element {
+        unsafe { *self.as_slice().get_unchecked(index) }
+    }
+    fn len(&self) -> usize {
+        3
+    }
+    fn binary_operation<F: Fn(Self::Element, Self::Element) -> Self::Element>(&self, rhs: Self, f: F) -> Self {
+        Self::new(f(self.x, rhs.x), f(self.y, rhs.y), f(self.z, rhs.z))
+    }
+    fn unary_operation<F: Fn(Self::Element) -> Self::Element>(&self, f: F) -> Self {
+        Self::new(f(self.x), f(self.y), f(self.z))
     }
 }

@@ -10,7 +10,18 @@ affogato_physics = { path = "../affogato_physics" }
 serde = { version = "1.0.219", optional = true, default-features = false, features = ["derive"] }
 bytemuck = { version = "1.23.0", features = ["derive"] }
 
+[dependencies.web-sys]
+version = "0.3.77"
+features = [
+    "Document",
+    "Window",
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d"
+]
+optional = true
+
 [features]
 default = ["alloc"]
 alloc = []
 serde = ["dep:serde"]
+web = ["dep:web-sys"]

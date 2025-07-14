@@ -4,7 +4,7 @@ use crate::{epsilon_eq, vector::{impl_macros::{self, impl_all_from, impl_all_fro
 use bytemuck::{Pod, Zeroable};
 use paste::paste;
 
-use affogato_core::{groups::vector_spaces::{InnerProduct, MetricSpace, NormedVectorSpace, OuterProduct, VectorSpace}, num::{Bounds, Number, One, Signed, Zero}, sets::Real};
+use affogato_core::{groups::vector_spaces::{CoordinateSpace, InnerProduct, MetricSpace, NormedVectorSpace, OuterProduct, VectorSpace}, num::{Bounds, Number, One, Signed, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 #[repr(C)]
@@ -30,6 +30,9 @@ impl<T: Number> OuterProduct for Vector2<T> {
     /// In 2 dimensions there is no cross product as we understand it in 3d. Instead of returning
     /// a vector, it returns a scalar value. The absolute value of this scalar represents the area 
     /// of the parallelogram formed by the 2 vectors.
+    /// 
+    /// If you want to get the sin of 2 vectors, you can normalize the result of the outer product,
+    /// similar to how you can in the dot product.
     fn outer_product(&self, other: &Self) -> Self::Output {
         (self.x * other.y) - (self.y * other.x)
     }
@@ -121,13 +124,21 @@ impl<T: Number> Vector2<T> {
         where T: Signed {
         Self::new(self.x.abs(), self.y.abs())
     }
+    pub fn cos2(&self, other: &Self) -> T 
+        where T: Real {
+        self.dot(&other)/self.length()
+    }
     pub fn cos(&self)-> T 
         where T: Real {
-        self.normalize().dot(&Self::right())
+        self.cos2(&Self::right())
+    }
+    pub fn sin2(&self, other: &Self)-> T 
+        where T: Real {
+        other.cross(&self)/self.length()
     }
     pub fn sin(&self)-> T 
         where T: Real {
-        T::from_f64(core::f64::consts::FRAC_PI_2) - self.cos()
+        self.sin2(&Self::right())
     }
     pub fn tan(&self)-> T 
         where T: Real {
@@ -161,6 +172,22 @@ impl<T: Number> Vector2<T> {
     #[inline]
     pub fn set_y(&mut self, y: T) {
         self.y = y;
+    }
+
+    pub fn as_slice(&self) -> &[T] {
+        unsafe { core::slice::from_raw_parts(self as *const _ as _, self.len()) }
+    }
+    
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        unsafe { core::slice::from_raw_parts_mut(self as *mut _ as _, self.len()) }
+    }
+    /// The vector triple product is only defined for 3d, this is just a projection
+    /// of that 3d version down to 2d.
+    pub fn vector_triple_product(&self, b: &Self, c: &Self) -> Self {
+        Self::new(
+            self.y()*(b.x()*c.y() - b.y()*c.x()), 
+            self.x()*(b.y()*c.x() - b.x()*c.y()), 
+        )
     }
 
     vector_permutations!(Vector2, x, y);
@@ -244,6 +271,50 @@ impl<T: Number> Bounds for Vector2<T> {
         Self::new(
             self.x.max(other.x),
             self.y.max(other.y),
+        )
+    }
+}
+
+impl<T: Number> CoordinateSpace for Vector2<T> {
+    type Element = T;
+    fn get(&self, index: usize) -> Option<Self::Element> {
+        self.as_slice().get(index).copied()
+    }
+    unsafe fn get_unchecked(&self, index: usize) -> Self::Element {
+        unsafe { *self.as_slice().get_unchecked(index) }
+    }
+    fn len(&self) -> usize {
+        2
+    }
+    fn binary_operation<F: Fn(Self::Element, Self::Element) -> Self::Element>(&self, rhs: Self, f: F) -> Self {
+        Self::new(f(self.x, rhs.x), f(self.y, rhs.y))
+    }
+    fn unary_operation<F: Fn(Self::Element) -> Self::Element>(&self, f: F) -> Self {
+        Self::new(f(self.x), f(self.y))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::vector::FVec2;
+
+    #[test]
+    fn trigonometry() {
+        assert!(
+            FVec2::right().cos() == 1.0,
+            "Cosine of a <1, 0> vector is 1, got: {}", FVec2::right().cos()
+        );
+        assert!(
+            FVec2::top().cos() == 0.0,
+            "Cosine of a <0, 1> vector is 0, got: {}", FVec2::top().cos() 
+        );
+        assert!(
+            FVec2::right().sin() == 0.0,
+            "Sine of a <1, 0> vector is 0, got: {}", FVec2::right().sin()
+        );
+        assert!(
+            FVec2::top().sin() == 1.0,
+            "Sine of a <0, 1> vector is 1, got: {}", FVec2::top().sin() 
         )
     }
 }

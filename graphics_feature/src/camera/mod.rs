@@ -138,6 +138,22 @@ impl PerspectiveCameraProjection {
     pub fn aspect_ratio(&self) -> f32 {
         self.aspect_ratio
     }
+    #[inline]
+    pub fn set_fovy(&mut self, fovy: f32) {
+        self.fovy = fovy;
+    }
+    #[inline]
+    pub fn set_near(&mut self, near: f32) {
+        self.near = near;
+    }
+    #[inline]
+    pub fn set_far(&mut self, far: f32) {
+        self.far = far;
+    }
+    #[inline]
+    pub fn set_aspect_ratio(&mut self, aspect_ratio: f32) {
+        self.aspect_ratio = aspect_ratio;
+    }
 }
 pub fn perspective_fov(near: f32, far: f32, fovy: f32, aspect_ratio: f32) -> FMat4 {
     FMat4::from(PerspectiveCameraProjection::new(near, far, fovy, aspect_ratio))

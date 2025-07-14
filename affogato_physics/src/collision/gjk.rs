@@ -32,82 +32,6 @@ impl<V: VectorSpace + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION> {
         }
     }
 }
-// pub struct QHSimplex<T: Real> {
-//     s: Simplex<Vector3<T>, 4>,
-//     claimed: Vec<Vector3<T>>,
-//     outside: Vec<Vector3<T>>,
-// }
-// impl<T: Real> QHSimplex<T> {
-//     pub fn build_from_points(tetrahedron: &[Vector3<T>; 4]) {
-//         let mut i = 0;
-//         let center = (tetrahedron[0]+tetrahedron[1]+tetrahedron[2]+tetrahedron[3]).mul(T::from_f64(0.25));
-
-//     }
-//     pub fn from_points(points: &[Vector3<T>]) -> Simplex<Vector3<T>, 4> {
-//         let mut min_vertices = [Vector3::from(T::MAX); 4];
-//         let mut max_vertices = [Vector3::from(T::MIN); 4];
-
-//         for p in points {
-//             for i in 0..3 {
-//                 if p.get(i).unwrap() < min_vertices[i].get(i).unwrap() {
-//                     min_vertices[i] = p.clone();
-//                 }
-//                 if p.get(i).unwrap() > max_vertices[i].get(i).unwrap() {
-//                     max_vertices[i] = p.clone();
-//                 }
-//             }
-//         }
-//         let (v1, v2) = {
-//             let mut max_distance = max_vertices[0].x - min_vertices[0].x;
-//             let mut max_axis = 0;
-//             for i in 1..3 {
-//                 let distance = max_vertices[i].get(i).unwrap() - min_vertices[i].get(i).unwrap();
-//                 if distance > max_distance {
-//                     max_distance = distance;
-//                     max_axis = i;
-//                 }
-//             }
-//             (min_vertices[max_axis], max_vertices[max_axis])
-//         };
-
-//         let v3 = {
-//             let mut max_distance = T::MIN;
-//             let mut max_vertex = &Vector3::ZERO;
-//             for i in points {
-//                 let distance = i.line_distance(v2, v1);
-//                 if distance > max_distance {
-//                     max_distance = distance;
-//                     max_vertex = i;
-//                 }
-//             }
-//             max_vertex.clone()
-//         };
-
-//         let v4 = {
-//             let mut max_distance = T::MIN;
-//             let mut max_vertex = &Vector3::ZERO;
-//             for i in points {
-//                 let distance = i.plane_distance(v1, v2, v3);
-//                 if distance > max_distance {
-//                     max_distance = distance;
-//                     max_vertex = i;
-//                 }
-//             }
-//             max_vertex.clone()
-//         };
-//         let signed_dst = v4.signed_plane_distance(v1, v2, v3);
-        
-//         for p in points {
-//             if p.equals_with_epsilon(v1, T::from_f64(10e-5)) || p.equals_with_epsilon(v2, T::from_f64(10e-5)) || p.equals_with_epsilon(v3, T::from_f64(10e-5)) || p.equals_with_epsilon(v4, T::from_f64(10e-5)) {
-//                 continue;
-//             }
-//             let max_dst = T::from_f64(0.01);
-//             let max_dist_fac;
-//         }
-        
-//         Self { s: Simplex { points: [v1, v2, v3, v4], size: 4 }, claimed, outside }
-//     }
-// }
 impl<V: VectorSpace + Dimension, const DIMENSION: usize> Simplex<V, DIMENSION>  {
     const CHECK: () = if V::DIMENSION == DIMENSION-1 {
     } else {
@@ -372,7 +296,7 @@ fn epa<T: Real>(simplex: Simplex<Vector3<T>, 4>, vertices1: &Vec<Vector3<T>>, ve
     }
     Some(CollisionInfo { 
         normal: min_normal, 
-        distance: min_distance + T::from_f64(0.001),
+        distance: min_distance,
     })
 }
 /// from https://winter.dev/articles/gjk-algorithm
@@ -413,22 +337,5 @@ impl<T: Real> Collision<Self> for GJKColliderSolid<T> {
     type CollisionInfo = CollisionInfo<Vector3<T>>;
     fn collides(&self, object: &Self) -> Option<Self::CollisionInfo> {
         gjk(&self.vertices, &object.vertices, &self.transform, &object.transform)
-    }
-}
-
-pub struct GJKColliderSolidRef<'a, T: Real> {
-    pub vertices: Vec<Vector3<T>>,
-    transform: &'a Matrix4<T>,
-}
-impl<'a, T: Real> GJKColliderSolidRef<'a, T> {
-    pub fn new(vertices: Vec<Vector3<T>>, transform: &'a Matrix4<T>) -> Self {
-        Self { vertices, transform }
-    }
-}
-
-impl<'a, T: Real> Collision<Self> for GJKColliderSolidRef<'a, T> {
-    type CollisionInfo = CollisionInfo<Vector3<T>>;
-    fn collides(&self, object: &Self) -> Option<Self::CollisionInfo> {
-        gjk(&self.vertices, &object.vertices, self.transform, object.transform)
     }
 }

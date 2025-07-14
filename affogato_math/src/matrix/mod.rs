@@ -872,6 +872,71 @@ unsafe impl<T: Number> Zeroable for Matrix4<T> {
 }
 unsafe impl<T: Number + Pod> Pod for Matrix4<T> {}
 
+#[repr(C)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Matrix2x3<T: Number> {
+    x: Vector2<T>,
+    y: Vector2<T>,
+    z: Vector2<T>,
+}
+impl<T: Number> Matrix2x3<T>  {
+    pub const fn new(xx: T, xy: T, yx: T, yy: T, zx: T, zy: T) -> Self {
+        Self::from_vec(Vector2::new(xx, xy), Vector2::new(yx, yy), Vector2::new(zx, zy))
+    }
+    pub const fn from_vec(x: Vector2<T>, y: Vector2<T>, z: Vector2<T>) -> Self {
+        Self { x, y, z }
+    }
+}
+
+impl<T: Real> Matrix2x3<T>  {
+    pub fn from_transform(translation: Vector2<T>, scaling: Vector2<T>, rotation: T) -> Self {
+        Self::new(
+            rotation.cos()*scaling.x(), rotation.sin(), 
+            -rotation.sin(), rotation.cos()*scaling.y(), 
+            translation.x(), translation.y()
+        )
+    }
+}
+
+impl<T: Number + Zero> Zero for Matrix2x3<T> {
+    const ZERO: Self = Self::from_vec(Vector2::ZERO, Vector2::ZERO, Vector2::ZERO);
+    fn is_zero(&self) -> bool {
+        self.x.is_zero() && 
+        self.y.is_zero() && 
+        self.z.is_zero() 
+    }
+}
+
+impl<T: Number> core::ops::Add for Matrix2x3<T>  {
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::from_vec(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+    }
+    type Output = Self;
+}
+impl<T: Number> core::ops::Sub for Matrix2x3<T>  {
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::from_vec(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+    }
+    type Output = Self;
+}
+
+impl<T: Number> core::ops::Mul<Vector3<T>> for Matrix2x3<T> {
+    type Output = Vector2<T>;
+    fn mul(self, rhs: Vector3<T>) -> Self::Output {
+        Vector2::new(
+            self.x.x()*rhs.x() + self.y.x()*rhs.y() + self.z.x()*rhs.z(), 
+            self.x.y()*rhs.x() + self.y.y()*rhs.y() + self.z.y()*rhs.z(), 
+        )
+    }
+}
+unsafe impl<T: Number> Zeroable for Matrix2x3<T> {
+    fn zeroed() -> Self {
+        Self::ZERO
+    }
+}
+unsafe impl<T: Number + Pod> Pod for Matrix2x3<T> {}
+
 #[cfg(feature="alloc")]
 mod alloc_feature {
     extern crate alloc;
@@ -879,8 +944,34 @@ mod alloc_feature {
     use affogato_core::num::Number;
     use alloc::{string::String};
 
-    use crate::{matrix::{Matrix2, Matrix3, Matrix4}};
+    use crate::matrix::{Matrix2, Matrix2x3, Matrix3, Matrix4};
     impl<T: Number + Display> Display for Matrix2<T> {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            let mut row1 = alloc::string::String::from('┌');
+            let mut row2 = String::from('└');
+            {
+                let mut str_row1 = alloc::format!("{}, ", self.x.x());
+                let mut str_row2 = alloc::format!("{}, ", self.x.y());
+                let max = str_row1.len().max(str_row2.len());
+                str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
+                str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
+                row1.push_str(str_row1.as_str());
+                row2.push_str(str_row2.as_str());
+            }
+            let mut str_row1 = alloc::format!("{}", self.y.x());
+            let mut str_row2 = alloc::format!("{}", self.y.y());
+            let max = str_row1.len().max(str_row2.len());
+            str_row1.push_str((0..(max-str_row1.len())).map(|_|{' '}).collect::<String>().as_str());
+            str_row2.push_str((0..(max-str_row2.len())).map(|_|{' '}).collect::<String>().as_str());
+            row1.push_str(str_row1.as_str());
+            row2.push_str(str_row2.as_str());
+            row1.push_str("┐\n");
+            row2.push_str("┘\n");
+            f.write_str(row1.as_str())?;
+            f.write_str(row2.as_str())
+        }
+    }
+    impl<T: Number + Display> Display for Matrix2x3<T> {
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
             let mut row1 = alloc::string::String::from('┌');
             let mut row2 = String::from('└');
@@ -1074,6 +1165,7 @@ impl<T: Number> From<Matrix2<T>> for [Vector2<T>; 2] {
         ]
     }
 }
+
 #[cfg(feature = "alloc")]
 pub use alloc_feature::*;
 
@@ -1081,7 +1173,7 @@ pub use alloc_feature::*;
 mod tests {
     use core::ops::Mul;
 
-    use crate::{matrix::SquareMatrix, vector::{FMat2, FMat3, FMat4, FVec2, FVec3, FVec4, VectorSpace}, One};
+    use crate::{matrix::{Matrix2x3, SquareMatrix}, vector::{FMat2, FMat3, FMat4, FVec2, FVec3, FVec4, Vector2, Vector3, VectorSpace}};
     #[test]
     fn determinant_test() {
         fn inner_test<M: SquareMatrix>(matrix: M, expected: <M::Column as VectorSpace>::Scalar) {
@@ -1163,6 +1255,7 @@ mod tests {
         let b = FMat4::new(2.0, 4.0, 6.0, 8.0, 2.0, 4.0, 6.0, 8.0,  2.0, 4.0, 6.0, 8.0,  2.0, 4.0, 6.0, 8.0);
         assert!(a.mul(b) == FMat4::new(180.0, 200.0, 220.0, 240.0, 180.0, 200.0, 220.0, 240.0, 180.0, 200.0, 220.0, 240.0, 180.0, 200.0, 220.0, 240.0), "Implemented mul incorrectly");
         assert!(b.mul(a) == FMat4::new(20.0, 40.0, 60.0, 80.0, 52.0, 104.0, 156.0, 208.0, 84.0, 168.0, 252.0, 336.0, 116.0, 232.0, 348.0, 464.0), "Implemented mul incorrectly");
+        
     }
     #[test]
     fn mul_vector_test() {
@@ -1175,5 +1268,8 @@ mod tests {
         let a = FMat4::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0);
         let vb = FVec4::new(1.0, 2.0, 3.0, 4.0);
         assert!(a.mul(vb) == FVec4::new(90.0, 100.0, 110.0, 120.0), "Implemented mul for vectors incorrectly");
+        let a = Matrix2x3::new(1, 3, 3, 1, 4, 5);
+        let vb = Vector3::new(1, 2, 3);
+        assert!(a.mul(vb) == Vector2::new(19, 20), "Implemented mul for vectors incorrectly");
     }
 }

@@ -5,7 +5,7 @@ mod vec3;
 mod vec4;
 use core::ops::{Div, Index, IndexMut, Neg, Sub};
 
-use affogato_core::{groups::vector_spaces::{InnerProduct, NormedVectorSpace, VectorSpace}, num::{Bounds, FloatingPoint, Number, One, Signed, UniversalOperationsOn, Zero}, sets::Real};
+use affogato_core::{num::{Bounds, FloatingPoint, Number, One, Signed, UniversalOperationsOn, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 

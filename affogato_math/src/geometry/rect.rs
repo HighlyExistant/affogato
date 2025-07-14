@@ -59,7 +59,7 @@ macro_rules! impl_ops_rect {
 
 /// Represents an abstract N-Dimensional cube
 pub trait HyperCube<T: Number> {
-    const DIMENSION: usize;
+    fn dimension(&self) -> usize;
 }
 #[repr(C, align(16))]
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
@@ -83,7 +83,9 @@ impl<T: Number> Deref for Rect3D<T> {
     }
 }
 impl<T: Number> HyperCube<T> for Rect3D<T> {
-    const DIMENSION: usize = 3;
+    fn dimension(&self) -> usize {
+        3
+    }
 }
 impl<T: Number> Default for Rect3D<T> {
     fn default() -> Self {
@@ -275,7 +277,9 @@ impl<T: Number> Deref for Rect<T> {
     }
 }
 impl<T: Number> HyperCube<T> for Rect<T> {
-    const DIMENSION: usize = 2;
+    fn dimension(&self) -> usize {
+        4
+    }
 }
 impl<T: Number> Default for Rect<T> {
     fn default() -> Self {
@@ -299,6 +303,7 @@ impl<T: Number> Rect<T> {
     }
 
     pub fn new(min: Vector2<T>, max: Vector2<T>) -> Self {
+        assert!(min.x() <= max.x() && min.y() <= max.y(), "a component of min can not be larger than its respective component in max");
         Self { min: min, max: max }
     }
     pub fn area(&self) -> T {

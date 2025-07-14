@@ -556,6 +556,9 @@ pub trait FloatConsts {
 
     /// epsilone
     const EPSILON: Self;
+
+    /// epsilone
+    const INFINITY: Self;
 }
 
 impl FloatConsts for f32 {
@@ -636,6 +639,9 @@ impl FloatConsts for f32 {
     
     /// epsilon
     const EPSILON: f32 = 1.19209290e-07_f32;
+
+    /// infinity
+    const INFINITY: f32 = f32::INFINITY;
 }
 impl FloatConsts for f64 {
     
@@ -715,6 +721,9 @@ impl FloatConsts for f64 {
 
     /// ln(10)
     const EPSILON: f64 = 2.2204460492503131e-16_f64;
+    
+    /// infinity
+    const INFINITY: f64 = f64::INFINITY;
 }
 pub trait FromPrimitive {
     fn from_u8(val: u8) -> Self;

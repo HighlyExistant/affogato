@@ -1,4 +1,4 @@
-use crate::{matrix::{Matrix2, Matrix3, Matrix4}, vector::{vec2::Vector2, vec3::Vector3, vec4::Vector4}};
+use crate::{matrix::{Matrix2, Matrix2x3, Matrix3, Matrix4}, vector::{vec2::Vector2, vec3::Vector3, vec4::Vector4}};
 
 // Vector types
 pub type FVec2 = Vector2<f32>;
@@ -90,3 +90,19 @@ pub type UIMat4 = Matrix4<u32>;
 pub type ULMat4 = Matrix4<u64>;
 pub type USizeMat4 = Matrix4<usize>;
 pub type ISizeMat4 = Matrix4<isize>;
+
+
+pub type FMat2x3 = Matrix2x3<f32>;
+pub type DMat2x3 = Matrix2x3<f64>;
+
+pub type CMat2x3 = Matrix2x3<i8>;
+pub type SMat2x3 = Matrix2x3<i16>;
+pub type IMat2x3 = Matrix2x3<i32>;
+pub type LMat2x3 = Matrix2x3<i64>;
+
+pub type UCMat2x3 = Matrix2x3<u8>;
+pub type USMat2x3 = Matrix2x3<u16>;
+pub type UIMat2x3 = Matrix2x3<u32>;
+pub type ULMat2x3 = Matrix2x3<u64>;
+pub type USizeMat2x3 = Matrix2x3<usize>;
+pub type ISizeMat2x3 = Matrix2x3<isize>;

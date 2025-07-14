@@ -1,4 +1,8 @@
 #![no_std]
+
+use core::ops::Rem;
+
+use crate::num::{Number, UniversalOperationsOn};
 pub mod cmath;
 pub mod num;
 pub mod sets;
@@ -14,7 +18,12 @@ pub fn clamp<T: PartialOrd>(input: T, min: T, max: T) -> T {
         input
     }
 }
-
+pub fn round_ceil<T: UniversalOperationsOn<T> + Rem<Output = T> + Clone + Copy>(number: T, multiple: T) -> T {
+    (multiple-(number%multiple))+number
+}
+pub fn round_floor<T: UniversalOperationsOn<T> + Rem<Output = T> + Clone + Copy>(number: T, multiple: T) -> T {
+    number-(number%multiple)
+}
 
 #[cfg(test)]
 mod test {
