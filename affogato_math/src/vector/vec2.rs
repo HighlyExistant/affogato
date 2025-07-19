@@ -33,6 +33,8 @@ impl<T: Number> OuterProduct for Vector2<T> {
     /// 
     /// If you want to get the sin of 2 vectors, you can normalize the result of the outer product,
     /// similar to how you can in the dot product.
+    /// 
+    /// Grabbing the outer product of a vector with a collinear vector will result in a determinant of 0.
     fn outer_product(&self, other: &Self) -> Self::Output {
         (self.x * other.y) - (self.y * other.x)
     }
@@ -60,15 +62,16 @@ impl<T: Number> One for Vector2<T> {
 impl<T: Number> VectorSpace for Vector2<T> {
     type Scalar = T;
     type CrossProduct = T;
+    fn length_squared(&self) -> Self::Scalar {
+        (self.x()*self.x())+(self.y()*self.y())
+    }
 }
 
 impl<T: Real> NormedVectorSpace for Vector2<T> {
-    fn normalize(&self) -> Self {
+    fn normalize(&self) -> Self
+            where Self::Scalar: Real {
         let magnitude = self.length();
         self.clone()/magnitude
-    }
-    fn length_squared(&self) -> Self::Scalar {
-        (self.x()*self.x())+(self.y()*self.y())
     }
 }
 

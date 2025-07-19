@@ -10,13 +10,13 @@ pub mod rigidbody;
 pub trait Inertia {
     type Tensor;
     type Vector: VectorSpace;
-    fn inertia(&self, density: <Self::Vector as VectorSpace>::Scalar) -> Self::Tensor;
-    fn inertia_with_mass(&self, mass: <Self::Vector as VectorSpace>::Scalar) -> Self::Tensor;
+    fn inverse_inertia(&self, density: <Self::Vector as VectorSpace>::Scalar) -> Self::Tensor;
+    fn inverse_inertia_with_mass(&self, mass: <Self::Vector as VectorSpace>::Scalar) -> Self::Tensor;
 }
 impl<T: Real> Inertia for Rect3D<T> {
     type Tensor = Matrix3<T>;
     type Vector = Vector3<T>;
-    fn inertia(&self, density: T) -> Self::Tensor {
+    fn inverse_inertia(&self, density: T) -> Self::Tensor {
         let lengths = self.max-self.min;
         let volume = lengths.x()*lengths.y()*lengths.z();
         let mass = density*volume;
@@ -32,7 +32,7 @@ impl<T: Real> Inertia for Rect3D<T> {
         ));
         diag
     }
-    fn inertia_with_mass(&self, mass: T) -> Self::Tensor {
+    fn inverse_inertia_with_mass(&self, mass: T) -> Self::Tensor {
         let lengths = self.max-self.min;
 
         let x2 = lengths.x()*lengths.x();
@@ -51,14 +51,14 @@ impl<T: Real> Inertia for Rect3D<T> {
 impl<T: Real> Inertia for Rect<T> {
     type Tensor = T;
     type Vector = Vector3<T>;
-    fn inertia(&self, density: T) -> Self::Tensor {
+    fn inverse_inertia(&self, density: T) -> Self::Tensor {
         let lengths = self.max-self.min;
         let volume = lengths.x()*lengths.y();
         let mass = density*volume;
         
         T::ONE/((mass*(lengths.x()*lengths.x() + lengths.y()*lengths.y()))/T::from_f64(12.0))
     }
-    fn inertia_with_mass(&self, mass: T) -> Self::Tensor {
+    fn inverse_inertia_with_mass(&self, mass: T) -> Self::Tensor {
         let lengths = self.max-self.min;
         T::ONE/((mass*(lengths.x()*lengths.x() + lengths.y()*lengths.y()))/T::from_f64(12.0))
     }

@@ -109,7 +109,7 @@ impl<T: Real> RigidBody3D<T> {
         Self::new_with_inertia(mass, center_of_mass, Matrix3::identity() )
     }
     pub fn from_rect(rect: Rect3D<T>, density: T) -> Self {
-        Self::new_with_inertia(density*rect.volume(), rect.centroid(), rect.inertia(density))
+        Self::new_with_inertia(density*rect.volume(), rect.centroid(), rect.inverse_inertia(density))
     }
     pub fn new_with_inertia(mass: T, center_of_mass: Vector3<T>, inertia: Matrix3<T>) -> Self {
         Self { 
@@ -139,7 +139,7 @@ impl<T: Real> RigidBody2D<T> {
         Self::new_with_inertia(mass, center_of_mass, T::ONE)
     }
     pub fn from_rect(rect: Rect<T>, density: T) -> Self {
-        Self::new_with_inertia(density*rect.area(), rect.centroid(), rect.inertia(density))
+        Self::new_with_inertia(density*rect.area(), rect.centroid(), rect.inverse_inertia(density))
     }
     pub fn new_with_inertia(mass: T, center_of_mass: Vector2<T>, inertia: T) -> Self {
         Self { 

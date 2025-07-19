@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 
 use affogato_core::{groups::vector_spaces::{CoordinateSpace, InnerProduct, MetricSpace, NormedVectorSpace, OuterProduct, VectorSpace}, num::{Bounds, Number, One, Signed, Zero}, sets::Real};
 
-use crate::vector::{impl_macros::{impl_all_from, impl_all_from_vec, impl_all_scalar_ops, impl_fromvec3, impl_ops, impl_scalar_ops, vector_permutations}, vec2::Vector2, vec4::Vector4};
+use crate::{matrix::Matrix3, vector::{impl_macros::{impl_all_from, impl_all_from_vec, impl_all_scalar_ops, impl_fromvec3, impl_ops, impl_scalar_ops, vector_permutations}, vec2::Vector2, vec4::Vector4}};
 
 #[repr(C)]
 #[cfg(feature="glsl")]
@@ -76,15 +76,15 @@ impl<T: Number> One for Vector3<T> {
 impl<T: Number> VectorSpace for Vector3<T> {
     type Scalar = T;
     type CrossProduct = Self;
+    fn length_squared(&self) -> Self::Scalar {
+        (self.x()*self.x())+(self.y()*self.y())+(self.z()*self.z())
+    }
 }
 
 impl<T: Real> NormedVectorSpace for Vector3<T> {
     fn normalize(&self) -> Self {
         let magnitude = self.length();
         self.clone()/magnitude
-    }
-    fn length_squared(&self) -> Self::Scalar {
-        (self.x()*self.x())+(self.y()*self.y())+(self.z()*self.z())
     }
 }
 
@@ -174,6 +174,19 @@ impl<T: Number> Vector3<T> {
     
     pub fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe { core::slice::from_raw_parts_mut(self as *mut _ as _, self.len()) }
+    }
+    /// Turns a vector into a matrix that performs the cross product when multiplied with
+    /// another vector.
+    /// 
+    /// This can also be thought of as a skew matrix. A nice property of the skew matrix is
+    /// that its transpose is the negative of the skew matrix.
+    pub fn as_cross_matrix(&self) -> Matrix3<T> 
+        where T: core::ops::Neg<Output = T> {
+        Matrix3::new(
+            T::ZERO, self.z(), -self.y(), 
+            -self.z(), T::ZERO, self.x(), 
+            self.y(), -self.x(), T::ZERO
+        )
     }
 
     vector_permutations!(Vector2, x, y);

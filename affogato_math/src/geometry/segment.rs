@@ -1,11 +1,11 @@
 #![allow(unused)]
-use core::{fmt::{Debug, Display}, ops::{Deref, Sub}};
+use core::{fmt::{Debug, Display}, ops::{Deref, Div, Sub}};
 
-use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::{Number, Zero}, sets::Real};
+use affogato_core::{groups::vector_spaces::{NormedVectorSpace, VectorSpace}, num::{Bounds, Number, Zero}, sets::Real};
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{lerp, vector::Vector2};
+use crate::{geometry::CalculateCentroid, lerp, vector::Vector2};
 
 use super::Dimension;
 #[cfg(feature="alloc")]
@@ -173,6 +173,20 @@ impl<T: Number> Deref for LinearSegment2D<T> {
     }
 }
 
+impl<T: Number> CalculateCentroid for LinearSegment2D<T> {
+    type Vector = Vector2<T>;
+    fn centroid(&self) -> Self::Vector {
+        (self.start+self.end).div(T::from_u32(2))
+    }
+}
+
+impl<T: Number> core::ops::Add<Vector2<T>> for LinearSegment2D<T> {
+    type Output = Self;
+    fn add(self, rhs: Vector2<T>) -> Self::Output {
+        Self::new(self.start+rhs, self.end+rhs)
+    }
+}
+
 #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy)]
 pub struct QuadraticSegment2D<T: Number> {
@@ -208,6 +222,12 @@ impl<T: Number> QuadraticSegment2D<T> {
             part3,
         ]
     }
+    // pub fn intersection(&self, segment: LinearSegment2D<T>) -> bool {
+    //     let min = segment.start.min(segment.end);
+    //     let max = segment.start.max(segment.end);
+    //     let a = self.control *T::from_i32 (-2);
+    //     let c2 = self.start + a + self.end;
+    // }
 }
 impl<T: Number> Segment for QuadraticSegment2D<T> {
     type VectorType = Vector2<T>;
@@ -274,6 +294,20 @@ impl<T: Number> Deref for QuadraticSegment2D<T> {
     type Target = [Vector2<T>; 3];
     fn deref(&self) -> &Self::Target {
         unsafe { core::mem::transmute::<&Self, &[Vector2<T>; 3]>(self) }
+    }
+}
+
+impl<T: Number> CalculateCentroid for QuadraticSegment2D<T> {
+    type Vector = Vector2<T>;
+    fn centroid(&self) -> Self::Vector {
+        (self.start+self.control+self.end).div(T::from_u32(3))
+    }
+}
+
+impl<T: Number> core::ops::Add<Vector2<T>> for QuadraticSegment2D<T> {
+    type Output = Self;
+    fn add(self, rhs: Vector2<T>) -> Self::Output {
+        Self::new(self.start+rhs, self.control+rhs, self.end+rhs)
     }
 }
 
@@ -406,6 +440,20 @@ impl<T: Number> Segment for CubicSegment2D<T> {
     }
 }
 
+impl<T: Number> CalculateCentroid for CubicSegment2D<T> {
+    type Vector = Vector2<T>;
+    fn centroid(&self) -> Self::Vector {
+        (self.start+self.control1+self.control2+self.end).div(T::from_u32(4))
+    }
+}
+
+impl<T: Number> core::ops::Add<Vector2<T>> for CubicSegment2D<T> {
+    type Output = Self;
+    fn add(self, rhs: Vector2<T>) -> Self::Output {
+        Self::new(self.start+rhs, self.control1+rhs, self.control2+rhs, self.end+rhs)
+    }
+}
+
 impl<T: Number> Deref for CubicSegment2D<T> {
     type Target = [Vector2<T>; 4];
     fn deref(&self) -> &Self::Target {
@@ -518,6 +566,17 @@ impl<T: Number> Segment for Segment2D<T> {
             Segment2D::Linear(linear) => linear.split_in_thirds(),
             Segment2D::Quadratic(quadratic) => quadratic.split_in_thirds(),
             Segment2D::Cubic(cubic) => cubic.split_in_thirds(),
+        }
+    }
+}
+
+impl<T: Number> CalculateCentroid for Segment2D<T> {
+    type Vector = Vector2<T>;
+    fn centroid(&self) -> Self::Vector {
+        match self {
+            Segment2D::Linear(linear) => linear.centroid(),
+            Segment2D::Quadratic(quadratic) => quadratic.centroid(),
+            Segment2D::Cubic(cubic) => cubic.centroid(),
         }
     }
 }

@@ -2,7 +2,7 @@
 
 use core::ops::Rem;
 
-use crate::num::{Number, UniversalOperationsOn};
+use crate::num::UniversalOperationsOn;
 pub mod cmath;
 pub mod num;
 pub mod sets;

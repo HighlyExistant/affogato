@@ -49,15 +49,15 @@ impl<T: Number> One for Vector4<T> {
 impl<T: Number> VectorSpace for Vector4<T> {
     type Scalar = T;
     type CrossProduct = ();
+    fn length_squared(&self) -> Self::Scalar {
+        (self.x()*self.x())+(self.y()*self.y())+(self.z()*self.z())+(self.w()*self.w())
+    }
 }
 
 impl<T: Real> NormedVectorSpace for Vector4<T> {
     fn normalize(&self) -> Self {
         let magnitude = self.length();
         self.clone()/magnitude
-    }
-    fn length_squared(&self) -> Self::Scalar {
-        (self.x()*self.x())+(self.y()*self.y())+(self.z()*self.z())+(self.w()*self.w())
     }
 }
 

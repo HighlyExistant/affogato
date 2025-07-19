@@ -48,12 +48,13 @@ pub trait VectorSpace
         where Self: OuterProduct<Output = Self::CrossProduct> {
         self.outer_product(other)
     }
+    fn length_squared(&self) -> Self::Scalar;
 }
 
 pub trait NormedVectorSpace
     where Self: VectorSpace + MetricSpace<Distance = Self::Scalar> {
-    fn normalize(&self) -> Self;
-    fn length_squared(&self) -> Self::Scalar;
+    fn normalize(&self) -> Self
+        where Self::Scalar: Real;
     fn length(&self) -> Self::Scalar 
         where Self::Scalar: Real {
         self.length_squared().sqrt()
